@@ -1,13 +1,16 @@
-<div class="main-content">
+@extends('layouts.app')
+
+@section('contents')
+ <div class="main-content">
     <div class="topbar p-3">
       <div class="d-flex justify-content-between align-items-center">
         <h4 class="fw-semibold mb-0">Dashboard</h4>
         <div class="d-flex  gap-3">
-          <select class="form-select form-select-md" id="SelectYear" name="year">
+          <select class="form-select form-select-sm" id="SelectYear" name="year">
             <option>May/June 2026</option>
             <option>May/June 2027</option>
           </select>
-          <select class="form-select form-select-md" id="currencySelect" name="currency">
+          <select class="form-select form-select-sm" id="currencySelect" name="currency">
             <option>EG/EGP</option>
             <option>US/USD</option>
             <option>EU/EUR</option>
@@ -122,4 +125,5 @@
     </div>
   </div>
 
-  
+
+  @endsection

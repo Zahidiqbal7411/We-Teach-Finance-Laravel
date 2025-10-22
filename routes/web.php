@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FormdataController;
 use App\Http\Controllers\PlatformController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\SettingController;
 
 
 use Illuminate\Support\Facades\Route;
+use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 Route::get('/', function () {
     return view('welcome');
@@ -29,10 +31,11 @@ Route::middleware('auth')->group(function () {
 // Route::get('/form/{id}/edit',[FormdataController::class ,'edit'])->name('form.edit');
 // Route::post('/form/delete/{id}',[FormdataController::class ,'delete'])->name('form.delete');
 
-Route::get('teacher/create', [TeacherController::class , 'create'])->name('teacher.create');
-Route::get('platform/create', [PlatformController::class , 'create'])->name('platform.create');
-Route::get('report/create', [ReportController::class , 'create'])->name('report.create');
-Route::get('setting/create', [SettingController::class , 'create'])->name('setting.create');
+Route::resource('dashboard', DashboardController::class);
+Route::resource('teacher', TeacherController::class);
+Route::resource('platform', PlatformController::class);
+Route::resource('report', ReportController::class);
+Route::resource('setting', SettingController::class);
 
 Route::get('teacher_setting/create', [SettingController::class , 'create'])->name('teacher_setting.create');
 Route::get('taxonomies_setting/create', [SettingController::class , 'create'])->name('taxonomies_setting.create');

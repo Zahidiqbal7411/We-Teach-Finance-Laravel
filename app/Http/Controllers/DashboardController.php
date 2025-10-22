@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class System_settingController extends Controller
+class DashboardController extends Controller
 {
     public function create(){
-        return view('layouts.app');
+        return view("dashboard.index");
     }
 }

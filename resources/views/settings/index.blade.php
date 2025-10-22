@@ -454,3 +454,68 @@
     </div>
   </div>
   @endsection
+
+
+
+  @section('scripts')
+
+ <script>
+    const teacherInput = document.getElementById("teacherPercentage");
+    const teacherShareText = document.getElementById("teacherShare");
+    const platformShareText = document.getElementById("platformShare");
+
+    teacherInput.addEventListener("input", () => {
+      let teacherValue = Math.min(Math.max(Number(teacherInput.value), 0), 100); // keep between 0 and 100
+      let platformValue = 100 - teacherValue;
+
+      teacherShareText.textContent = `${teacherValue}%`;
+      platformShareText.textContent = `${platformValue}%`;
+    });
+
+
+
+    // add taxnomy
+    const data = {
+      eduList: ['British System', 'American System', 'Egyptian System', 'International Baccalaureate', 'French System'],
+      subjectList: ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English Language', 'Arabic Language', 'History', 'Geography'],
+      boardList: ['Cambridge IGCSE', 'Edexcel', 'AQA', 'OCR', 'IB Organization', 'Egyptian Ministry of Education'],
+      sessionList: ['May/June 2026', 'October/November 2025', 'May/June 2025', 'October/November 2024']
+    };
+
+    Object.keys(data).forEach(key => renderList(key));
+
+    function renderList(listId) {
+      const container = document.getElementById(listId);
+      container.innerHTML = '';
+      data[listId].forEach((item, index) => {
+        container.innerHTML += `
+        <div class="taxonomy-item">
+          <span>${item}</span>
+          <i class="fa-solid fa-trash" onclick="deleteItem('${listId}', ${index})"></i>
+        </div>
+      `;
+      });
+    }
+
+    function addItem(listId, inputId) {
+      const input = document.getElementById(inputId);
+      const value = input.value.trim();
+      if (value) {
+        data[listId].push(value);
+        renderList(listId);
+        input.value = '';
+      }
+    }
+
+    function deleteItem(listId, index) {
+      data[listId].splice(index, 1);
+      renderList(listId);
+    }
+
+  </script>
+
+
+
+
+
+  @endsection
