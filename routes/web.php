@@ -13,12 +13,10 @@ use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('dashboard.index');
+})->name('dashboard');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -31,7 +29,7 @@ Route::middleware('auth')->group(function () {
 // Route::get('/form/{id}/edit',[FormdataController::class ,'edit'])->name('form.edit');
 // Route::post('/form/delete/{id}',[FormdataController::class ,'delete'])->name('form.delete');
 
-Route::resource('dashboard', DashboardController::class);
+
 Route::resource('teacher', TeacherController::class);
 Route::resource('platform', PlatformController::class);
 Route::resource('report', ReportController::class);

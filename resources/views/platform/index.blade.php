@@ -1,365 +1,764 @@
-@extends('layouts.app')
+{{-- @extends('layouts.app')
+
 @section('contents')
-<div class="main-content">
-        <div class="topbar p-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <h4 class="fw-semibold mb-0">Platform</h4>
-                <div class="d-flex  gap-3">
-                    <select class="form-select form-select-md">
-                        <option>May/June 2026</option>
-                        <option>May/June 2027</option>
-                    </select>
-                    <select class="form-select form-select-md">
-                        <option>EG/EGP</option>
-                        <option>US/USD</option>
-                        <option>EU/EUR</option>
-                    </select>
-                </div>
-            </div>
+<div class="main-content p-4" style="margin-left: 260px; min-height: 100vh; background: #f8f9fa;">
+
+    <!-- ✅ Top Bar -->
+    <div class="teacher-topbar d-flex justify-content-between align-items-center mb-4 p-3" 
+         style="background: #ffffff; border-radius: 10px;">
+        <div>
+            <h4 class="fw-semibold mb-0">Platform</h4>
         </div>
-
-        <div class="content-area">
-            <div class="sub-topbar d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h4 class="fw-semibold mb-0">Platform</h4>
-                    <small class="text-muted">Cross-teacher views and platform management</small>
-                </div>
-
-            </div> <!-- Cards Row -->
-            <div class="row g-3 mb-4 details-cards">
-                <div class="col-md-4">
-                    <div class="info-card border-start border-success border-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="fw-bold mb-1 ">Platform Balance</h5>
-                                <h5 class="mb-0 fw-bold mt-3">LE 4,658.25</h5>
-                                <small class="">Platform revenue (30% share)</small>
-                            </div>
-                            <i class="fa-solid fa-arrow-trend-up text-success fs-5 mb-5"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="info-card border-start border-primary border-3" id="platform-cardone">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="fw-bold mb-1">Total Revenue</h5>
-                                <h5 class="mb-0 fw-bold mt-3">LE 4,658.25</h5>
-                                <small class="text-secondary">Lifetime platform earnings</small>
-                            </div>
-                            <i class="fa-solid fa-dollar-sign text-primary fs-5 mb-5"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="info-card border-start border-purple border-3" id="platform-cardtwo">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="fw-bold mb-1">Withdrawn Balance</h5>
-                                <h5 class="mb-0 fw-bold mt-3">LE 0.00</h5>
-                                <small class="text-secondary">Amount withdrawn by platform</small>
-                            </div>
-                            <i class="fa-solid fa-coins text-purple fs-5 mb-5"></i>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-
+        <div class="d-flex align-items-center gap-3">
+            <select class="form-select form-select-md" id="SelectYear" style="outline: none !important; box-shadow: none !important;">
+                <option>May/June 2026</option>
+                <option>May/June 2027</option>
+            </select>
+            <select class="form-select form-select-md" id="currencySelect" style="outline: none !important; box-shadow: none !important;">
+                <option>EG/EGP</option>
+                <option>US/USD</option>
+                <option>EU/EUR</option>
+            </select>
         </div>
-
-
-
-        <!-- Tabs -->
-        <div class="d-flex gap-2 mb-3 flex-wrap platform-tabsBtns">
-            <button class="btn btn-outline active" id="tab-transactions">Transactions</button>
-            <button class="btn btn-outline" id="tab-reports">Reports</button>
-            <button class="btn btn-outline" id="tab-payouts">Payouts</button>
-            <button class="btn btn-outline" id="tab-balances">Balances</button>
-        </div>
-
-        <!-- Sub Tabs -->
-        <div class="d-flex gap-2  mt-3 flex-wrap sub-tabbtns">
-            <button class="btn btn-light border active" id="sub-recent">Recent</button>
-            <button class="btn btn-light border" id="sub-percourse">Per Course</button>
-        </div>
-
-        <!-- Card Table -->
-        <div class="card-table p-3 shadow-lg mt-3">
-  <h5 class="fw-semibold mb-3" id="table-title">All Transactions</h5>
-
-  <!-- Controls -->
-  <div class="d-flex flex-wrap justify-content-between mb-3 gap-2 align-items-center">
-    <div class="d-flex flex-wrap gap-2">
-      <button class="btn btn-dark btn-sm d-flex align-items-center gap-1">
-        <i class="fa-solid fa-plus"></i> Add
-      </button>
-      <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
-        <i class="fa-solid fa-filter"></i> Filter
-      </button>
-      <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
-        <i class="fa-solid fa-download"></i> Export
-      </button>
-
-      <select id="columnsSelect" class="form-select form-select-sm" style="width:auto; min-width:140px;">
-        <option value="id">Columns</option>
-        <option value="date_time">Date &amp; Time</option>
-        <option value="teacher">Teacher</option>
-      </select>
     </div>
 
-    <input type="text" id="search" class="form-control form-control-sm w-auto" placeholder="Search...">
-  </div>
+    <!-- Header -->
+    <div class="mb-4">
+        <h4 class="fw-semibold mb-1">Platform Overview</h4>
+        <p class="text-muted mb-0">Manage platform transactions, payouts, balances, and reports</p>
+    </div>
 
-  <!-- Table -->
-  <div class="table-responsive">
-    <table class="table table-bordered table-hover align-middle mb-0">
-      <thead class="table-light text-secondary small text-uppercase">
-        <tr>
-          <th>ID</th>
-          <th>Date/Time</th>
-          <th>Teacher</th>
-          <th>Course</th>
-          <th>Session</th>
-          <th>Student</th>
-          <th>Parent</th>
-          <th>Total</th>
-          <th>Paid</th>
-          <th>Remaining</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="data-body">
-       
-      </tbody>
-    </table>
-  </div>
+    <!-- Platform Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-wrapper me-3">
+                        <i class="fa-solid fa-arrow-trend-up fa-lg text-success"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1">Platform Balance</p>
+                        <h5 class="fw-bold text-success mb-0">LE 4,658.25</h5>
+                        <small class="text-muted">Platform revenue (30% share)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-wrapper me-3">
+                        <i class="fa-solid fa-dollar-sign fa-lg text-primary"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1">Total Revenue</p>
+                        <h5 class="fw-bold text-primary mb-0">LE 4,658.25</h5>
+                        <small class="text-muted">Lifetime platform earnings</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-wrapper me-3">
+                        <i class="fa-solid fa-coins fa-lg text-purple"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1">Withdrawn Balance</p>
+                        <h5 class="fw-bold text-purple mb-0">LE 0.00</h5>
+                        <small class="text-muted">Amount withdrawn by platform</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Tabs -->
+    <div class="d-flex gap-2 mb-3 flex-wrap" id="mainTabContainer">
+        <button class="tab-btn active" data-target="transactionsDiv">Transactions</button>
+        <button class="tab-btn" data-target="payoutsDiv">Payouts</button>
+        <button class="tab-btn" data-target="balancesDiv">Balances</button>
+        <button class="tab-btn" data-target="reportsDiv">Reports</button>
+    </div>
+
+    <!-- Sub Tabs -->
+    <div class="d-flex gap-2 mb-3 flex-wrap" id="subTabContainer">
+        <!-- Transactions default sub-tabs -->
+        <button class="tab-btn active" id="sub-recent">Recent</button>
+        <button class="tab-btn" id="sub-percourse">Per Course</button>
+    </div>
+
+    <!-- Transactions Table -->
+    <div id="transactionsDiv" class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                <h5 class="fw-semibold mb-2 mb-md-0">Recent Transactions</h5>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-dark btn-sm"><i class="fa-solid fa-plus me-1"></i> Add</button>
+                    <button class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-filter me-1"></i> Filter</button>
+                    <button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-file-export me-1"></i> Export</button>
+                    <button class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-table-columns me-1"></i> Columns</button>
+                </div>
+            </div>
+
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
+                <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search...">
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Date/Time</th>
+                            <th>Teacher</th>
+                            <th>Course</th>
+                            <th>Session</th>
+                            <th>Student</th>
+                            <th>Parent</th>
+                            <th>Total</th>
+                            <th>Paid</th>
+                            <th>Remaining</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsTableBody">
+                        <tr>
+                            <td>1</td>
+                            <td>10/7/2024, 4:45 PM</td>
+                            <td>Prof. Sarah Johnson</td>
+                            <td>A-Level Physics</td>
+                            <td>May/June 2026</td>
+                            <td>Emma Wilson</td>
+                            <td>David Wilson</td>
+                            <td>LE 120.00</td>
+                            <td>LE 60.00</td>
+                            <td>LE 60.00</td>
+                            <td class="text-end"><button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payouts Table -->
+    <div id="payoutsDiv" class="card border-0 shadow-sm" style="display: none;">
+        <div class="card-body">
+            <h5 class="fw-semibold mb-3">Payouts</h5>
+            <div class="d-flex justify-content-end gap-2 mb-3">
+                <button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-file-export me-1"></i> Export</button>
+                <button class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-table-columns me-1"></i> Columns</button>
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
+                <input type="text" class="form-control border-start-0" placeholder="Search...">
+            </div>
+            <table class="table align-middle table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Date/Time</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>10/10/2024, 9:00 AM</td>
+                        <td>Monthly Earnings</td>
+                        <td>Payout for platform earnings</td>
+                        <td>LE 2,000.00</td>
+                        <td><button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Balances Table -->
+    <div id="balancesDiv" class="card border-0 shadow-sm" style="display: none;">
+        <div class="card-body">
+            <div class="d-flex gap-2 mb-3 flex-wrap" id="balancesSubTabs">
+                <button class="tab-btn active" id="balance-teacher">Teacher</button>
+                <button class="tab-btn" id="balance-platform">Platform</button>
+            </div>
+
+            <div id="balancesContent">
+                <div id="teacherBalances">
+                    <table class="table align-middle table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Teacher</th>
+                                <th>Course</th>
+                                <th>Session</th>
+                                <th>Total Amount</th>
+                                <th>Total Paid</th>
+                                <th>Total Remaining</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Prof. Sarah Johnson</td>
+                                <td>A-Level Physics</td>
+                                <td>May/June 2026</td>
+                                <td>LE 120.00</td>
+                                <td>LE 60.00</td>
+                                <td>LE 60.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="platformBalances" style="display: none;">
+                    <table class="table align-middle table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Platform</th>
+                                <th>Course</th>
+                                <th>Session</th>
+                                <th>Total Amount</th>
+                                <th>Total Paid</th>
+                                <th>Total Remaining</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Main Platform</td>
+                                <td>A-Level Physics</td>
+                                <td>May/June 2026</td>
+                                <td>LE 40.00</td>
+                                <td>LE 20.00</td>
+                                <td>LE 20.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </div>
-
-    </div>
-
 @endsection
 
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Main Tab Switching
+    const mainTabs = document.querySelectorAll('#mainTabContainer .tab-btn');
+    mainTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            mainTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
 
+            const target = this.dataset.target;
+            ['transactionsDiv','payoutsDiv','balancesDiv','reportsDiv'].forEach(divId => {
+                document.getElementById(divId).style.display = divId === target ? 'block' : 'none';
+            });
+
+            // Transactions sub-tabs
+            if(target === 'transactionsDiv') {
+                document.getElementById('subTabContainer').style.display = 'flex';
+                document.getElementById('sub-recent').click();
+            } else {
+                document.getElementById('subTabContainer').style.display = 'none';
+            }
+
+            // Balances sub-tabs
+            if(target === 'balancesDiv') {
+                document.getElementById('balancesSubTabs').style.display = 'flex';
+                document.getElementById('balance-teacher').click();
+            } else {
+                document.getElementById('balancesSubTabs').style.display = 'none';
+            }
+        });
+    });
+
+    // Transactions Sub Tabs
+    const subRecent = document.getElementById('sub-recent');
+    const subPerCourse = document.getElementById('sub-percourse');
+    const tableHead = document.querySelector('#transactionsDiv thead');
+    const tableBody = document.getElementById('transactionsTableBody');
+
+    const recentRows = tableBody.innerHTML;
+    const perCourseHead = `
+        <tr>
+            <th>Course Name</th>
+            <th>Session</th>
+            <th>Transactions</th>
+            <th>Total Amount</th>
+            <th>Total Paid</th>
+            <th>Total Remaining</th>
+            <th>Actions</th>
+        </tr>
+    `;
+    const perCourseRows = `
+        <tr>
+            <td>A-Level Physics</td>
+            <td>May/June 2026</td>
+            <td>1</td>
+            <td>LE 120.00</td>
+            <td>LE 60.00</td>
+            <td>LE 60.00</td>
+            <td><button class="btn btn-sm btn-dark">View</button></td>
+        </tr>
+    `;
+
+    subRecent.addEventListener('click', function() {
+        subRecent.classList.add('active');
+        subPerCourse.classList.remove('active');
+        tableHead.innerHTML = `
+            <tr>
+                <th>ID</th>
+                <th>Date/Time</th>
+                <th>Teacher</th>
+                <th>Course</th>
+                <th>Session</th>
+                <th>Student</th>
+                <th>Parent</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>Remaining</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        `;
+        tableBody.innerHTML = recentRows;
+    });
+
+    subPerCourse.addEventListener('click', function() {
+        subPerCourse.classList.add('active');
+        subRecent.classList.remove('active');
+        tableHead.innerHTML = perCourseHead;
+        tableBody.innerHTML = perCourseRows;
+    });
+
+    // Balances Sub Tabs
+    const balanceTeacher = document.getElementById('balance-teacher');
+    const balancePlatform = document.getElementById('balance-platform');
+    const teacherDiv = document.getElementById('teacherBalances');
+    const platformDiv = document.getElementById('platformBalances');
+
+    balanceTeacher.addEventListener('click', function() {
+        balanceTeacher.classList.add('active');
+        balancePlatform.classList.remove('active');
+        teacherDiv.style.display = 'block';
+        platformDiv.style.display = 'none';
+    });
+
+    balancePlatform.addEventListener('click', function() {
+        balancePlatform.classList.add('active');
+        balanceTeacher.classList.remove('active');
+        teacherDiv.style.display = 'none';
+        platformDiv.style.display = 'block';
+    });
+});
+</script>
+@endsection --}}
+
+
+@extends('layouts.app')
+
+@section('contents')
+<div class="main-content p-4" style="margin-left: 260px; min-height: 100vh; background: #f8f9fa;">
+
+    <!-- ✅ Top Bar -->
+    <div class="teacher-topbar d-flex justify-content-between align-items-center mb-4 p-3" 
+         style="background: #ffffff; border-radius: 10px;">
+        <div>
+            <h4 class="fw-semibold mb-0">Platform</h4>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <select class="form-select form-select-md" id="SelectYear" style="outline: none !important; box-shadow: none !important;">
+                <option>May/June 2026</option>
+                <option>May/June 2027</option>
+            </select>
+            <select class="form-select form-select-md" id="currencySelect" style="outline: none !important; box-shadow: none !important;">
+                <option>EG/EGP</option>
+                <option>US/USD</option>
+                <option>EU/EUR</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="mb-4">
+        <h4 class="fw-semibold mb-1">Platform Overview</h4>
+        <p class="text-muted mb-0">Manage platform transactions, payouts, balances, and reports</p>
+    </div>
+
+    <!-- Platform Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-wrapper me-3">
+                        <i class="fa-solid fa-arrow-trend-up fa-lg text-success"></i>
+                    </div>
+                    <div >
+                        <p class="text-muted small mb-1">Platform Balance</p>
+                        <h5 class="fw-bold text-success mb-0">LE 4,658.25</h5>
+                        <small class="text-muted">Platform revenue (30% share)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-wrapper me-3">
+                        <i class="fa-solid fa-dollar-sign fa-lg text-primary"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1">Total Revenue</p>
+                        <h5 class="fw-bold text-primary mb-0">LE 4,658.25</h5>
+                        <small class="text-muted">Lifetime platform earnings</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-wrapper me-3">
+                        <i class="fa-solid fa-coins fa-lg text-purple"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1">Withdrawn Balance</p>
+                        <h5 class="fw-bold text-purple mb-0">LE 0.00</h5>
+                        <small class="text-muted">Amount withdrawn by platform</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Tabs -->
+    <div class="d-flex gap-2 mb-3 flex-wrap" id="mainTabContainer">
+        <button class="tab-btn active" data-target="transactionsDiv">Transactions</button>
+        <button class="tab-btn" data-target="payoutsDiv">Payouts</button>
+        <button class="tab-btn" data-target="balancesDiv" id="balances">Balances</button>
+        <button class="tab-btn" data-target="reportsDiv">Reports</button>
+    </div>
+
+    <!-- Sub Tabs -->
+    <div class="d-flex gap-2 mb-3 flex-wrap" id="subTabContainer" >
+        <!-- Transactions default sub-tabs -->
+        <button class="tab-btn active" id="sub-recent">Recent</button>
+        <button class="tab-btn" id="sub-percourse">Per Course</button>
+    </div>
+
+    <!-- Transactions Table -->
+    <div id="transactionsDiv" class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                <h5 class="fw-semibold mb-2 mb-md-0">Recent Transactions</h5>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-dark btn-sm"><i class="fa-solid fa-plus me-1"></i> Add</button>
+                    <button class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-filter me-1"></i> Filter</button>
+                    <button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-file-export me-1"></i> Export</button>
+                    <button class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-table-columns me-1"></i> Columns</button>
+                </div>
+            </div>
+
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
+                <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search...">
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Date/Time</th>
+                            <th>Teacher</th>
+                            <th>Course</th>
+                            <th>Session</th>
+                            <th>Student</th>
+                            <th>Parent</th>
+                            <th>Total</th>
+                            <th>Paid</th>
+                            <th>Remaining</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsTableBody">
+                        <tr>
+                            <td>1</td>
+                            <td>10/7/2024, 4:45 PM</td>
+                            <td>Prof. Sarah Johnson</td>
+                            <td>A-Level Physics</td>
+                            <td>May/June 2026</td>
+                            <td>Emma Wilson</td>
+                            <td>David Wilson</td>
+                            <td>LE 120.00</td>
+                            <td>LE 60.00</td>
+                            <td>LE 60.00</td>
+                            <td class="text-end"><button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payouts Table -->
+    <div id="payoutsDiv" class="card border-0 shadow-sm" style="display: none;">
+        <div class="card-body">
+            <h5 class="fw-semibold mb-3">Payouts</h5>
+            <div class="d-flex justify-content-end gap-2 mb-3">
+                <button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-file-export me-1"></i> Export</button>
+                <button class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-table-columns me-1"></i> Columns</button>
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
+                <input type="text" class="form-control border-start-0" placeholder="Search...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Balances Table -->
+    <div id="balancesDiv" class="card border-0 shadow-sm" style="display: none;">
+        <div class="card-body">
+            <div class="d-flex gap-2 mb-3 flex-wrap" id="balancesSubTabs">
+                <button class="tab-btn active" id="balance-teacher">Teacher</button>
+                <button class="tab-btn" id="balance-platform">Platform</button>
+            </div>
+
+            <div id="balancesContent">
+                <!-- Teacher Balances -->
+                <div id="teacherBalances">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                        <h5 class="fw-semibold mb-2 mb-md-0">Teacher Balances</h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-filter me-1"></i> Filter</button>
+                            <button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-file-export me-1"></i> Export</button>
+                            <button class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-table-columns me-1"></i> Columns</button>
+                        </div>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
+                        <input type="text" class="form-control border-start-0" placeholder="Search...">
+                    </div>
+
+                    <table class="table align-middle table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Teacher Name</th>
+                                <th>Current Balance</th>
+                                <th>Paid Before</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Dr. Ahmed Hassan</td>
+                                <td>-LE 11,500.00</td>
+                                <td>LE 15,000.00</td>
+                                <td><button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>Prof. Sarah Johnson</td>
+                                <td>-LE 218.00</td>
+                                <td>LE 400.00</td>
+                                <td><button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>Dr. Mohamed Ali</td>
+                                <td>LE 52.50</td>
+                                <td>LE 0.00</td>
+                                <td><button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Platform Balances -->
+                <div id="platformBalances" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                        <h5 class="fw-semibold mb-2 mb-md-0">Platform Balances</h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-filter me-1"></i> Filter</button>
+                            <button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-file-export me-1"></i> Export</button>
+                            <button class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-table-columns me-1"></i> Columns</button>
+                        </div>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
+                        <input type="text" class="form-control border-start-0" placeholder="Search...">
+                    </div>
+                    <div class="row">
+                      <div class="card col-md-6 w-40 h-70">hello</div>
+                       <div class="card col-md-6 w-40 h-70">hi</div>
+                       </div>
+                    {{-- <table class="table align-middle table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Platform Name</th>
+                                <th>Current Balance</th>
+                                <th>Paid Before</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Main Platform</td>
+                                <td>LE 4,658.25</td>
+                                <td>LE 0.00</td>
+                                <td><button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table> --}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+@endsection
 
 @section('scripts')
+<script>
+  
 
- <script>
 
-        // tabs buttons active state
-        const tabButtons = document.querySelectorAll('.platform-tabsBtns .btn');
 
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                // Remove active class from all buttons
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                // Add active class to clicked button
-                button.classList.add('active');
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+
+
+
+
+    const balancesBtn = document.getElementById('balances');
+    const subTabContainer = document.getElementById('subTabContainer');
+
+    balancesBtn.addEventListener('click', function() {
+        console.log("khan")
+        subTabContainer.style.display = 'none';
+    });
+    // Main Tab Switching
+    const mainTabs = document.querySelectorAll('#mainTabContainer .tab-btn');
+    mainTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            mainTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            const target = this.dataset.target;
+            ['transactionsDiv','payoutsDiv','balancesDiv','reportsDiv'].forEach(divId => {
+                document.getElementById(divId).style.display = divId === target ? 'block' : 'none';
             });
+
+
+
+  
+            // Sub-tabs logic
+            if(target === 'transactionsDiv') {
+                document.getElementById('subTabContainer').style.display = 'flex';
+                document.getElementById('sub-recent').click();
+                document.getElementById('balancesSubTabs').style.display = 'none';
+            } else if(target === 'balancesDiv') {
+                document.getElementById('subTabContainer').style.display = 'none';
+                document.getElementById('balancesSubTabs').style.display = 'flex';
+                document.getElementById('balance-teacher').click();
+            } else {
+                // Other tabs
+                document.getElementById('subTabContainer').style.display = 'flex';
+                document.getElementById('sub-recent').click();
+                document.getElementById('balancesSubTabs').style.display = 'none';
+            }
         });
+    });
 
+    // Transactions Sub Tabs
+    const subRecent = document.getElementById('sub-recent');
+    const subPerCourse = document.getElementById('sub-percourse');
+    const tableHead = document.querySelector('#transactionsDiv thead');
+    const tableBody = document.getElementById('transactionsTableBody');
 
-
-
-
-        // Platform page TABLE DATA RENDERING
-        const transactions = [
-            {
-                id: 1,
-                date: "10/8/2024, 2:30 PM",
-                teacher: "Dr. Ahmed Hassan",
-                course: "IGCSE Mathematics",
-                session: "May/June 2026",
-                student: "John Smith",
-                parent: "Robert Smith",
-                total: "LE 2,500.00",
-                paid: "LE 2,500.00",
-                remaining: "LE 0.00"
-            },
-            {
-                id: 2,
-                date: "10/7/2024, 4:45 PM",
-                teacher: "Prof. Sarah Johnson",
-                course: "A-Level Physics",
-                session: "May/June 2026",
-                student: "Emma Wilson",
-                parent: "David Wilson",
-                total: "LE 120.00",
-                paid: "LE 60.00",
-                remaining: "LE 60.00"
-            },
-            {
-                id: 3,
-                date: "10/6/2024, 10:15 AM",
-                teacher: "Dr. Ahmed Hassan",
-                course: "IGCSE Mathematics",
-                session: "May/June 2026",
-                student: "Ahmed Mohamed",
-                parent: "Mohamed Ahmed",
-                total: "LE 2,500.00",
-                paid: "LE 2,500.00",
-                remaining: "LE 0.00"
-            },
-            {
-                id: 4,
-                date: "10/5/2024, 1:20 PM",
-                teacher: "Dr. Mohamed Ali",
-                course: "IB Chemistry HL",
-                session: "May/June 2026",
-                student: "Layla Hassan",
-                parent: "Hassan Ali",
-                total: "LE 150.00",
-                paid: "LE 75.00",
-                remaining: "LE 75.00"
-            },
-            {
-                id: 5,
-                date: "10/4/2024, 9:30 AM",
-                teacher: "Prof. Sarah Johnson",
-                course: "SAT Math Prep",
-                session: "May/June 2026",
-                student: "Michael Chen",
-                parent: "Lisa Chen",
-                total: "LE 200.00",
-                paid: "LE 200.00",
-                remaining: "LE 0.00"
-            },
-        ];
-
-        const reports = [
-            {
-                id: 1,
-                date: "09/25/2024",
-                teacher: "Dr. Ahmed Hassan",
-                course: "IGCSE Math",
-                session: "May/June 2026",
-                student: "Emma Jones",
-                parent: "Sam Jones",
-                total: "LE 500.00",
-                paid: "LE 400.00",
-                remaining: "LE 100.00"
-            },
-            {
-                id: 2,
-                date: "09/22/2024",
-                teacher: "Prof. Sarah Johnson",
-                course: "A-Level Physics",
-                session: "May/June 2026",
-                student: "Ali Khan",
-                parent: "Waqas Khan",
-                total: "LE 350.00",
-                paid: "LE 350.00",
-                remaining: "LE 0.00"
-            },
-        ];
-
-        const payouts = [
-            {
-                id: 1,
-                date: "10/10/2024",
-                teacher: "Dr. Ahmed Hassan",
-                course: "IGCSE Math",
-                session: "May/June 2026",
-                student: "-",
-                parent: "-",
-                total: "LE 2,000.00",
-                paid: "LE 2,000.00",
-                remaining: "LE 0.00"
-            },
-        ];
-
-        const balances = [
-            {
-                id: 1,
-                date: "10/1/2024",
-                teacher: "Prof. Sarah Johnson",
-                course: "SAT Math Prep",
-                session: "May/June 2026",
-                student: "Michael Chen",
-                parent: "Lisa Chen",
-                total: "LE 500.00",
-                paid: "LE 200.00",
-                remaining: "LE 300.00"
-            },
-        ];
-
-
-        const tableBody = document.getElementById("data-body");
-        const tableTitle = document.getElementById("table-title");
-        const tabs = document.querySelectorAll(".btn-outline-primary");
-        const searchInput = document.getElementById("search");
-        const tableContainer = document.querySelector(".table-responsive");
-
-        let currentData = transactions;
-
-        function renderTable(data) {
-            tableBody.innerHTML = data.map(item => `
+    const recentRows = tableBody.innerHTML;
+    const perCourseHead = `
         <tr>
-          <td>${item.id}</td>
-          <td>${item.date}</td>
-          <td>${item.teacher}</td>
-          <td>${item.course}</td>
-          <td>${item.session}</td>
-          <td>${item.student}</td>
-          <td>${item.parent}</td>
-          <td>${item.total}</td>
-          <td>${item.paid}</td>
-          <td>${item.remaining}</td>
-          <td><button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button></td>
+            <th>Course Name</th>
+            <th>Session</th>
+            <th>Transactions</th>
+            <th>Total Amount</th>
+            <th>Total Paid</th>
+            <th>Total Remaining</th>
+            <th>Actions</th>
         </tr>
-      `).join("");
-        }
+    `;
+    const perCourseRows = `
+        <tr>
+            <td>A-Level Physics</td>
+            <td>May/June 2026</td>
+            <td>1</td>
+            <td>LE 120.00</td>
+            <td>LE 60.00</td>
+            <td>LE 60.00</td>
+            <td><button class="btn btn-sm btn-dark">View</button></td>
+        </tr>
+    `;
 
-        function switchTab(tabId, title, data) {
-            tabs.forEach(btn => btn.classList.remove("active"));
-            document.getElementById(tabId).classList.add("active");
-            tableTitle.textContent = `All ${title}`;
-            currentData = data;
-            renderTable(currentData);
-        }
+    subRecent.addEventListener('click', function() {
+        subRecent.classList.add('active');
+        subPerCourse.classList.remove('active');
+        tableHead.innerHTML = `
+            <tr>
+                <th>ID</th>
+                <th>Date/Time</th>
+                <th>Teacher</th>
+                <th>Course</th>
+                <th>Session</th>
+                <th>Student</th>
+                <th>Parent</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>Remaining</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        `;
+        tableBody.innerHTML = recentRows;
+    });
 
-        document.getElementById("tab-transactions").addEventListener("click", () => switchTab("tab-transactions", "Transactions", transactions));
-        document.getElementById("tab-reports").addEventListener("click", () => switchTab("tab-reports", "Reports", reports));
-        document.getElementById("tab-payouts").addEventListener("click", () => switchTab("tab-payouts", "Payouts", payouts));
-        document.getElementById("tab-balances").addEventListener("click", () => switchTab("tab-balances", "Balances", balances));
+    subPerCourse.addEventListener('click', function() {
+        subPerCourse.classList.add('active');
+        subRecent.classList.remove('active');
+        tableHead.innerHTML = perCourseHead;
+        tableBody.innerHTML = perCourseRows;
+    });
 
-        // Search filter
-       
-// Create “No record found” message element
-const noRecordMsg = document.createElement("div");
-noRecordMsg.textContent = "Sorry, no record found.";
-noRecordMsg.className = "alert alert-danger text-center py-2 mt-3";
-noRecordMsg.style.display = "none";
-tableContainer.parentElement.appendChild(noRecordMsg);
+    // Balances Sub Tabs
+    const balanceTeacher = document.getElementById('balance-teacher');
+    const balancePlatform = document.getElementById('balance-platform');
+    const teacherDiv = document.getElementById('teacherBalances');
+    const platformDiv = document.getElementById('platformBalances');
 
-searchInput.addEventListener("keyup", (e) => {
-  const keyword = e.target.value.toLowerCase().trim();
+    balanceTeacher.addEventListener('click', function() {
+        balanceTeacher.classList.add('active');
+        balancePlatform.classList.remove('active');
+        teacherDiv.style.display = 'block';
+        platformDiv.style.display = 'none';
+    });
 
-  const filtered = currentData.filter(item =>
-    Object.values(item).some(value =>
-      value.toString().toLowerCase().includes(keyword)
-    )
-  );
-
-  renderTable(filtered);
-
-  // Show or hide "no record" message
-  if (filtered.length === 0) {
-    noRecordMsg.style.display = "block";
-    setTimeout(() => {
-      noRecordMsg.style.display = "none";
-    }, 3000);
-  } else {
-    noRecordMsg.style.display = "none";
-  }
+    balancePlatform.addEventListener('click', function() {
+        balancePlatform.classList.add('active');
+        balanceTeacher.classList.remove('active');
+        teacherDiv.style.display = 'none';
+        platformDiv.style.display = 'block';
+    });
 });
-        // Initial render
-        renderTable(currentData);
-
-    </script>
-
-
-
-
+</script>
 @endsection

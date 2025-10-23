@@ -33,7 +33,7 @@
       </div> <!-- Cards Row -->
       <div class="row g-3 mb-4 details-cards">
         <div class="col-md-3">
-          <div class="info-card border-start border-success border-3">
+          <div class=" border-start border-success border-3" id="info-card">
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h5 class="fw-bold mb-1 ">Today's Inflow</h5>
@@ -45,7 +45,7 @@
           </div>
         </div>
         <div class="col-md-3">
-          <div class="info-card border-start border-primary border-3">
+          <div class="border-start border-primary border-3" id="info-card">
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h5 class="fw-bold mb-1">MTD Inflow</h5>
@@ -57,7 +57,7 @@
           </div>
         </div>
         <div class="col-md-3">
-          <div class="info-card border-start border-purple border-3">
+          <div class=" border-start border-purple border-3" id="info-card">
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h5 class="fw-bold mb-1">MTD Payouts</h5>
@@ -69,7 +69,7 @@
           </div>
         </div>
         <div class="col-md-3">
-          <div class="info-card border-start border-warning border-3">
+          <div class=" border-start border-warning border-3" id="info-card">
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h5 class="fw-bold mb-1">Pending Balance</h5>
