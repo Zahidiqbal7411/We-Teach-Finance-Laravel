@@ -4,7 +4,7 @@
 <div class="main-content p-4" style="margin-left: 260px; min-height: 100vh; background: #f8f9fa;">
 
     <!-- ✅ Top Bar -->
-    <div class="teacher-topbar d-flex justify-content-between align-items-center mb-4 p-3" 
+    <div class="teacher-topbar d-flex justify-content-between align-items-center mb-4 p-3"
          style="background: #ffffff; border-radius: 10px;">
         <div>
             <h4 class="fw-semibold mb-0">Teachers</h4>
@@ -149,7 +149,7 @@
 
                 <div class="table-responsive">
                     <table class="table align-middle table-hover">
-                        <thead class="table-light">
+                        <thead class="table-light" id="transactionsThead">
                             <tr>
                                 <th><input type="checkbox"></th>
                                 <th>ID</th>
@@ -302,42 +302,25 @@
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-
+    // Elements
     const teacherSelect = document.getElementById('teacherSelect');
-    const subTabContainer = document.getElementById('subTabContainer');
+    const noTeacherSelected = document.getElementById('noTeacherSelected');
+    const teacherData = document.getElementById('teacherData');
 
-    teacherSelect.addEventListener('change', function () {
-        document.getElementById('noTeacherSelected').style.display = this.value ? 'none' : 'block';
-        document.getElementById('teacherData').style.display = this.value ? 'block' : 'none';
-    });
-
-    const sections = ['transactionsDiv', 'payoutsDiv', 'balancesDiv', 'reportsDiv'];
+    const mainTabContainer = document.getElementById('mainTabContainer');
     const mainTabBtns = document.querySelectorAll('#mainTabContainer .tab-btn');
 
-    mainTabBtns.forEach(btn => {
-        btn.addEventListener('click', function () {
-            mainTabBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const target = this.dataset.target;
+    const subTabContainer = document.getElementById('subTabContainer');
+    const subRecent = document.getElementById('sub-recent');
+    const subPerCourse = document.getElementById('sub-percourse');
 
-            sections.forEach(id => {
-                document.getElementById(id).style.display = (id === target) ? 'block' : 'none';
-            });
+    const sections = ['transactionsDiv', 'payoutsDiv', 'balancesDiv', 'reportsDiv'];
 
-            // ✅ Show sub-tabs only for Transactions
-            subTabContainer.style.display = (target === 'transactionsDiv') ? 'flex' : 'none';
-
-            if (target === 'transactionsDiv') {
-                const activeSub = subTabContainer.querySelector('.tab-btn.active');
-                if (activeSub && activeSub.id === 'sub-percourse') switchToPerCourse();
-                else switchToRecent();
-            }
-        });
-    });
-
+    // Heads & bodies for switching views
     const transactionsDiv = document.getElementById('transactionsDiv');
-    const thead = transactionsDiv.querySelector('thead');
+    const thead = document.getElementById('transactionsThead');
     const tbody = document.getElementById('transactionsTableBody');
+
     const originalHead = thead.innerHTML;
     const originalBody = tbody.innerHTML;
 
@@ -362,63 +345,170 @@ document.addEventListener('DOMContentLoaded', function () {
             <td><button class="btn btn-sm btn-dark viewCourseDetails">View</button></td>
         </tr>`;
 
-    const detailCard = document.createElement('div');
-    detailCard.className = "card border-0 shadow-sm mt-3 p-3";
-    detailCard.style.display = "none";
-    detailCard.innerHTML = `
-        <div class="detail-content">
-            <h6 class="fw-semibold mb-2">Transaction Details</h6>
-            <div class="detail-body"></div>
-            <button class="btn btn-sm btn-outline-dark mt-3 closeDetail">Close</button>
-        </div>`;
-    transactionsDiv.querySelector('.card-body').appendChild(detailCard);
+    // Utility: show a section and hide others. Also manage subTab visibility.
+    function showSection(target) {
+        sections.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.style.display = (id === target) ? 'block' : 'none';
+        });
 
-    detailCard.querySelector('.closeDetail').addEventListener('click', () => {
-        detailCard.style.display = "none";
-    });
-
-    const subRecent = document.getElementById('sub-recent');
-    const subPerCourse = document.getElementById('sub-percourse');
-
-    function switchToRecent() {
-        subRecent.classList.add('active');
-        subPerCourse.classList.remove('active');
-        thead.innerHTML = originalHead;
-        tbody.innerHTML = originalBody;
-        detailCard.style.display = "none";
+        if (target === 'transactionsDiv') {
+            // show sub-tabs & reset to Recent
+            subTabContainer.style.display = 'flex';
+            activateSub('recent');
+        } else {
+            // hide sub-tabs and reset their classes
+            subTabContainer.style.display = 'none';
+            subRecent.classList.remove('active');
+            subPerCourse.classList.remove('active');
+            // ensure transactions table returns to original when re-opened
+            restoreOriginalTransactions();
+        }
     }
 
+    // Activate a main tab
+    function activateMainTab(button) {
+        mainTabBtns.forEach(b => b.classList.remove('active'));
+        if (button) button.classList.add('active');
+        const target = button ? button.dataset.target : 'transactionsDiv';
+        showSection(target);
+    }
+
+    // Sub tab activation
+    function activateSub(which) {
+        if (which === 'recent') {
+            subRecent.classList.add('active');
+            subPerCourse.classList.remove('active');
+            restoreOriginalTransactions();
+        } else if (which === 'percourse') {
+            subPerCourse.classList.add('active');
+            subRecent.classList.remove('active');
+            switchToPerCourse();
+        }
+    }
+
+    // Restore original transactions table
+    function restoreOriginalTransactions() {
+        thead.innerHTML = originalHead;
+        tbody.innerHTML = originalBody;
+        attachDeleteHandlers(); // re-attach any handlers for original rows if needed
+    }
+
+    // Switch to per-course table and attach view button handler
     function switchToPerCourse() {
-        subPerCourse.classList.add('active');
-        subRecent.classList.remove('active');
         thead.innerHTML = perCourseHead;
         tbody.innerHTML = perCourseBody;
-        detailCard.style.display = "none";
 
-        document.querySelector('.viewCourseDetails').addEventListener('click', () => {
-            detailCard.style.display = "block";
-            detailCard.querySelector('.detail-body').innerHTML = `
-                <table class="table align-middle table-hover mt-3">
-                    <thead class="table-light">
-                        <tr><th>Date/Time</th><th>Student</th><th>Total</th><th>Paid</th><th>Remaining</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>10/7/2024, 4:45:00 PM</td>
-                            <td>Emma Wilson</td>
-                            <td>$120.00 USD</td>
-                            <td>$60.00 USD</td>
-                            <td>$60.00 USD</td>
-                        </tr>
-                    </tbody>
-                </table>`;
+        // Attach viewCourseDetails handler AFTER inserting HTML
+        const viewBtn = tbody.querySelector('.viewCourseDetails');
+        if (viewBtn) {
+            viewBtn.addEventListener('click', function () {
+                showCourseDetails();
+            });
+        }
+    }
+
+    // Example: show details panel (keeps previous behavior)
+    function showCourseDetails() {
+        // create or reuse a detail card next to transactionsDiv
+        let detailCard = transactionsDiv.querySelector('.detail-card-custom');
+        if (!detailCard) {
+            detailCard = document.createElement('div');
+            detailCard.className = 'card border-0 shadow-sm mt-3 p-3 detail-card-custom';
+            detailCard.innerHTML = `
+                <div class="detail-content">
+                    <h6 class="fw-semibold mb-2">Transaction Details</h6>
+                    <div class="detail-body"></div>
+                    <button class="btn btn-sm btn-outline-dark mt-3 closeDetail">Close</button>
+                </div>`;
+            transactionsDiv.querySelector('.card-body').appendChild(detailCard);
+
+            detailCard.querySelector('.closeDetail').addEventListener('click', () => {
+                detailCard.style.display = 'none';
+            });
+        }
+
+        detailCard.querySelector('.detail-body').innerHTML = `
+            <table class="table table-hover table-bordered mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Date/Time</th>
+                        <th>Student</th>
+                        <th>Total</th>
+                        <th>Paid</th>
+                        <th>Remaining</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2</td>
+                        <td>10/7/2024, 4:45:00 PM</td>
+                        <td>Emma Wilson</td>
+                        <td>LE 150.00</td>
+                        <td>LE 75.00</td>
+                        <td>LE 75.00</td>
+                    </tr>
+                </tbody>
+            </table>`;
+        detailCard.style.display = 'block';
+    }
+
+    // (Optional) re-attach delete or other handlers if original rows are replaced
+    function attachDeleteHandlers() {
+        // Example: find delete buttons and attach a simple click handler (no-op or confirm)
+        const deletes = document.querySelectorAll('button.btn-outline-danger');
+        deletes.forEach(btn => {
+            if (!btn.dataset.handlerAttached) {
+                btn.addEventListener('click', function (e) {
+                    // simple confirm - you can replace with your real delete logic
+                    if (!confirm('Are you sure you want to delete this row?')) {
+                        e.preventDefault();
+                    }
+                });
+                btn.dataset.handlerAttached = '1';
+            }
         });
     }
 
-    subRecent.addEventListener('click', switchToRecent);
-    subPerCourse.addEventListener('click', switchToPerCourse);
+    // ——— Event wiring ———
 
-    switchToRecent();
+    // Main tab buttons
+    mainTabBtns.forEach(btn => {
+        btn.addEventListener('click', function () {
+            activateMainTab(btn);
+        });
+    });
+
+    // Sub-tab buttons
+    subRecent.addEventListener('click', function () { activateSub('recent'); });
+    subPerCourse.addEventListener('click', function () { activateSub('percourse'); });
+
+    // Teacher select change: show/hide teacherData + ensure correct tab state
+    teacherSelect.addEventListener('change', function () {
+        const val = this.value;
+        if (val) {
+            noTeacherSelected.style.display = 'none';
+            teacherData.style.display = 'block';
+            // Ensure UI starts on Transactions with sub-tabs visible (matching Platform)
+            // Activate the Transactions main tab button
+            const transBtn = Array.from(mainTabBtns).find(b => b.dataset.target === 'transactionsDiv');
+            activateMainTab(transBtn || mainTabBtns[0]);
+        } else {
+            noTeacherSelected.style.display = 'block';
+            teacherData.style.display = 'none';
+            // hide sub-tabs just in case
+            subTabContainer.style.display = 'none';
+        }
+    });
+
+    // Initial state: sub-tabs hidden until a teacher is selected (keeps behaviour consistent)
+    subTabContainer.style.display = 'none';
+    attachDeleteHandlers();
+
+    // If you want the UI to auto-open teacher data for a preselected value on load,
+    // call teacherSelect.dispatchEvent(new Event('change')) here.
 });
 </script>
 @endsection
