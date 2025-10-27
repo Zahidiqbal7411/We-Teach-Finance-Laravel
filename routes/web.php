@@ -41,8 +41,10 @@ Route::get('system_setting/create', [SettingController::class , 'create'])->name
 
 
 
-
-
+// Custom comment by Company developer:-this is the routes for setting updates.
+Route::post('security/{id}/update', [SettingController::class,'security_update'])->name('security_setting.update');
+Route::post('currency/{id}/update', [SettingController::class,'currency_update'])->name('currency_setting.update');
+Route::post('/notification-settings/update', [SettingController::class, 'notification_settings_update'])->name('notification_settings.update');
 
 
 require __DIR__.'/auth.php';
