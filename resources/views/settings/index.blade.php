@@ -31,7 +31,7 @@
               <!-- Tabs -->
 
               <div class="setting-tabNavigation">
-      
+
                   <ul class="nav nav-pills gap-2 flex-wrap" id="pills-tab" role="tablist">
                       <li class="nav-item">
                           {{-- <a href="{{ route('teacher_setting.create') }}" class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
@@ -171,15 +171,20 @@
                                       <div class="taxonomy-card">
                                           <h6>Educational Systems</h6>
                                           <div id="eduList"></div>
-                                          <div class="add-input">
+                                          <form action="{{route('taxonomies_educational_systems.store')}}" method="post">
+                                          <div class="add-input w-100">
+                                                @csrf
                                               <input id="eduInput" type="text" class="form-control form-control-sm"
                                                   name="eduInput" placeholder="Add new educational systems">
                                               <button class="btn btn-sm btn-secondary"
                                                   onclick="addItem('eduList', 'eduInput')"><i
                                                       class="fa fa-plus"></i></button>
+                                                    
                                           </div>
+                                            </form>
                                       </div>
-                                  </div>
+                                  </div> 
+
 
                                   <!-- Subjects -->
                                   <div class="col-md-6">
@@ -187,12 +192,15 @@
                                           <h6>Subjects</h6>
                                           <div id="subjectList"></div>
                                           <div class="add-input">
+                                            <form action="{{route('taxonomies_subjects.store')}}" method="POST">
+                                                @csrf
                                               <input id="subjectInput" type="text"
                                                   class="form-control form-control-sm" name="subjectInput"
                                                   placeholder="Add new subjects">
                                               <button class="btn btn-sm btn-secondary"
                                                   onclick="addItem('subjectList', 'subjectInput')"><i
                                                       class="fa fa-plus"></i></button>
+                                                      </form>
                                           </div>
                                       </div>
                                   </div>
@@ -203,6 +211,8 @@
                                           <h6>Examination Boards</h6>
                                           <div id="boardList"></div>
                                           <div class="add-input">
+                                            <form action="{{route('taxonomies_examination_boards.store')}}"></form>
+                                            @csrf
                                               <input id="boardInput" type="text" class="form-control form-control-sm"
                                                   name="boardList" placeholder="Add new examination boards">
                                               <button class="btn btn-sm btn-secondary"
@@ -218,12 +228,15 @@
                                           <h6>Sessions</h6>
                                           <div id="sessionList"></div>
                                           <div class="add-input">
+                                            <form action="{{route('taxonomies_sessions.store')}}" method="post">
+                                                @csrf
                                               <input id="sessionInput" type="text"
                                                   class="form-control form-control-sm" name="sessionList"
                                                   placeholder="Add new sessions">
                                               <button class="btn btn-sm btn-secondary"
                                                   onclick="addItem('sessionList', 'sessionInput')"><i
                                                       class="fa fa-plus"></i></button>
+                                                      </form>
                                           </div>
                                       </div>
                                   </div>
@@ -243,6 +256,8 @@
 
                           <div class="row g-3">
                               <!-- Security Settings -->
+
+
                               <div class="col-md-6">
                                   <div class="settings-card">
                                       @php
@@ -265,40 +280,40 @@
                                           $email_notification = Setting::where('type', 'email_notification')->first();
                                           $payment_alert = Setting::where('type', 'payment_alert')->first();
                                           $low_balance_warning = Setting::where('type', 'low_balance_warning')->first();
-
                                       @endphp
 
                                       <h6>Security Settings</h6>
 
-                                      <div class="mb-3">
-                                          <form id="securitySettingForm"
-                                              action="{{ route('security_setting.update', $admin->id) }}" method="POST"
-                                              data-route="{{ route('security_setting.update', $admin->id) }}">
-                                              @csrf
-                                              <input type="hidden" value="{{ $admin->id }}">
-                                              <label class="form-label">Admin PIN</label>
+                                      <form id="securitySettingForm"
+                                          action="{{ route('security_setting.update', $admin->id) }}" method="POST"
+                                          data-route="{{ route('security_setting.update', $admin->id) }}">
+                                          @csrf
+                                          <input type="hidden" value="{{ $admin->id }}">
 
+                                          <div class="mb-3">
+                                              <label class="form-label">Admin PIN</label>
                                               <input type="password" class="form-control form-control-sm" name="admin"
                                                   value="{{ $admin->value }}" placeholder="Current PIN: 1234">
                                               <div class="form-text">Used for confirming sensitive actions like deletions
                                               </div>
-                                      </div>
+                                          </div>
 
-                                      <div class="mb-3">
+                                          <div class="mb-3">
+                                              <label class="form-label">Session Timeout (minutes)</label>
+                                              <input type="number" class="form-control form-control-sm"
+                                                  name="session_timeout" value="{{ $session_timeout->value }}">
+                                          </div>
 
-
-
-                                          <label class="form-label">Session Timeout (minutes)</label>
-                                          <input type="number" class="form-control form-control-sm"
-                                              name="session_timeout" value="{{ $session_timeout->value }}">
-                                      </div>
-
-                                      <button class="btn btn-dark btn-sm" id="updateBtn">Update Security Settings</button>
+                                          <button type="submit" class="btn btn-dark btn-sm" id="updateBtn">
+                                              Update Security Settings
+                                          </button>
                                       </form>
+
+
                                   </div>
                               </div>
 
-                              
+
                               <div class="col-md-6">
                                   <div class="settings-card">
                                       <h6>Currency Settings</h6>
@@ -327,10 +342,9 @@
                                               <small class="text-muted">Last updated: 2 hours ago</small>
                                           </div>
 
-                                     
 
-                                          <button type="submit" id="currencyUpdateBtn"
-                                              class="btn btn-dark btn-sm w-20">
+
+                                          <button type="submit" id="currencyUpdateBtn" class="btn btn-dark btn-sm w-20">
                                               Update Currency Settings
                                           </button>
                                       </form>
@@ -384,7 +398,7 @@
                                                   data-id="{{ $low_balance_warning->id }}">
                                           </div>
 
-                                          
+
 
                                           <button type="button" id="notificationUpdateBtn"
                                               class="btn btn-dark btn-sm w-20">
@@ -508,20 +522,14 @@
 
 
   @section('scripts')
-     
-
       <script>
-          $(function() {
-              $.ajaxSetup({
-                  headers: {
-                      'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                  }
-              });
+          $(document).ready(function() {
 
-              // ✅ Store initial values for both admin and session
-              let lastAdminPIN = $('input[name="admin"]').val();
-              let lastSessionTimeout = $('input[name="session_timeout"]').val();
+              // ✅ Store initial values
+              let lastAdminPIN = $('input[name="admin"]').val() || '';
+              let lastSessionTimeout = $('input[name="session_timeout"]').val() || '';
 
+              // ✅ Handle form submit
               $('#securitySettingForm').on('submit', function(e) {
                   e.preventDefault();
 
@@ -529,91 +537,63 @@
                   const url = form.attr('action');
                   const btn = $('#updateBtn');
                   const responseMsg = $('#securityResponseMsg');
-                  const formData = form.serialize();
-                  const newPIN = form.find('input[name="admin"]').val().trim();
-                  const newSession = form.find('input[name="session_timeout"]').val()?.trim() || '';
                   const originalText = btn.html();
+                  const newPIN = (form.find('input[name="admin"]').val() || '').trim();
+                  const newSession = (form.find('input[name="session_timeout"]').val() || '').trim();
 
-                  // ✅ Check if both values are unchanged
+                  // ✅ Stop if nothing changed
                   if (newPIN === lastAdminPIN && newSession === lastSessionTimeout) {
-                      responseMsg
-                          .removeClass()
-                          .addClass('alert alert-info text-center')
-                          .html('ℹ️ No changes to update.')
-                          .fadeIn()
-                          .delay(2000)
-                          .fadeOut();
                       return;
                   }
 
                   // ✅ Show spinner
                   btn.prop('disabled', true).html(`
-            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
             Please wait, updating settings...
         `);
 
-                  const minVisibleMs = 1200;
-                  const startTs = Date.now();
+                  $.ajax({
+                      type: 'POST',
+                      url: url,
+                      data: form.serialize(),
+                      success: function(res) {
+                          // ✅ Update reference values
+                          lastAdminPIN = newPIN;
+                          lastSessionTimeout = newSession;
 
-                  $.post(url, formData)
-                      .done(function(res) {
-                          const elapsed = Date.now() - startTs;
-                          const remaining = Math.max(0, minVisibleMs - elapsed);
+                          responseMsg
+                              .removeClass()
+                              .addClass('alert alert-success text-center')
+                              .html('✅ Security settings updated successfully!')
+                              .fadeIn();
 
-                          setTimeout(function() {
-                              // ✅ Show success message
-                              responseMsg
-                                  .removeClass()
-                                  .addClass('alert alert-success text-center')
-                                  .html('✅ ' + (res.message ||
-                                      'Security settings updated successfully!'))
-                                  .fadeIn();
+                          btn.html('<i class="bi bi-check-circle me-2"></i> Updated Successfully')
+                              .removeClass('btn-dark')
+                              .addClass('btn-success');
 
-                              btn.html(
-                                      '<i class="bi bi-check-circle me-2"></i> Updated Successfully'
-                                  )
-                                  .removeClass('btn-dark')
-                                  .addClass('btn-success');
-
-                              // ✅ Update stored reference values
-                              lastAdminPIN = newPIN;
-                              lastSessionTimeout = newSession;
-
-                              // ✅ Revert UI
-                              setTimeout(function() {
-                                  btn.prop('disabled', false)
-                                      .removeClass('btn-success')
-                                      .addClass('btn-dark')
-                                      .html(originalText);
-
-                                  responseMsg.fadeOut();
-                              }, 2000);
-                          }, remaining);
-                      })
-                      .fail(function(xhr) {
-                          const elapsed = Date.now() - startTs;
-                          const remaining = Math.max(0, minVisibleMs - elapsed);
-
-                          setTimeout(function() {
-                              btn.prop('disabled', false).html(originalText);
-
-                              let msg = '❌ Something went wrong. Please try again.';
-                              if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
-                                  msg = '❌ ' + xhr.responseJSON.message;
-                              }
-
-                              responseMsg
-                                  .removeClass()
-                                  .addClass('alert alert-danger text-center')
-                                  .html(msg)
-                                  .fadeIn()
-                                  .delay(2500)
-                                  .fadeOut();
-                          }, remaining);
-                      });
+                          setTimeout(() => {
+                              btn.prop('disabled', false)
+                                  .removeClass('btn-success')
+                                  .addClass('btn-dark')
+                                  .html(originalText);
+                              responseMsg.fadeOut();
+                          }, 3000);
+                      },
+                      error: function() {
+                          btn.prop('disabled', false).html(originalText);
+                          responseMsg
+                              .removeClass()
+                              .addClass('alert alert-danger text-center')
+                              .html('❌ Something went wrong. Please try again.')
+                              .fadeIn()
+                              .delay(2000)
+                              .fadeOut();
+                      }
+                  });
               });
           });
       </script>
+
 
 
       {{-- this is the script of default_currency --}}
@@ -708,78 +688,118 @@
 
 
       {{-- this is the script of notification --}}
-      
+
+
       <script>
-$(function () {
-    $.ajaxSetup({
-        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
-    });
+          $(function() {
+              $.ajaxSetup({
+                  headers: {
+                      'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                  }
+              });
 
-    $('#notificationUpdateBtn').on('click', function () {
-        const btn = $(this);
-        const form = $('#notificationSettingsForm');
-        const responseMsg = $('#notificationResponseMsg');
-        const url = "{{ route('notification_settings.update') }}"; // ensure route exists
-        const formData = form.serialize();
-        const originalText = btn.html();
+              // ✅ Store the initial values of all notification checkboxes
+              const form = $('#notificationSettingsForm');
+              let initialValues = {};
+              form.find('input[type="checkbox"], input[type="radio"], input[type="text"], select').each(function() {
+                  initialValues[$(this).attr('name')] = $(this).is(':checkbox') ? $(this).prop('checked') : $(
+                      this).val();
+              });
 
-        // quick client-side UX
-        btn.prop('disabled', true).html(`
+              $('#notificationUpdateBtn').on('click', function() {
+                  const btn = $(this);
+                  const responseMsg = $('#notificationResponseMsg');
+                  const url = "{{ route('notification_settings.update') }}";
+                  const formData = form.serialize();
+                  const originalText = btn.html();
+
+                  // ✅ Check if any field has changed
+                  let hasChanged = false;
+                  form.find('input[type="checkbox"], input[type="radio"], input[type="text"], select').each(
+                      function() {
+                          const name = $(this).attr('name');
+                          const currentValue = $(this).is(':checkbox') ? $(this).prop('checked') : $(this)
+                              .val();
+                          if (initialValues[name] !== currentValue) {
+                              hasChanged = true;
+                          }
+                      });
+
+                  // ✅ If nothing changed — do nothing
+                  if (!hasChanged) {
+                      return; // stop here (no spinner, no message)
+                  }
+
+                  // ✅ Otherwise, show spinner and disable button
+                  btn.prop('disabled', true).html(`
             <span class="spinner-border spinner-border-sm me-2"></span>
             Please wait, updating notifications...
         `);
 
-        $.ajax({
-            url: url,
-            method: 'POST',
-            data: formData,
-            dataType: 'json'
-        })
-        .done(function (res) {
-            // success UI
-            responseMsg.removeClass().addClass('alert alert-success text-center').html('✅ Notification settings updated successfully!').fadeIn();
-            btn.html('<i class="bi bi-check-circle me-2"></i> Updated Successfully').removeClass('btn-dark').addClass('btn-success');
+                  $.ajax({
+                          url: url,
+                          method: 'POST',
+                          data: formData,
+                          dataType: 'json'
+                      })
+                      .done(function(res) {
+                          // success UI
+                          responseMsg
+                              .removeClass()
+                              .addClass('alert alert-success text-center')
+                              .html('✅ Notification settings updated successfully!')
+                              .fadeIn();
 
-            setTimeout(function () {
-                btn.prop('disabled', false).removeClass('btn-success').addClass('btn-dark').html(originalText);
-                responseMsg.fadeOut();
-            }, 1800);
-        })
-        .fail(function (xhr, status, errorThrown) {
-            // LOG for debugging (open browser console)
-            console.error('AJAX error. Status:', status, 'Thrown:', errorThrown);
-            console.error('XHR:', xhr);
+                          btn.html('<i class="bi bi-check-circle me-2"></i> Updated Successfully')
+                              .removeClass('btn-dark')
+                              .addClass('btn-success');
 
-            // Try to show a helpful message from server:
-            let userMsg = '❌ Something went wrong. Please try again.';
-            if (xhr && xhr.responseJSON) {
-                // Laravel validation or JSON exception
-                if (xhr.responseJSON.message) userMsg = '❌ ' + xhr.responseJSON.message;
-                // If validation errors exist, show first one
-                if (xhr.responseJSON.errors) {
-                    const firstKey = Object.keys(xhr.responseJSON.errors)[0];
-                    userMsg = '❌ ' + xhr.responseJSON.errors[firstKey][0];
-                }
-            } else if (xhr && xhr.responseText) {
-                // Not JSON — show a short snippet of responseText (for debugging)
-                let txt = xhr.responseText.substring(0, 500);
-                console.log('ResponseText (first 500 chars):', txt);
-            }
+                          // ✅ Update reference values after success
+                          form.find(
+                              'input[type="checkbox"], input[type="radio"], input[type="text"], select'
+                          ).each(function() {
+                              const name = $(this).attr('name');
+                              initialValues[name] = $(this).is(':checkbox') ? $(this).prop(
+                                  'checked') : $(this).val();
+                          });
 
-            responseMsg.removeClass().addClass('alert alert-danger text-center').html(userMsg).fadeIn();
+                          setTimeout(function() {
+                              btn.prop('disabled', false)
+                                  .removeClass('btn-success')
+                                  .addClass('btn-dark')
+                                  .html(originalText);
+                              responseMsg.fadeOut();
+                          }, 3000);
+                      })
+                      .fail(function(xhr, status, errorThrown) {
+                          console.error('AJAX error. Status:', status, 'Thrown:', errorThrown);
 
-            // restore button after a short delay
-            setTimeout(function () {
-                btn.prop('disabled', false).html(originalText);
-            }, 1200);
-        });
-    });
-});
-</script>
+                          let userMsg = '❌ Something went wrong. Please try again.';
+                          if (xhr && xhr.responseJSON) {
+                              if (xhr.responseJSON.message) userMsg = '❌ ' + xhr.responseJSON.message;
+                              if (xhr.responseJSON.errors) {
+                                  const firstKey = Object.keys(xhr.responseJSON.errors)[0];
+                                  userMsg = '❌ ' + xhr.responseJSON.errors[firstKey][0];
+                              }
+                          }
+
+                          responseMsg
+                              .removeClass()
+                              .addClass('alert alert-danger text-center')
+                              .html(userMsg)
+                              .fadeIn();
+
+                          setTimeout(function() {
+                              btn.prop('disabled', false).html(originalText);
+                          }, 1200);
+                      });
+              });
+          });
+      </script>
 
 
 
-      <script>
+      {{-- <script>
           const teacherInput = document.getElementById("teacherPercentage");
           const teacherShareText = document.getElementById("teacherShare");
           const platformShareText = document.getElementById("platformShare");
@@ -837,5 +857,405 @@ $(function () {
               data[listId].splice(index, 1);
               renderList(listId);
           }
-      </script>
+      </script> --}}
+
+
+{{-- this is the script of taxonomies ed --}}
+{{-- <script>
+$(document).ready(function() {
+
+    $('#eduForm').on('submit', function(e) {
+        e.preventDefault(); // prevent default form submission
+
+        let input = $('#eduInput');
+        let value = input.val().trim();
+        if (value === '') return;
+
+        $.ajax({
+            url: $(this).attr('action'),
+            method: 'POST',
+            data: {
+                eduInput: value,
+                _token: $('input[name="_token"]').val() // CSRF token
+            },
+            success: function(response) {
+                // Append new item to the list
+                $('#eduList').append('<div class="list-item">' + value + '</div>');
+                input.val(''); // Clear input
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error);
+                alert('Something went wrong. Please try again.');
+            }
+        });
+    });
+
+});
+</script> --}}
+{{-- <script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const eduInput = document.getElementById("eduInput");
+    const eduForm = document.getElementById("eduForm");
+
+    const data = { eduList: [] }; // dynamic array
+
+    // Fetch existing items from DB on page load
+    fetch("{{ route('taxonomies_educational_systems.index') }}")
+        .then(res => res.json())
+        .then(items => {
+            data.eduList = items.map(item => item.educational_title);
+            renderList();
+        })
+        .catch(err => console.error(err));
+
+    // Render list
+    function renderList() {
+        const container = document.getElementById("eduList");
+        container.innerHTML = '';
+        data.eduList.forEach((item, index) => {
+            container.innerHTML += `
+                <div class="taxonomy-item">
+                    <span>${item}</span>
+                    <i class="fa-solid fa-trash" onclick="deleteItem(${index})"></i>
+                </div>
+            `;
+        });
+    }
+
+    // Delete item
+    window.deleteItem = function(index) {
+        const value = data.eduList[index];
+
+        fetch(`{{ url('taxonomies/educational_systems/delete') }}/${encodeURIComponent(value)}`, {
+            method: "DELETE",
+            headers: {
+                "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+            }
+        })
+        .then(res => res.json())
+        .then(response => {
+            if(response.success){
+                data.eduList.splice(index, 1);
+                renderList();
+            } else {
+                alert("Failed to delete item.");
+            }
+        })
+        .catch(err => console.error(err));
+    };
+
+    // Handle form submit
+    eduForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const value = eduInput.value.trim();
+        if(!value) return;
+
+        fetch(eduForm.action, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+            },
+            body: JSON.stringify({ eduInput: value })
+        })
+        .then(res => res.json())
+        .then(response => {
+            if(response.success){
+                console.log(response);
+                data.eduList.push(response.title); // append new item
+                renderList();
+                eduInput.value = '';
+            } else {
+                alert("Failed to save item.");
+            }
+        })
+        .catch(err => console.error(err));
+    });
+
+});
+</script> --}}
+
+{{-- <script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const eduInput = document.getElementById("eduInput");
+    const eduForm = document.getElementById("eduForm");
+
+    const data = { eduList: [] }; // dynamic array to store items
+
+    // Render list of items with optional scroll to a specific index
+    function renderList(scrollIndex = null) {
+        const container = document.getElementById("eduList");
+        container.innerHTML = '';
+        data.eduList.forEach((item, index) => {
+            container.innerHTML += `
+                <div class="taxonomy-item" id="edu-${index}" style="display:flex; justify-content:space-between; margin-bottom:5px; padding:5px; border:1px solid #ddd; border-radius:4px;">
+                    <span>${item}</span>
+                    <i class="fa-solid fa-trash" style="cursor:pointer; color:red;" onclick="deleteItem(${index})"></i>
+                </div>
+            `;
+        });
+
+        // Scroll to newly added or affected item
+        if(scrollIndex !== null){
+            const targetItem = document.getElementById(`edu-${scrollIndex}`);
+            if(targetItem){
+                targetItem.scrollIntoView({ behavior: "smooth", block: "center" });
+                targetItem.style.backgroundColor = "#ffff99"; // temporary highlight
+                setTimeout(() => targetItem.style.backgroundColor = "", 1500); // remove highlight
+            }
+        }
+    }
+
+    // Fetch existing items from DB on page load
+    fetch("{{ route('taxonomies_educational_systems.index') }}")
+        .then(res => res.json())
+        .then(items => {
+            data.eduList = items.map(item => item.educational_title);
+            renderList();
+        })
+        .catch(err => console.error(err));
+
+    // Delete item function
+    window.deleteItem = function(index) {
+        const value = data.eduList[index];
+
+        fetch(`{{ url('taxonomies/educational_systems/delete') }}/${encodeURIComponent(value)}`, {
+            method: "DELETE",
+            headers: {
+                "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+            }
+        })
+        .then(res => res.json())
+        .then(response => {
+            if(response.success){
+                data.eduList.splice(index, 1);
+                renderList(index < data.eduList.length ? index : data.eduList.length - 1); // scroll to next item
+            } else {
+                alert("Failed to delete item.");
+            }
+        })
+        .catch(err => console.error(err));
+    };
+
+    // Handle form submit
+    eduForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const value = eduInput.value.trim();
+        if(!value) return;
+
+        fetch(eduForm.action, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+            },
+            body: JSON.stringify({ eduInput: value })
+        })
+        .then(res => res.json())
+        .then(response => {
+            if(response.success){
+                data.eduList.push(response.title); // add new item
+                renderList(data.eduList.length - 1); // scroll to newly added item
+                eduInput.value = ''; // clear input
+            } else {
+                alert("Failed to save item.");
+            }
+        })
+        .catch(err => console.error(err));
+    });
+
+});
+</script> --}}
+
+
+{{-- <script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const eduInput = document.getElementById("eduInput");
+    const eduForm = document.getElementById("eduForm");
+
+    const data = { eduList: [] }; // dynamic array to store items
+
+    // Render list with optional scroll to a specific index
+    function renderList(scrollIndex = null) {
+        const container = document.getElementById("eduList");
+        container.innerHTML = '';
+        data.eduList.forEach((item, index) => {
+            container.innerHTML += `
+                <div class="taxonomy-item" id="edu-${index}" style="display:flex; justify-content:space-between; margin-bottom:5px; padding:5px; border:1px solid #ddd; border-radius:4px;">
+                    <span>${item}</span>
+                    <i class="fa-solid fa-trash" style="cursor:pointer; color:red;" onclick="deleteItem(${index})"></i>
+                </div>
+            `;
+        });
+
+        // Scroll to newly added or affected item
+        if(scrollIndex !== null){
+            const targetItem = document.getElementById(`edu-${scrollIndex}`);
+            if(targetItem){
+                targetItem.scrollIntoView({ behavior: "smooth", block: "center" });
+                targetItem.style.backgroundColor = "#ffff99"; // highlight
+                setTimeout(() => targetItem.style.backgroundColor = "", 1500); // remove highlight
+            }
+        }
+    }
+
+    // Fetch existing items from DB
+    fetch("{{ route('taxonomies_educational_systems.index') }}")
+        .then(res => res.json())
+        .then(items => {
+            data.eduList = items.map(item => item.educational_title);
+            renderList();
+        })
+        .catch(err => console.error(err));
+
+    // Delete item
+    window.deleteItem = function(index) {
+        const value = data.eduList[index];
+        console.log("Deleting:", value);
+
+        fetch(`{{ url('taxonomies/educational_systems/delete') }}/${encodeURIComponent(value)}`, {
+            method: "DELETE",
+            headers: {
+                "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+            }
+        })
+        .then(res => res.json())
+        .then(response => {
+            console.log("Delete response:", response);
+            if(response.success){
+                data.eduList.splice(index, 1);
+                renderList(index < data.eduList.length ? index : data.eduList.length - 1);
+            } else {
+                alert("Failed to delete item.");
+            }
+        })
+        .catch(err => console.error(err));
+    };
+
+    // Handle form submit
+    eduForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const value = eduInput.value.trim();
+        if(!value) return;
+
+        fetch(eduForm.action, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+            },
+            body: JSON.stringify({ eduInput: value })
+        })
+        .then(res => res.json())
+        .then(response => {
+            console.log("Add response:", response);
+            if(response.success){
+                data.eduList.push(response.title); // add new item
+                renderList(data.eduList.length - 1); // scroll to new item
+                eduInput.value = ''; // clear input
+            } else {
+                alert("Failed to save item.");
+            }
+        })
+        .catch(err => console.error(err));
+    });
+
+});
+</script> --}}
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const eduInput = document.getElementById("eduInput");
+    const eduForm = document.getElementById("eduForm");
+
+    const data = { eduList: [] }; // array to store items with id and title
+
+    // Render list and optionally scroll to specific item
+    function renderList(scrollIndex = null) {
+        const container = document.getElementById("eduList");
+        container.innerHTML = '';
+
+        data.eduList.forEach((item, index) => {
+            container.innerHTML += `
+                <div class="taxonomy-item" id="edu-${item.id}" style="display:flex; justify-content:space-between; margin-bottom:5px; padding:5px; border:1px solid #ddd; border-radius:4px;">
+                    <span>${item.title}</span>
+                    <i class="fa-solid fa-trash" style="cursor:pointer; color:red;" onclick="deleteItem(${item.id}, ${index})"></i>
+                </div>
+            `;
+        });
+
+        if(scrollIndex !== null){
+            const target = document.getElementById(`edu-${data.eduList[scrollIndex].id}`);
+            if(target){
+                target.scrollIntoView({ behavior: "smooth", block: "center" });
+                target.style.backgroundColor = "#ffff99";
+                setTimeout(() => target.style.backgroundColor = "", 1500);
+            }
+        }
+    }
+
+    // Fetch existing items
+    fetch("{{ route('taxonomies_educational_systems.index') }}")
+        .then(res => res.json())
+        .then(items => {
+            data.eduList = items.map(item => ({ id: item.id, title: item.educational_title }));
+            renderList();
+        })
+        .catch(err => console.error(err));
+
+    // Delete item
+    window.deleteItem = function(id, index) {
+        fetch(`{{ url('taxonomies/educational_systems/delete') }}/${id}`, {
+            method: "DELETE",
+            headers: {
+                "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+            }
+        })
+        .then(res => res.json())
+        .then(response => {
+            if(response.success){
+                data.eduList.splice(index, 1);
+                renderList(index < data.eduList.length ? index : data.eduList.length - 1);
+            } else {
+                alert("Failed to delete item.");
+            }
+        })
+        .catch(err => console.error(err));
+    };
+
+    // Handle form submit
+    eduForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const value = eduInput.value.trim();
+        if(!value) return;
+
+        fetch(eduForm.action, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+            },
+            body: JSON.stringify({ eduInput: value })
+        })
+        .then(res => res.json())
+        .then(response => {
+            if(response.success){
+                data.eduList.push({ id: response.id, title: response.title });
+                renderList(data.eduList.length - 1); // scroll to new item
+                eduInput.value = '';
+            } else {
+                alert("Failed to save item.");
+            }
+        })
+        .catch(err => console.error(err));
+    });
+
+});
+</script>
+
+
   @endsection
