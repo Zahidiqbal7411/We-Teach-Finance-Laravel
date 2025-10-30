@@ -56,7 +56,7 @@ Route::delete('taxonomies/educational_systems/delete/{id}' ,[Taxonomies_settingC
 
 
 //Developer personal comments: This is the routes for taxonomies subject.
-Route::post('taxonomies/subjects/store' ,[Taxonomies_settingController::class , 'store_subject'])->name('taxonomies_subjects.store');
+Route::post('taxonomies/subjects/store' ,[Taxonomies_settingController::class , 'store_subjects'])->name('taxonomies_subjects.store');
 Route::get('taxonomies/subjects/index' ,[Taxonomies_settingController::class , 'index_subjects'])->name('taxonomies_subjects.index');
 Route::delete('taxonomies/subjects/delete/{id}' ,[Taxonomies_settingController::class , 'delete_subjects'])->name('taxonomies_subjects.delete');
 
@@ -72,6 +72,9 @@ Route::delete('taxonomies/sessions/delete/{id}' ,[Taxonomies_settingController::
 
 // this is the routes  for teacher section
 Route::post('taxonomies/teacher/store' ,[Teacher_settingController::class , 'store_teacher'])->name('teacher_setting.store');
+Route::get('taxonomies/teacher/index', [Teacher_settingController::class, 'index_teacher'])
+    ->name('teacher_setting.index');
+
 
 
 
