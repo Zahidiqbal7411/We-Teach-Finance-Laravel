@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Taxonomies_sessions extends Model
 {
-    //
+   protected $fillable = ['session_title'];
 }
