@@ -218,6 +218,227 @@
                                   </div>
 
                               </div>
+                              {{-- <div class="col-md-12 mt-2">
+                                  <div class="taxonomy-card p-3 shadow-sm rounded border">
+
+                                      <!-- Heading -->
+                                      <h6>Course</h6>
+
+                                      <!-- Column Headings -->
+                                      <div class="row fw-bold small border-bottom pb-2 mb-2 mt-2">
+                                          <div class="col-4">Course Title</div>
+                                          <div class="col-3">Educational System</div>
+                                          <div class="col-3">Subject</div>
+                                          <div class="col-2">Examination Board</div>
+                                      </div>
+
+                                      <!-- Input Form -->
+                                      <form id="courseForm" class="mt-1">
+                                          <div class="row g-2 align-items-center">
+
+                                              <!-- Course Title Input (Bigger size) -->
+                                              <div class="col-5">
+                                                  <input type="text" class="form-control form-control-sm"
+                                                      placeholder="Course Title">
+                                              </div>
+
+                                              <!-- Educational System -->
+                                              <div class="col-2">
+                                                  <select class="form-select form-select-sm">
+                                                      <option selected disabled>Select System</option>
+                                                      <option>Matric</option>
+                                                      <option>O-Levels</option>
+                                                      <option>A-Levels</option>
+                                                      <option>Intermediate</option>
+                                                  </select>
+                                              </div>
+
+                                              <!-- Subject -->
+                                              <div class="col-2">
+                                                  <select class="form-select form-select-sm">
+                                                      <option selected disabled>Select Subject</option>
+                                                      <option>Math</option>
+                                                      <option>Physics</option>
+                                                      <option>Chemistry</option>
+                                                      <option>Biology</option>
+                                                  </select>
+                                              </div>
+
+                                              <!-- Examination Board -->
+                                              <div class="col-2">
+                                                  <select class="form-select form-select-sm">
+                                                      <option selected disabled>Select Board</option>
+                                                      <option>FBISE</option>
+                                                      <option>Bise Lahore</option>
+                                                      <option>KPK Board</option>
+                                                      <option>Sindh Board</option>
+                                                  </select>
+                                              </div>
+
+                                              <!-- Add Button -->
+                                              <div class="col-auto mt-2">
+                                                  <button type="submit" class="btn btn-sm btn-secondary">
+                                                      <i class="fa fa-plus"></i>
+                                                  </button>
+                                              </div>
+
+                                          </div>
+                                      </form>
+
+                                  </div>
+                              </div> --}}
+                              {{-- <div class="col-md-12 mt-2">
+                                  <div class="taxonomy-card p-3 shadow-sm rounded border">
+
+                                      <!-- Heading -->
+                                      <h6>Course</h6>
+
+                                      <!-- Column Headings -->
+                                      <div class="row fw-bold small border-bottom pb-2 mb-2 mt-2 text-center me-2">
+                                          <div class="col-5">Course Title</div>
+                                          <div class="col-2">Educational System</div>
+                                          <div class="col-2">Subject</div>
+                                          <div class="col-2">Examination Board</div>
+                                          <div class="col-1"></div>
+                                      </div>
+
+                                      <!-- Input Form -->
+                                      <form id="courseForm" class="mt-1">
+                                          @csrf
+                                          <div class="row g-2 align-items-center">
+
+                                              <!-- Course Title -->
+                                              <div class="col-5">
+                                                  <input name="course_title" type="text"
+                                                      class="form-control form-control-sm" placeholder="Course Title">
+                                              </div>
+
+                                              <!-- Educational System -->
+                                              <div class="col-2">
+                                                  <select name="edu_system_id" id="edu_option"
+                                                      class="form-select form-select-sm">
+                                                      <option selected disabled>Select System</option>
+                                                      @foreach ($course_edu_system_datas as $course_edu_system_data)
+                                                          <option value="{{ $course_edu_system_data->id }}">
+                                                              {{ $course_edu_system_data->educational_title }}</option>
+                                                      @endforeach
+                                                  </select>
+                                              </div>
+
+                                              <!-- Subject -->
+                                              <div class="col-2">
+                                                  <select name="subject_id" id="sub_option"
+                                                      class="form-select form-select-sm">
+                                                      <option selected disabled>Select Subject</option>
+                                                      @foreach ($course_subject_datas as $course_subject_data)
+                                                          <option value="{{ $course_subject_data->id }}">
+                                                              {{ $course_subject_data->subject_title }}</option>
+                                                      @endforeach
+                                                  </select>
+                                              </div>
+
+                                              <!-- Exam Board -->
+                                              <div class="col-2">
+                                                  <select name="exam_board_id" id="board_option"
+                                                      class="form-select form-select-sm">
+                                                      <option selected disabled>Select Board</option>
+                                                      @foreach ($course_exam_board_datas as $course_exam_board_data)
+                                                          <option value="{{ $course_exam_board_data->id }}">
+                                                              {{ $course_exam_board_data->examination_board_title }}
+                                                          </option>
+                                                      @endforeach
+                                                  </select>
+                                              </div>
+
+                                              <!-- Add -->
+                                              <div class="col-1">
+                                                  <button type="submit" class="btn btn-sm btn-secondary">
+                                                      <i class="fa fa-plus"></i>
+                                                  </button>
+                                              </div>
+
+                                          </div>
+                                      </form>
+
+                                      <!-- ✅ Course List will appear here -->
+                                      <div id="courseList" class="mt-3"></div>
+
+                                  </div>
+                              </div> --}}
+                              <div class="col-md-12 mt-2">
+    <div class="taxonomy-card p-3 shadow-sm rounded border">
+
+        <!-- Heading -->
+        <h6>Course</h6>
+
+        <!-- Column Headings -->
+        <div class="row fw-bold small border-bottom pb-2 mb-2 mt-2 text-center me-2">
+            <div class="col-5">Course Title</div>
+            <div class="col-2">Educational System</div>
+            <div class="col-2">Subject</div>
+            <div class="col-2">Examination Board</div>
+            <div class="col-1"></div>
+        </div>
+
+        <!-- Input Form -->
+         <div id="courseList" class="mt-3 mb-4"></div>
+        <form id="courseForm" class="mt-1" action="{{ route('taxonomies_course.store') }}">
+            @csrf
+            <div class="row g-2 align-items-center">
+
+                <!-- Course Title -->
+                <div class="col-5">
+                    <input name="course_title" type="text" class="form-control form-control-sm" placeholder="Course Title">
+                </div>
+
+                <!-- Educational System -->
+                <div class="col-2">
+                    <select name="edu_system_id" id="edu_option" class="form-select form-select-sm">
+                        <option selected disabled>Select System</option>
+                        @foreach ($course_edu_system_datas as $course_edu_system_data)
+                            <option value="{{ $course_edu_system_data->id }}">{{ $course_edu_system_data->educational_title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Subject -->
+                <div class="col-2">
+                    <select name="subject_id" id="sub_option" class="form-select form-select-sm">
+                        <option selected disabled>Select Subject</option>
+                        @foreach ($course_subject_datas as $course_subject_data)
+                            <option value="{{ $course_subject_data->id }}">{{ $course_subject_data->subject_title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Exam Board -->
+                <div class="col-2">
+                    <select name="exam_board_id" id="board_option" class="form-select form-select-sm">
+                        <option selected disabled>Select Board</option>
+                        @foreach ($course_exam_board_datas as $course_exam_board_data)
+                            <option value="{{ $course_exam_board_data->id }}">{{ $course_exam_board_data->examination_board_title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Add -->
+                <div class="col-1">
+                    <button type="submit" class="btn btn-sm btn-secondary">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+        <!-- ✅ Course List container BELOW the form -->
+       
+
+    </div>
+</div>
+
+
+
                           </div>
                       </div>
                   </div>
@@ -756,173 +977,215 @@
 
 
 
-      {{-- This is the script of educational system --}}
+      {{-- this is the script of education system --}}
 
 
 
+      <script>
+          document.addEventListener("DOMContentLoaded", function() {
+              const eduForm = document.getElementById("eduForm");
+              const eduInput = document.getElementById("eduInput");
+              const eduList = document.getElementById("eduList");
+              const csrfToken = document.querySelector('input[name="_token"]').value;
+              const eduSelect = document.getElementById("edu_option"); // ✅ select element
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const eduForm = document.getElementById("eduForm");
-    const eduInput = document.getElementById("eduInput");
-    const eduList = document.getElementById("eduList");
-    const csrfToken = document.querySelector('input[name="_token"]').value;
-    const data = { eduList: [] };
+              const data = {
+                  eduList: []
+              };
 
-    // 🔹 Load all items
-    async function loadItems() {
-        eduList.innerHTML = '<small class="text-muted">Loading...</small>';
-        try {
-            const res = await fetch("{{ route('taxonomies_educational_systems.index') }}");
-            const items = await res.json();
-            data.eduList = items.map(i => ({ id: i.id, title: i.educational_title }));
-            renderList();
-        } catch (error) {
-            console.error("Error loading items:", error);
-            eduList.innerHTML = '<small class="text-danger">Failed to load items.</small>';
-        }
-    }
+              // 🔹 Load all items
+              async function loadItems() {
+                  eduList.innerHTML = '<small class="text-muted">Loading...</small>';
+                  try {
+                      const res = await fetch("{{ route('taxonomies_educational_systems.index') }}");
+                      const items = await res.json();
+                      data.eduList = items.map(i => ({
+                          id: i.id,
+                          title: i.educational_title
+                      }));
 
-    // 🔹 Render the list
-    function renderList() {
-        eduList.innerHTML = '';
-        if (data.eduList.length === 0) {
-            eduList.innerHTML = '<small class="text-muted">No educational systems added yet.</small>';
-            return;
-        }
+                      renderList();
 
-        data.eduList.forEach(item => {
-            const div = document.createElement("div");
-            div.className = "taxonomy-item d-flex justify-content-between align-items-center border rounded p-1 mb-1 position-relative";
-            div.dataset.id = item.id;
-            div.innerHTML = `
+                      // ✅ ALSO populate the dropdown
+                      eduSelect.innerHTML = '<option selected disabled>Select System</option>';
+                      data.eduList.forEach(item => {
+                          let opt = document.createElement("option");
+                          opt.value = item.id;
+                          opt.textContent = item.title;
+                          eduSelect.appendChild(opt);
+                      });
+
+                  } catch (error) {
+                      console.error("Error loading items:", error);
+                      eduList.innerHTML = '<small class="text-danger">Failed to load items.</small>';
+                  }
+              }
+
+              // 🔹 Render the list
+              function renderList() {
+                  eduList.innerHTML = '';
+                  if (data.eduList.length === 0) {
+                      eduList.innerHTML = '<small class="text-muted">No educational systems added yet.</small>';
+                      return;
+                  }
+
+                  data.eduList.forEach(item => {
+                      const div = document.createElement("div");
+                      div.className =
+                          "taxonomy-item d-flex justify-content-between align-items-center border rounded p-1 mb-1 position-relative";
+                      div.dataset.id = item.id;
+                      div.innerHTML = `
                 <span>${item.title}</span>
                 <i class="fa fa-trash text-danger delete-edu-btn" style="cursor:pointer; font-size:16px;"></i>
             `;
-            eduList.appendChild(div);
-        });
-    }
+                      eduList.appendChild(div);
+                  });
+              }
 
-    // 🔹 Delete only educational systems with confirm
-    eduList.addEventListener("click", async function(e) {
-        if (!e.target.classList.contains("delete-edu-btn")) return;
+              // 🔹 Delete only educational systems with confirm
+              eduList.addEventListener("click", async function(e) {
+                  if (!e.target.classList.contains("delete-edu-btn")) return;
 
-        const parent = e.target.closest(".taxonomy-item");
-        const id = parent.dataset.id;
+                  const parent = e.target.closest(".taxonomy-item");
+                  const id = parent.dataset.id;
 
-        // Confirm deletion for education only
-        if (!confirm("Are you sure you want to delete this educational system?")) return;
+                  if (!confirm("Are you sure you want to delete this educational system?")) return;
 
-        parent.style.backgroundColor = "#fff8d6"; // Highlight
-        const deleteIcon = e.target;
-        deleteIcon.style.visibility = "hidden";
-        const spinner = document.createElement("i");
-        spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
-        parent.appendChild(spinner);
+                  parent.style.backgroundColor = "#fff8d6";
+                  const deleteIcon = e.target;
+                  deleteIcon.style.visibility = "hidden";
 
-        try {
-            const res = await fetch(`/taxonomies/educational_systems/delete/${id}`, {
-                method: "DELETE",
-                headers: {
-                    "X-CSRF-TOKEN": csrfToken,
-                    "Accept": "application/json"
-                }
-            });
+                  const spinner = document.createElement("i");
+                  spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
+                  parent.appendChild(spinner);
 
-            const response = await res.json();
+                  try {
+                      const res = await fetch(`/taxonomies/educational_systems/delete/${id}`, {
+                          method: "DELETE",
+                          headers: {
+                              "X-CSRF-TOKEN": csrfToken,
+                              "Accept": "application/json"
+                          }
+                      });
 
-            if (response.success) {
-                setTimeout(() => {
-                    spinner.remove();
-                    const toast = document.createElement("div");
-                    toast.textContent = "✔ Education deleted successfully";
-                    toast.style.position = "absolute";
-                    toast.style.bottom = "-35px";
-                    toast.style.right = "0";
-                    toast.style.background = "#28a745";
-                    toast.style.color = "white";
-                    toast.style.padding = "4px 10px";
-                    toast.style.borderRadius = "6px";
-                    toast.style.fontSize = "13px";
-                    toast.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
-                    toast.style.opacity = "0";
-                    toast.style.transition = "opacity 0.3s ease";
-                    parent.appendChild(toast);
+                      const response = await res.json();
 
-                    setTimeout(() => (toast.style.opacity = "1"), 50);
+                      if (response.success) {
+                          setTimeout(() => {
+                              spinner.remove();
 
-                    setTimeout(() => {
-                        toast.style.opacity = "0";
-                        setTimeout(() => {
-                            toast.remove();
-                            data.eduList = data.eduList.filter(i => i.id != id);
-                            renderList();
-                        }, 400);
-                    }, 1500);
-                }, 800);
-            } else {
-                deleteIcon.style.visibility = "visible";
-                spinner.remove();
-                parent.style.backgroundColor = "";
-                console.error("Failed to delete item.");
-            }
-        } catch (error) {
-            deleteIcon.style.visibility = "visible";
-            spinner.remove();
-            parent.style.backgroundColor = "";
-            console.error("Error deleting item:", error);
-        }
-    });
+                              const toast = document.createElement("div");
+                              toast.textContent = "✔ Education deleted successfully";
+                              toast.style.position = "absolute";
+                              toast.style.bottom = "-35px";
+                              toast.style.right = "0";
+                              toast.style.background = "#28a745";
+                              toast.style.color = "white";
+                              toast.style.padding = "4px 10px";
+                              toast.style.borderRadius = "6px";
+                              toast.style.fontSize = "13px";
+                              toast.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+                              toast.style.opacity = "0";
+                              toast.style.transition = "opacity 0.3s ease";
+                              parent.appendChild(toast);
 
-    // 🔹 Handle Add Item form submit
-    eduForm.addEventListener("submit", async function(e) {
-        e.preventDefault();
-        const title = eduInput.value.trim();
-        if (!title) return;
+                              setTimeout(() => (toast.style.opacity = "1"), 50);
 
-        const button = eduForm.querySelector("button");
-        button.disabled = true;
-        button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+                              setTimeout(() => {
+                                  toast.style.opacity = "0";
+                                  setTimeout(() => {
+                                      toast.remove();
+                                      data.eduList = data.eduList.filter(i => i
+                                          .id != id);
+                                      renderList();
 
-        try {
-            const res = await fetch(eduForm.action, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": csrfToken,
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify({ eduInput: title })
-            });
+                                      // ✅ Remove from dropdown
+                                      [...eduSelect.options].forEach(opt => {
+                                          if (opt.value == id) opt
+                                              .remove();
+                                      });
 
-            const response = await res.json();
+                                  }, 400);
+                              }, 1500);
+                          }, 800);
+                      } else {
+                          deleteIcon.style.visibility = "visible";
+                          spinner.remove();
+                          parent.style.backgroundColor = "";
+                          console.error("Failed to delete item.");
+                      }
+                  } catch (error) {
+                      deleteIcon.style.visibility = "visible";
+                      spinner.remove();
+                      parent.style.backgroundColor = "";
+                      console.error("Error deleting item:", error);
+                  }
+              });
 
-            if (response.success) {
-                data.eduList.push({ id: response.id, title: response.title });
-                renderList();
-                eduInput.value = '';
-            } else {
-                console.error("❌ Failed to save item.");
-            }
-        } catch (error) {
-            console.error("Error saving item:", error);
-        } finally {
-            button.disabled = false;
-            button.innerHTML = '<i class="fa fa-plus"></i>';
-        }
-    });
+              // 🔹 Handle Add Item form submit
+              eduForm.addEventListener("submit", async function(e) {
+                  e.preventDefault();
+                  const title = eduInput.value.trim();
+                  if (!title) return;
 
-    loadItems();
-});
-</script>
+                  const button = eduForm.querySelector("button");
+                  button.disabled = true;
+                  button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+
+                  try {
+                      const res = await fetch(eduForm.action, {
+                          method: "POST",
+                          headers: {
+                              "Content-Type": "application/json",
+                              "X-CSRF-TOKEN": csrfToken,
+                              "Accept": "application/json"
+                          },
+                          body: JSON.stringify({
+                              eduInput: title
+                          })
+                      });
+
+                      const response = await res.json();
+
+                      if (response.success) {
+                          data.eduList.push({
+                              id: response.id,
+                              title: response.title
+                          });
+
+                          renderList();
+
+                          // ✅ Append new option to dropdown
+                          let opt = document.createElement("option");
+                          opt.value = response.id;
+                          opt.textContent = response.title;
+                          eduSelect.appendChild(opt);
+
+                          eduInput.value = '';
+                      } else {
+                          console.error("❌ Failed to save item.");
+                      }
+                  } catch (error) {
+                      console.error("Error saving item:", error);
+                  } finally {
+                      button.disabled = false;
+                      button.innerHTML = '<i class="fa fa-plus"></i>';
+                  }
+              });
+
+              loadItems();
+          });
+      </script>
+
 
 
 
       {{-- this is the script of taxonomies subject --}}
 
-{{-- 
 
-      <script>
+
+
+      {{-- <script>
           document.addEventListener("DOMContentLoaded", function() {
               const subjectForm = document.getElementById("subjectForm");
               const subjectInput = document.getElementById("subjectInput");
@@ -938,13 +1201,11 @@ document.addEventListener("DOMContentLoaded", function() {
                   subjectList.innerHTML = '<small class="text-muted">Loading...</small>';
                   try {
                       const res = await fetch("{{ route('taxonomies_subjects.index') }}");
-                      const items = await res.json();
-
+                      const items = await res.json() || []; // safeguard: ensure array even if null/undefined
                       subjectData.list = items.map(i => ({
                           id: i.id,
                           title: i.subject_title
                       }));
-
                       renderSubjects();
                   } catch (error) {
                       console.error("Error loading subjects:", error);
@@ -967,12 +1228,10 @@ document.addEventListener("DOMContentLoaded", function() {
                       div.dataset.id = item.id;
                       div.innerHTML = `
                 <span>${item.title}</span>
-                <i class="fa fa-trash text-danger delete-btn" style="cursor:pointer; font-size:16px;"></i>
+                <i class="fa fa-trash text-danger delete-subject-btn" style="cursor:pointer; font-size:16px;"></i>
             `;
                       subjectList.appendChild(div);
                   });
-
-                  attachDeleteListeners();
               }
 
               // 🔹 Add Subject
@@ -985,7 +1244,6 @@ document.addEventListener("DOMContentLoaded", function() {
                   button.disabled = true;
                   button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
 
-                  // ✅ FIX: use FormData (Laravel friendly)
                   const formData = new FormData();
                   formData.append("subjectInput", title);
 
@@ -1018,60 +1276,66 @@ document.addEventListener("DOMContentLoaded", function() {
                   }
               });
 
-              // 🔹 Delete Subject (Confirm + Spinner + Toast)
-              function attachDeleteListeners() {
-                  document.querySelectorAll("#subjectList .delete-btn").forEach(btn => {
-                      btn.onclick = async function() {
-                          const parent = this.closest(".taxonomy-item");
-                          const id = parent.dataset.id;
+              // 🔹 Delete Subject (event delegation, confirm only for subjects)
+              subjectList.addEventListener("click", async function(e) {
+                  if (!e.target.classList.contains("delete-subject-btn")) return;
 
-                          if (!confirm("Are you sure you want to delete this subject?")) return;
+                  const parent = e.target.closest(".taxonomy-item");
+                  const id = parent.dataset.id;
 
-                          parent.style.backgroundColor = "#fff8d6";
-                          this.style.visibility = "hidden";
+                  // Confirm deletion
+                  if (!confirm("Are you sure you want to delete this subject?")) return;
 
-                          const spinner = document.createElement("i");
-                          spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
-                          parent.appendChild(spinner);
+                  parent.style.backgroundColor = "#fff8d6";
+                  const deleteIcon = e.target;
+                  deleteIcon.style.visibility = "hidden";
 
-                          try {
-                              const res = await fetch(`/taxonomies/subjects/delete/${id}`, {
-                                  method: "DELETE",
-                                  headers: {
-                                      "X-CSRF-TOKEN": csrfToken,
-                                      "Accept": "application/json"
-                                  }
-                              });
+                  const spinner = document.createElement("i");
+                  spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
+                  parent.appendChild(spinner);
 
-                              const response = await res.json();
-
-                              if (response.success) {
-                                  setTimeout(() => {
-                                      spinner.remove();
-                                      showToast(parent, "✔ Subject deleted successfully",
-                                          "success");
-                                      subjectData.list = subjectData.list.filter(i => i.id !=
-                                          id);
-                                      renderSubjects();
-                                  }, 600);
-                              } else {
-                                  resetDeleteState();
-                              }
-                          } catch (error) {
-                              console.error("Error deleting subject:", error);
-                              resetDeleteState();
+                  try {
+                      const res = await fetch(`/taxonomies/subjects/delete/${id}`, {
+                          method: "DELETE",
+                          headers: {
+                              "X-CSRF-TOKEN": csrfToken,
+                              "Accept": "application/json"
                           }
+                      });
 
-                          function resetDeleteState() {
-                              parent.style.backgroundColor = "";
-                              spinner.remove();
-                              btn.style.visibility = "visible";
-                          }
-                      };
-                  });
-              }
+                      const response = await res.json();
 
-              // 🔹 Toast Message
+                      if (response.success) {
+                          spinner.remove();
+
+                          // Remove from data list but do not remove DOM yet
+                          subjectData.list = subjectData.list.filter(i => i.id != id);
+
+                          // Show toast
+                          showToast(parent, "✔ Subject deleted successfully", "success");
+
+                          // Remove the item after toast fades
+                          setTimeout(() => {
+                              parent.remove();
+                              // Re-render to show "No subjects added yet" if list is empty
+                              if (subjectData.list.length === 0) renderSubjects();
+                          }, 1800); // same as toast duration
+                      } else {
+                          resetDeleteState();
+                      }
+                  } catch (error) {
+                      console.error("Error deleting subject:", error);
+                      resetDeleteState();
+                  }
+
+                  function resetDeleteState() {
+                      parent.style.backgroundColor = "";
+                      spinner.remove();
+                      deleteIcon.style.visibility = "visible";
+                  }
+              });
+
+              // 🔹 Toast Message (kept exactly like education)
               function showToast(parent, message, type = "success") {
                   const toast = document.createElement("div");
                   toast.textContent = message;
@@ -1089,181 +1353,212 @@ document.addEventListener("DOMContentLoaded", function() {
                   parent.appendChild(toast);
 
                   setTimeout(() => (toast.style.opacity = "1"), 50);
+
                   setTimeout(() => {
                       toast.style.opacity = "0";
                       setTimeout(() => toast.remove(), 400);
                   }, 1500);
               }
 
-              // 🔹 Load on page ready
               loadSubjects();
           });
       </script> --}}
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const subjectForm = document.getElementById("subjectForm");
-    const subjectInput = document.getElementById("subjectInput");
-    const subjectList = document.getElementById("subjectList");
-    const csrfToken = document.querySelector('input[name="_token"]').value;
-
-    const subjectData = { list: [] };
-
-    // 🔹 Load all subjects
-    async function loadSubjects() {
-        subjectList.innerHTML = '<small class="text-muted">Loading...</small>';
-        try {
-            const res = await fetch("{{ route('taxonomies_subjects.index') }}");
-            const items = await res.json();
-            subjectData.list = items.map(i => ({ id: i.id, title: i.subject_title }));
-            renderSubjects();
-        } catch (error) {
-            console.error("Error loading subjects:", error);
-            subjectList.innerHTML = '<small class="text-danger">Failed to load subjects.</small>';
-        }
-    }
-
-    // 🔹 Render subjects
-    function renderSubjects() {
-        subjectList.innerHTML = '';
-        if (subjectData.list.length === 0) {
-            subjectList.innerHTML = '<small class="text-muted">No subjects added yet.</small>';
-            return;
-        }
-
-        subjectData.list.forEach(item => {
-            const div = document.createElement("div");
-            div.className = "taxonomy-item d-flex justify-content-between align-items-center border rounded p-1 mb-1 position-relative";
-            div.dataset.id = item.id;
-            div.innerHTML = `
-                <span>${item.title}</span>
-                <i class="fa fa-trash text-danger delete-subject-btn" style="cursor:pointer; font-size:16px;"></i>
-            `;
-            subjectList.appendChild(div);
-        });
-    }
-
-    // 🔹 Add Subject
-    subjectForm.addEventListener("submit", async function(e) {
-        e.preventDefault();
-        const title = subjectInput.value.trim();
-        if (!title) return;
-
-        const button = subjectForm.querySelector("button");
-        button.disabled = true;
-        button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
-
-        const formData = new FormData();
-        formData.append("subjectInput", title);
-
-        try {
-            const res = await fetch(subjectForm.action, {
-                method: "POST",
-                headers: { "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
-                body: formData
-            });
-
-            const response = await res.json();
-            if (response.success) {
-                subjectData.list.push({ id: response.id, title: response.title });
-                renderSubjects();
-                subjectInput.value = "";
-            } else {
-                console.error("Failed to save subject.");
-            }
-        } catch (error) {
-            console.error("Error saving subject:", error);
-        } finally {
-            button.disabled = false;
-            button.innerHTML = '<i class="fa fa-plus"></i>';
-        }
-    });
-
-    // 🔹 Delete Subject (event delegation, confirm only for subjects)
-    subjectList.addEventListener("click", async function(e) {
-        if (!e.target.classList.contains("delete-subject-btn")) return;
-
-        const parent = e.target.closest(".taxonomy-item");
-        const id = parent.dataset.id;
-
-        // Confirm deletion
-        if (!confirm("Are you sure you want to delete this subject?")) return;
-
-        parent.style.backgroundColor = "#fff8d6";
-        const deleteIcon = e.target;
-        deleteIcon.style.visibility = "hidden";
-
-        const spinner = document.createElement("i");
-        spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
-        parent.appendChild(spinner);
-
-        try {
-            const res = await fetch(`/taxonomies/subjects/delete/${id}`, {
-                method: "DELETE",
-                headers: { "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" }
-            });
-
-            const response = await res.json();
-
-            if (response.success) {
-                spinner.remove();
-
-                // Remove from data list but do not remove DOM yet
-                subjectData.list = subjectData.list.filter(i => i.id != id);
-
-                // Show toast
-                showToast(parent, "✔ Subject deleted successfully", "success");
-
-                // Remove the item after toast fades
-                setTimeout(() => {
-                    parent.remove();
-                }, 1800); // same as toast duration
-            } else {
-                resetDeleteState();
-            }
-        } catch (error) {
-            console.error("Error deleting subject:", error);
-            resetDeleteState();
-        }
-
-        function resetDeleteState() {
-            parent.style.backgroundColor = "";
-            spinner.remove();
-            deleteIcon.style.visibility = "visible";
-        }
-    });
-
-    // 🔹 Toast Message (kept exactly like education)
-    function showToast(parent, message, type = "success") {
-        const toast = document.createElement("div");
-        toast.textContent = message;
-        toast.style.position = "absolute";
-        toast.style.bottom = "-35px";
-        toast.style.right = "0";
-        toast.style.background = type === "success" ? "#28a745" : "#dc3545";
-        toast.style.color = "white";
-        toast.style.padding = "4px 10px";
-        toast.style.borderRadius = "6px";
-        toast.style.fontSize = "13px";
-        toast.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
-        toast.style.opacity = "0";
-        toast.style.transition = "opacity 0.3s ease";
-        parent.appendChild(toast);
-
-        setTimeout(() => (toast.style.opacity = "1"), 50);
-
-        setTimeout(() => {
-            toast.style.opacity = "0";
-            setTimeout(() => toast.remove(), 400);
-        }, 1500);
-    }
-
-    loadSubjects();
-});
-</script>
-
-
       <script>
+          document.addEventListener("DOMContentLoaded", function() {
+              const subjectForm = document.getElementById("subjectForm");
+              const subjectInput = document.getElementById("subjectInput");
+              const subjectList = document.getElementById("subjectList");
+              const csrfToken = document.querySelector('input[name="_token"]').value;
+              const subSelect = document.getElementById("sub_option");
+
+              const data = {
+                  subjectList: []
+              };
+
+              // Load Subjects
+              async function loadItems() {
+                  subjectList.innerHTML = '<small class="text-muted">Loading...</small>';
+                  try {
+                      const res = await fetch("{{ route('taxonomies_subjects.index') }}");
+                      const items = await res.json();
+
+                      data.subjectList = items.map(i => ({
+                          id: i.id,
+                          title: i.subject_title
+                      }));
+
+                      renderList();
+
+                      subSelect.innerHTML = '<option selected disabled>Select Subject</option>';
+                      data.subjectList.forEach(item => {
+                          let opt = document.createElement("option");
+                          opt.value = item.id;
+                          opt.textContent = item.title;
+                          subSelect.appendChild(opt);
+                      });
+
+                  } catch (error) {
+                      console.error("Error loading items:", error);
+                      subjectList.innerHTML = '<small class="text-danger">Failed to load items.</small>';
+                  }
+              }
+
+              // Render List
+              function renderList() {
+                  subjectList.innerHTML = '';
+                  if (data.subjectList.length === 0) {
+                      subjectList.innerHTML = '<small class="text-muted">No subjects added yet.</small>';
+                      return;
+                  }
+
+                  data.subjectList.forEach(item => {
+                      const div = document.createElement("div");
+                      div.className =
+                          "taxonomy-item d-flex justify-content-between align-items-center border rounded p-1 mb-1 position-relative";
+                      div.dataset.id = item.id;
+                      div.innerHTML = `
+                <span>${item.title}</span>
+                <i class="fa fa-trash text-danger delete-sub-btn" style="cursor:pointer; font-size:16px;"></i>
+            `;
+                      subjectList.appendChild(div);
+                  });
+              }
+
+              // Delete Subject
+              subjectList.addEventListener("click", async function(e) {
+                  if (!e.target.classList.contains("delete-sub-btn")) return;
+
+                  const parent = e.target.closest(".taxonomy-item");
+                  const id = parent.dataset.id;
+
+                  if (!confirm("Are you sure you want to delete this subject?")) return;
+
+                  parent.style.backgroundColor = "#fff8d6";
+                  const deleteIcon = e.target;
+                  deleteIcon.style.visibility = "hidden";
+
+                  const spinner = document.createElement("i");
+                  spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
+                  parent.appendChild(spinner);
+
+                  try {
+                      const res = await fetch(`/taxonomies/subjects/delete/${id}`, {
+                          method: "DELETE",
+                          headers: {
+                              "X-CSRF-TOKEN": csrfToken,
+                              "Accept": "application/json"
+                          }
+                      });
+
+                      const response = await res.json();
+
+                      if (response.success) {
+                          setTimeout(() => {
+                              spinner.remove();
+
+                              const toast = document.createElement("div");
+                              toast.textContent = "✔ Subject deleted successfully";
+                              toast.style.position = "absolute";
+                              toast.style.bottom = "-35px";
+                              toast.style.right = "0";
+                              toast.style.background = "#28a745";
+                              toast.style.color = "white";
+                              toast.style.padding = "4px 10px";
+                              toast.style.borderRadius = "6px";
+                              toast.style.fontSize = "13px";
+                              toast.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+                              toast.style.opacity = "0";
+                              toast.style.transition = "opacity 0.3s ease";
+                              parent.appendChild(toast);
+
+                              setTimeout(() => (toast.style.opacity = "1"), 50);
+
+                              setTimeout(() => {
+                                  toast.style.opacity = "0";
+                                  setTimeout(() => {
+                                      toast.remove();
+                                      data.subjectList = data.subjectList.filter(
+                                          i => i.id != id);
+                                      renderList();
+
+                                      [...subSelect.options].forEach(opt => {
+                                          if (opt.value == id) opt
+                                              .remove();
+                                      });
+
+                                  }, 400);
+                              }, 1500);
+                          }, 800);
+                      } else {
+                          deleteIcon.style.visibility = "visible";
+                          spinner.remove();
+                          parent.style.backgroundColor = "";
+                      }
+                  } catch (error) {
+                      deleteIcon.style.visibility = "visible";
+                      spinner.remove();
+                      parent.style.backgroundColor = "";
+                      console.error("Error deleting item:", error);
+                  }
+              });
+
+              // Add Subject
+              subjectForm.addEventListener("submit", async function(e) {
+                  e.preventDefault();
+
+                  const title = subjectInput.value.trim();
+                  if (!title) return;
+
+                  const button = subjectForm.querySelector("button");
+                  button.disabled = true;
+                  button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+
+                  try {
+                      const res = await fetch(subjectForm.action, {
+                          method: "POST",
+                          headers: {
+                              "Content-Type": "application/json",
+                              "X-CSRF-TOKEN": csrfToken,
+                              "Accept": "application/json"
+                          },
+                          body: JSON.stringify({
+                              subjectInput: title
+                          })
+                      });
+
+                      const response = await res.json();
+
+                      if (response.success) {
+                          data.subjectList.push({
+                              id: response.id,
+                              title: response.title
+                          });
+
+                          renderList();
+
+                          let opt = document.createElement("option");
+                          opt.value = response.id;
+                          opt.textContent = response.title;
+                          subSelect.appendChild(opt);
+
+                          subjectInput.value = '';
+                      }
+                  } catch (error) {
+                      console.error("Error saving item:", error);
+                  } finally {
+                      button.disabled = false;
+                      button.innerHTML = '<i class="fa fa-plus"></i>';
+                  }
+              });
+
+              loadItems();
+          });
+      </script>
+
+
+
+      {{-- <script>
           document.addEventListener("DOMContentLoaded", function() {
               const boardForm = document.getElementById("boardForm");
               const boardInput = document.getElementById("boardInput");
@@ -1444,11 +1739,223 @@ document.addEventListener("DOMContentLoaded", function() {
               // 🔹 Load boards on startup
               loadBoards();
           });
+      </script> --}}
+      <script>
+          document.addEventListener("DOMContentLoaded", function() {
+              const boardForm = document.getElementById("boardForm");
+              const boardInput = document.getElementById("boardInput");
+              const boardList = document.getElementById("boardList");
+              const csrfToken = document.querySelector('input[name="_token"]').value;
+
+              const boardSelect = document.getElementById("board_option"); // ✅ Dropdown reference
+
+              const data = {
+                  boardList: []
+              };
+
+              // 🔹 Load all boards
+              async function loadBoards() {
+                  boardList.innerHTML = '<small class="text-muted">Loading...</small>';
+                  try {
+                      const res = await fetch("{{ route('taxonomies_examination_board.index') }}");
+                      const items = await res.json();
+
+                      data.boardList = items.map(i => ({
+                          id: i.id,
+                          title: i.examination_board_title
+                      }));
+                      renderBoards();
+
+                      // ✅ Populate dropdown
+                      boardSelect.innerHTML = '<option selected disabled>Select Board</option>';
+                      data.boardList.forEach(item => {
+                          let opt = document.createElement("option");
+                          opt.value = item.id;
+                          opt.textContent = item.title;
+                          boardSelect.appendChild(opt);
+                      });
+
+                  } catch (error) {
+                      console.error("Error loading boards:", error);
+                      boardList.innerHTML = '<small class="text-danger">Failed to load boards.</small>';
+                  }
+              }
+
+              // 🔹 Render boards
+              function renderBoards() {
+                  boardList.innerHTML = '';
+
+                  if (data.boardList.length === 0) {
+                      boardList.innerHTML = '<small class="text-muted">No examination boards added yet.</small>';
+                      return;
+                  }
+
+                  data.boardList.forEach(item => {
+                      const div = document.createElement("div");
+                      div.className =
+                          "taxonomy-item d-flex justify-content-between align-items-center border rounded p-1 mb-1 position-relative";
+                      div.dataset.id = item.id;
+                      div.innerHTML = `
+                <span>${item.title}</span>
+                <i class="fa fa-trash text-danger delete-btn" style="cursor:pointer; font-size:16px;"></i>
+            `;
+                      boardList.appendChild(div);
+                  });
+
+                  attachDeleteListeners();
+              }
+
+              // 🔹 Add new board
+              boardForm.addEventListener("submit", async function(e) {
+                  e.preventDefault();
+                  const title = boardInput.value.trim();
+                  if (!title) return;
+
+                  const button = boardForm.querySelector("button");
+                  button.disabled = true;
+                  button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+
+                  try {
+                      const res = await fetch(boardForm.action, {
+                          method: "POST",
+                          headers: {
+                              "Content-Type": "application/json",
+                              "X-CSRF-TOKEN": csrfToken,
+                              "Accept": "application/json"
+                          },
+                          body: JSON.stringify({
+                              boardInput: title
+                          })
+                      });
+
+                      const response = await res.json();
+
+                      if (response.success) {
+                          data.boardList.push({
+                              id: response.id,
+                              title: response.title
+                          });
+                          renderBoards();
+                          boardInput.value = '';
+
+                          // ✅ Add new option to dropdown
+                          let opt = document.createElement("option");
+                          opt.value = response.id;
+                          opt.textContent = response.title;
+                          boardSelect.appendChild(opt);
+
+                      } else {
+                          console.error("❌ Failed to save board.");
+                      }
+                  } catch (error) {
+                      console.error("Error saving board:", error);
+                  } finally {
+                      button.disabled = false;
+                      button.innerHTML = '<i class="fa fa-plus"></i>';
+                  }
+              });
+
+              // 🔹 Delete board
+              function attachDeleteListeners() {
+                  document.querySelectorAll(".delete-btn").forEach(btn => {
+                      btn.addEventListener("click", async function() {
+                          const parent = this.closest(".taxonomy-item");
+                          const id = parent.dataset.id;
+
+                          if (!confirm("Are you sure you want to delete this examination board?"))
+                              return;
+
+                          parent.style.backgroundColor = "#fff8d6";
+
+                          const deleteIcon = this;
+                          deleteIcon.style.visibility = "hidden";
+                          const spinner = document.createElement("i");
+                          spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
+                          parent.appendChild(spinner);
+
+                          try {
+                              const res = await fetch(
+                                  `/taxonomies/examination_board/delete/${id}`, {
+                                      method: "DELETE",
+                                      headers: {
+                                          "X-CSRF-TOKEN": csrfToken,
+                                          "Accept": "application/json"
+                                      }
+                                  });
+
+                              const response = await res.json();
+
+                              if (response.success) {
+                                  setTimeout(() => {
+                                      spinner.remove();
+
+                                      // ✅ Toast
+                                      const toast = document.createElement("div");
+                                      toast.textContent = "✔ Board deleted successfully";
+                                      toast.style.position = "absolute";
+                                      toast.style.bottom = "-35px";
+                                      toast.style.right = "0";
+                                      toast.style.background = "#28a745";
+                                      toast.style.color = "white";
+                                      toast.style.padding = "4px 10px";
+                                      toast.style.borderRadius = "6px";
+                                      toast.style.fontSize = "13px";
+                                      toast.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+                                      toast.style.opacity = "0";
+                                      toast.style.transition = "opacity 0.3s ease";
+                                      parent.appendChild(toast);
+
+                                      setTimeout(() => (toast.style.opacity = "1"), 50);
+
+                                      setTimeout(() => {
+                                          toast.style.opacity = "0";
+                                          setTimeout(() => {
+                                              toast.remove();
+                                              data.boardList = data
+                                                  .boardList.filter(i => i
+                                                      .id != id);
+                                              renderBoards();
+
+                                              // ✅ Remove option from dropdown
+                                              [...boardSelect.options]
+                                              .forEach(opt => {
+                                                  if (opt.value ==
+                                                      id) opt
+                                                      .remove();
+                                              });
+
+                                          }, 400);
+                                      }, 1500);
+                                  }, 800);
+                              } else {
+                                  deleteIcon.style.visibility = "visible";
+                                  spinner.remove();
+                                  parent.style.backgroundColor = "";
+                                  console.error("Failed to delete board.");
+                              }
+                          } catch (error) {
+                              deleteIcon.style.visibility = "visible";
+                              spinner.remove();
+                              parent.style.backgroundColor = "";
+                              console.error("Error deleting board:", error);
+                          }
+                      });
+                  });
+              }
+
+              // 🔹 Load boards on startup
+              loadBoards();
+          });
       </script>
 
 
 
+
       {{-- This is the script of sessions --}}
+
+
+
+
 
       <script>
           document.addEventListener("DOMContentLoaded", function() {
@@ -1554,7 +2061,7 @@ document.addEventListener("DOMContentLoaded", function() {
                           const parent = this.closest(".taxonomy-item");
                           const id = parent.dataset.id;
 
-                          // Confirm before deletion
+                          // ✅ Confirm before deletion (only for sessions)
                           if (!confirm("Are you sure you want to delete this session?")) return;
 
                           // Highlight in yellow
@@ -1639,7 +2146,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 
-
       <script>
           document.addEventListener("DOMContentLoaded", function() {
 
@@ -1649,10 +2155,30 @@ document.addEventListener("DOMContentLoaded", function() {
               const csrf = document.getElementById("csrfToken").value;
               const teacherModal = new bootstrap.Modal(document.getElementById('teacherModal'));
 
-              // ✅ Card render function — preserves your HTML
+              // ✅ Card render function — your HTML preserved
               function renderTeacherCard(t) {
                   const uid = 'teacher' + t.id;
                   const headingId = 'heading' + t.id;
+
+                  // ✅ Dynamic course list with Course + Subject title
+                  let courseHtml = "";
+                  if (t.courses && t.courses.length > 0) {
+                      t.courses.forEach(c => {
+                          const teacherPct = c.teacher_percentage ?? 0;
+                          const platformPct = 100 - teacherPct; // ✅ platform percentage formula
+
+                          courseHtml += `
+                    <div class="percentage-box mb-2 p-2">
+                        <span>${c.course?.course_title ?? 'N/A'} - ${c.course?.subject?.subject_title ?? 'N/A'}</span>
+                        <small>
+                            Teacher: <span class="text-success">${teacherPct}%</span> |
+                            Platform: <span class="text-primary">${platformPct}%</span>
+                        </small>
+                    </div>`;
+                      });
+                  } else {
+                      courseHtml = `<small class="text-muted">No courses assigned yet</small>`;
+                  }
 
                   return `
         <div class="accordion-item teacher-card border mb-2 rounded">
@@ -1672,11 +2198,10 @@ document.addEventListener("DOMContentLoaded", function() {
             <div id="${uid}" class="accordion-collapse collapse" aria-labelledby="${headingId}">
                 <div class="accordion-body bg-light border-top">
                     <div class="fw-semibold mb-2 percentage-title">Course Revenue Percentages</div>
-                    <div class="percentage-box mb-2 p-2">
-                        <span>IGCSE Mathematics</span>
-                        <small>Teacher: <span class="text-success">70%</span> | Platform: <span class="text-primary">30%</span></small>
-                    </div>
-                    
+
+                    <!-- ✅ Dynamic course + subject injected here -->
+                    ${courseHtml}
+
                     <button class="btn btn-dark btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#addCourseModal" style="font-size: 15px;">
                         <i class="fa-solid fa-plus"></i> Add Course Percentage
                     </button>
@@ -1685,11 +2210,10 @@ document.addEventListener("DOMContentLoaded", function() {
         </div>`;
               }
 
-              // ✅ Fetch teachers on page load from index_teacher route
+              // ✅ Load Teachers
               async function loadTeachers() {
                   try {
-                      const res = await fetch(
-                          "{{ route('teacher_setting.index') }}"); // index_teacher JSON route
+                      const res = await fetch("{{ route('teacher_setting.index') }}");
                       const response = await res.json();
 
                       if (response.success) {
@@ -1697,18 +2221,15 @@ document.addEventListener("DOMContentLoaded", function() {
                           response.data.forEach(t => {
                               teacherAccordion.insertAdjacentHTML("beforeend", renderTeacherCard(t));
                           });
-                      } else {
-                          console.error("Failed to load teachers.");
                       }
-
                   } catch (error) {
                       console.error("Load Error:", error);
                   }
               }
 
-              loadTeachers(); // 🔥 Load data when page opens
+              loadTeachers();
 
-              // ✅ Submit form — add new teacher & refresh the accordion
+              // ✅ Save Teacher
               teacherForm.addEventListener("submit", async function(e) {
                   e.preventDefault();
 
@@ -1735,13 +2256,10 @@ document.addEventListener("DOMContentLoaded", function() {
                       const response = await res.json();
 
                       if (response.success) {
-                          // ✅ Reload all teachers from index after storing new teacher
                           await loadTeachers();
-
                           teacherForm.reset();
                           teacherModal.hide();
 
-                          // Optional: success toast
                           const toast = document.createElement("div");
                           toast.textContent = "✔ Teacher added successfully";
                           toast.className =
@@ -1749,7 +2267,6 @@ document.addEventListener("DOMContentLoaded", function() {
                           toast.style.zIndex = 9999;
                           document.body.appendChild(toast);
                           setTimeout(() => toast.remove(), 3000);
-
                       } else {
                           alert("Error saving teacher!");
                       }
@@ -1762,6 +2279,266 @@ document.addEventListener("DOMContentLoaded", function() {
                   submitBtn.innerHTML = "Save Teacher";
               });
 
+          });
+      </script>
+
+
+
+      {{-- <script>
+          document.addEventListener("DOMContentLoaded", function() {
+              const courseForm = document.getElementById("courseForm");
+              const courseListContainer = document.createElement("div");
+              const csrfToken = document.querySelector('input[name="_token"]').value;
+              const eduSelect = document.getElementById("edu_option");
+              const subSelect = document.getElementById("sub_option");
+              const boardSelect = document.getElementById("board_option");
+
+              // Append course list container after form
+              courseForm.parentElement.appendChild(courseListContainer);
+
+              let courses = [];
+
+              // Load courses from server
+              async function loadCourses() {
+                  courseListContainer.innerHTML = '<small class="text-muted">Loading courses...</small>';
+                  try {
+                      const res = await fetch("{{ route('taxonomies_course.index') }}");
+                      const data = await res.json();
+                      courses = data.map(c => ({
+                          id: c.id,
+                          title: c.course_title,
+                          edu_system: c.edu_system_title,
+                          subject: c.subject_title,
+                          board: c.exam_board_title
+                      }));
+                      renderCourseList();
+                  } catch (error) {
+                      console.error("Error loading courses:", error);
+                      courseListContainer.innerHTML =
+                      '<small class="text-danger">Failed to load courses.</small>';
+                  }
+              }
+
+              // Render course list
+              function renderCourseList() {
+                  courseListContainer.innerHTML = '';
+                  if (courses.length === 0) {
+                      courseListContainer.innerHTML = '<small class="text-muted">No courses added yet.</small>';
+                      return;
+                  }
+
+                  courses.forEach(c => {
+                      const row = document.createElement("div");
+                      row.className =
+                          "row align-items-center border-bottom py-1 text-center position-relative";
+
+                      row.innerHTML = `
+                <div class="col-5">${c.title}</div>
+                <div class="col-2">${c.edu_system}</div>
+                <div class="col-2">${c.subject}</div>
+                <div class="col-2">${c.board}</div>
+                <div class="col-1">
+                    <i class="fa fa-trash text-danger delete-course-btn" style="cursor:pointer;"></i>
+                </div>
+            `;
+                      row.dataset.id = c.id;
+                      courseListContainer.appendChild(row);
+                  });
+              }
+
+              // Delete course
+              courseListContainer.addEventListener("click", async function(e) {
+                  if (!e.target.classList.contains("delete-course-btn")) return;
+                  const row = e.target.closest(".row");
+                  const id = row.dataset.id;
+
+                  if (!confirm("Are you sure you want to delete this course?")) return;
+
+                  const spinner = document.createElement("i");
+                  spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
+                  row.appendChild(spinner);
+                  e.target.style.visibility = "hidden";
+
+                  try {
+                      const res = await fetch(`/taxonomies/course/delete/${id}`, {
+                          method: "DELETE",
+                          headers: {
+                              "X-CSRF-TOKEN": csrfToken,
+                              "Accept": "application/json"
+                          }
+                      });
+                      const response = await res.json();
+                      if (response.success) {
+                          courses = courses.filter(c => c.id != id);
+                          renderCourseList();
+                          alert("✔ Course deleted successfully");
+                      } else {
+                          e.target.style.visibility = "visible";
+                          spinner.remove();
+                          console.error("Failed to delete course");
+                      }
+                  } catch (error) {
+                      e.target.style.visibility = "visible";
+                      spinner.remove();
+                      console.error("Error deleting course:", error);
+                  }
+              });
+
+              // Add new course
+              courseForm.addEventListener("submit", async function(e) {
+                  e.preventDefault();
+                  const formData = {
+                      course_title: this.course_title.value,
+                      edu_system_id: this.edu_system_id.value,
+                      subject_id: this.subject_id.value,
+                      exam_board_id: this.exam_board_id.value
+                  };
+
+                  const submitBtn = this.querySelector("button[type='submit']");
+                  submitBtn.disabled = true;
+                  submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+
+                  try {
+                      const res = await fetch(this.action, {
+                          method: "POST",
+                          headers: {
+                              "Content-Type": "application/json",
+                              "X-CSRF-TOKEN": csrfToken,
+                              "Accept": "application/json"
+                          },
+                          body: JSON.stringify(formData)
+                      });
+                      const response = await res.json();
+                      if (response.success) {
+                          courses.push({
+                              id: response.id,
+                              title: response.course_title,
+                              edu_system: response.edu_system_title,
+                              subject: response.subject_title,
+                              board: response.exam_board_title
+                          });
+                          renderCourseList();
+                          this.reset();
+                      } else {
+                          alert("Failed to add course");
+                      }
+                  } catch (error) {
+                      console.error("Error saving course:", error);
+                  } finally {
+                      submitBtn.disabled = false;
+                      submitBtn.innerHTML = '<i class="fa fa-plus"></i>';
+                  }
+              });
+
+              loadCourses();
+          });
+      </script> --}}
+
+      <script>
+          document.addEventListener("DOMContentLoaded", function() {
+              const courseForm = document.getElementById("courseForm");
+              const courseList = document.getElementById("courseList");
+              const csrfToken = document.querySelector('input[name="_token"]').value;
+
+              // 🔹 Load all courses
+              async function loadCourses() {
+                  courseList.innerHTML = '<small class="text-muted">Loading...</small>';
+                  try {
+                      const res = await fetch("{{ route('taxonomies_course.index') }}");
+                      const courses = await res.json();
+
+                      if (!courses || courses.length === 0) {
+                          courseList.innerHTML = '<small class="text-muted">No courses added yet.</small>';
+                          return;
+                      }
+
+                      courseList.innerHTML = '';
+                      courses.forEach(c => {
+                          const row = document.createElement("div");
+                          row.className = "row align-items-center text-center border-bottom py-1";
+                          row.dataset.id = c.id;
+                          row.innerHTML = `
+                    <div class="col-5">${c.course_title}</div>
+                    <div class="col-2">${c.edu_system_title}</div>
+                    <div class="col-2">${c.subject_title}</div>
+                    <div class="col-2">${c.exam_board_title}</div>
+                    <div class="col-1">
+                        <i class="fa fa-trash text-danger delete-course-btn" style="cursor:pointer;"></i>
+                    </div>
+                `;
+                          courseList.appendChild(row);
+                      });
+
+                  } catch (error) {
+                      console.error("Error loading courses:", error);
+                      courseList.innerHTML = '<small class="text-danger">Failed to load courses.</small>';
+                  }
+              }
+
+              // 🔹 Add Course
+              courseForm.addEventListener("submit", async function(e) {
+                  e.preventDefault();
+
+                  const formData = {
+                      course_title: this.course_title.value,
+                      edu_system_id: this.edu_system_id.value,
+                      subject_id: this.subject_id.value,
+                      exam_board_id: this.exam_board_id.value,
+                      _token: csrfToken
+                  };
+
+                  try {
+                      const res = await fetch(this.action, {
+                          method: "POST",
+                          headers: {
+                              "Content-Type": "application/json",
+                              "X-CSRF-TOKEN": csrfToken
+                          },
+                          body: JSON.stringify(formData)
+                      });
+
+                      const response = await res.json();
+                      if (response.success) {
+                          this.reset();
+                          await loadCourses();
+                      } else {
+                          alert("Error saving course!");
+                      }
+                  } catch (error) {
+                      console.error("Error:", error);
+                  }
+              });
+
+              // 🔹 Delete Course
+              courseList.addEventListener("click", async function(e) {
+                  if (!e.target.classList.contains("delete-course-btn")) return;
+
+                  const parent = e.target.closest(".row");
+                  const id = parent.dataset.id;
+
+                  if (!confirm("Are you sure you want to delete this course?")) return;
+
+                  try {
+                      const res = await fetch(`/taxonomies/course/delete/${id}`, {
+                          method: "DELETE",
+                          headers: {
+                              "X-CSRF-TOKEN": csrfToken,
+                              "Accept": "application/json"
+                          }
+                      });
+
+                      const response = await res.json();
+                      if (response.success) {
+                          parent.remove();
+                      } else {
+                          alert("Failed to delete course.");
+                      }
+                  } catch (error) {
+                      console.error("Error deleting course:", error);
+                  }
+              });
+
+              loadCourses();
           });
       </script>
   @endsection

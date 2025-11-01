@@ -6,14 +6,15 @@ use App\Models\Taxonomies_educational_systems;
 use App\Models\Taxonomies_examination_boards;
 use App\Models\Taxonomies_sessions;
 use App\Models\Taxonomies_subjects;
+use App\Models\Course;
 use Illuminate\Http\Request;
 
 class Taxonomies_settingController extends Controller
 {
-    public function create()
-    {
-        return view('teacher_setting.index');
-    }
+//  public function create()
+//     {
+//         return view("taxonomies_setting.index");
+//     } 
 
 
     public function store_educational_systems(Request $request)
@@ -180,4 +181,64 @@ class Taxonomies_settingController extends Controller
         }
         return response()->json(['success' => false]);
     }
+
+
+public function store_course(Request $request)
+{
+    $request->validate([
+        'course_title'   => 'required|string|max:255',
+        'edu_system_id'  => 'required|exists:taxonomies_educational_systems,id',
+        'subject_id'     => 'required|exists:taxonomies_subjects,id',
+        'exam_board_id'  => 'required|exists:taxonomies_examination_boards,id',
+    ]);
+
+    Course::create([
+        'course_title'  => $request->course_title,
+        'edu_system_id' => $request->edu_system_id,
+        'subject_id'    => $request->subject_id,
+        'exam_board_id' => $request->exam_board_id,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Course added successfully ✅'
+    ]);
+}
+ public function index()
+    {
+        $courses = Course::with(['eduSystem', 'subject', 'examBoard'])->get();
+
+        $data = $courses->map(function($course) {
+            return [
+                'id' => $course->id,
+                'course_title' => $course->course_title,
+                'edu_system_title' => $course->eduSystem->educational_title ?? 'N/A',
+                'subject_title' => $course->subject->subject_title ?? 'N/A',
+                'exam_board_title' => $course->examBoard->examination_board_title ?? 'N/A',
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    // 🔹 Delete a course
+    public function destroy($id)
+    {
+        $course = Course::find($id);
+
+        if (!$course) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Course not found'
+            ], 404);
+        }
+
+        $course->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Course deleted successfully'
+        ]);
+    }
+
 }

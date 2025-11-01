@@ -8,4 +8,10 @@ class Teacher extends Model
 {
     protected $fillable = ['teacher_name', 'teacher_contact', 'teacher_email', 'teacher_other_info'];
 
+
+    public function courses() {
+    return $this->hasMany(TeacherCourse::class, 'teacher_id');
+}
+
+
 }
