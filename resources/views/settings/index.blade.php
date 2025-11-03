@@ -218,76 +218,8 @@
                                   </div>
 
                               </div>
-                              {{-- <div class="col-md-12 mt-2">
-                                  <div class="taxonomy-card p-3 shadow-sm rounded border">
 
-                                      <!-- Heading -->
-                                      <h6>Course</h6>
-
-                                      <!-- Column Headings -->
-                                      <div class="row fw-bold small border-bottom pb-2 mb-2 mt-2">
-                                          <div class="col-4">Course Title</div>
-                                          <div class="col-3">Educational System</div>
-                                          <div class="col-3">Subject</div>
-                                          <div class="col-2">Examination Board</div>
-                                      </div>
-
-                                      <!-- Input Form -->
-                                      <form id="courseForm" class="mt-1">
-                                          <div class="row g-2 align-items-center">
-
-                                              <!-- Course Title Input (Bigger size) -->
-                                              <div class="col-5">
-                                                  <input type="text" class="form-control form-control-sm"
-                                                      placeholder="Course Title">
-                                              </div>
-
-                                              <!-- Educational System -->
-                                              <div class="col-2">
-                                                  <select class="form-select form-select-sm">
-                                                      <option selected disabled>Select System</option>
-                                                      <option>Matric</option>
-                                                      <option>O-Levels</option>
-                                                      <option>A-Levels</option>
-                                                      <option>Intermediate</option>
-                                                  </select>
-                                              </div>
-
-                                              <!-- Subject -->
-                                              <div class="col-2">
-                                                  <select class="form-select form-select-sm">
-                                                      <option selected disabled>Select Subject</option>
-                                                      <option>Math</option>
-                                                      <option>Physics</option>
-                                                      <option>Chemistry</option>
-                                                      <option>Biology</option>
-                                                  </select>
-                                              </div>
-
-                                              <!-- Examination Board -->
-                                              <div class="col-2">
-                                                  <select class="form-select form-select-sm">
-                                                      <option selected disabled>Select Board</option>
-                                                      <option>FBISE</option>
-                                                      <option>Bise Lahore</option>
-                                                      <option>KPK Board</option>
-                                                      <option>Sindh Board</option>
-                                                  </select>
-                                              </div>
-
-                                              <!-- Add Button -->
-                                              <div class="col-auto mt-2">
-                                                  <button type="submit" class="btn btn-sm btn-secondary">
-                                                      <i class="fa fa-plus"></i>
-                                                  </button>
-                                              </div>
-
-                                          </div>
-                                      </form>
-
-                                  </div>
-                              </div> --}}
-                              {{-- <div class="col-md-12 mt-2">
+                              <div class="col-md-12 mt-2">
                                   <div class="taxonomy-card p-3 shadow-sm rounded border">
 
                                       <!-- Heading -->
@@ -303,7 +235,9 @@
                                       </div>
 
                                       <!-- Input Form -->
-                                      <form id="courseForm" class="mt-1">
+                                      <div id="courseList" class="mt-3 mb-4"></div>
+                                      <form id="courseForm" class="mt-1"
+                                          action="{{ route('taxonomies_course.store') }}">
                                           @csrf
                                           <div class="row g-2 align-items-center">
 
@@ -360,82 +294,11 @@
                                           </div>
                                       </form>
 
-                                      <!-- ✅ Course List will appear here -->
-                                      <div id="courseList" class="mt-3"></div>
+                                      <!-- ✅ Course List container BELOW the form -->
+
 
                                   </div>
-                              </div> --}}
-                              <div class="col-md-12 mt-2">
-    <div class="taxonomy-card p-3 shadow-sm rounded border">
-
-        <!-- Heading -->
-        <h6>Course</h6>
-
-        <!-- Column Headings -->
-        <div class="row fw-bold small border-bottom pb-2 mb-2 mt-2 text-center me-2">
-            <div class="col-5">Course Title</div>
-            <div class="col-2">Educational System</div>
-            <div class="col-2">Subject</div>
-            <div class="col-2">Examination Board</div>
-            <div class="col-1"></div>
-        </div>
-
-        <!-- Input Form -->
-         <div id="courseList" class="mt-3 mb-4"></div>
-        <form id="courseForm" class="mt-1" action="{{ route('taxonomies_course.store') }}">
-            @csrf
-            <div class="row g-2 align-items-center">
-
-                <!-- Course Title -->
-                <div class="col-5">
-                    <input name="course_title" type="text" class="form-control form-control-sm" placeholder="Course Title">
-                </div>
-
-                <!-- Educational System -->
-                <div class="col-2">
-                    <select name="edu_system_id" id="edu_option" class="form-select form-select-sm">
-                        <option selected disabled>Select System</option>
-                        @foreach ($course_edu_system_datas as $course_edu_system_data)
-                            <option value="{{ $course_edu_system_data->id }}">{{ $course_edu_system_data->educational_title }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Subject -->
-                <div class="col-2">
-                    <select name="subject_id" id="sub_option" class="form-select form-select-sm">
-                        <option selected disabled>Select Subject</option>
-                        @foreach ($course_subject_datas as $course_subject_data)
-                            <option value="{{ $course_subject_data->id }}">{{ $course_subject_data->subject_title }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Exam Board -->
-                <div class="col-2">
-                    <select name="exam_board_id" id="board_option" class="form-select form-select-sm">
-                        <option selected disabled>Select Board</option>
-                        @foreach ($course_exam_board_datas as $course_exam_board_data)
-                            <option value="{{ $course_exam_board_data->id }}">{{ $course_exam_board_data->examination_board_title }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Add -->
-                <div class="col-1">
-                    <button type="submit" class="btn btn-sm btn-secondary">
-                        <i class="fa fa-plus"></i>
-                    </button>
-                </div>
-
-            </div>
-        </form>
-
-        <!-- ✅ Course List container BELOW the form -->
-       
-
-    </div>
-</div>
+                              </div>
 
 
 
@@ -611,6 +474,7 @@
                       aria-labelledby="addCourseModalLabel" aria-hidden="true">
                       <div class="modal-dialog modal-dialog-centered">
                           <div class="modal-content p-2">
+
                               <div class="modal-header border-0 pb-0">
                                   <h5 class="modal-title fw-semibold d-flex align-items-center gap-2"
                                       id="addCourseModalLabel">
@@ -620,80 +484,89 @@
                                   <button type="button" class="btn-close" data-bs-dismiss="modal"
                                       aria-label="Close"></button>
                               </div>
-                              <div class="modal-body">
-                                  <p class="text-muted small mb-3">
-                                      Set the revenue sharing percentage for <strong>Dr. Ahmed Hassan</strong> on a specific
-                                      course.
-                                  </p>
-                                  {{-- @php
-                                    use App\Models\Teacher;
-                                        $teacher_modal_datas=Teacher::get();
-                                    @endphp
-                                  <!-- Course -->
-                                  <div class="mb-3">
-                                      <label class="form-label fw-semibold small">Course *</label>
-                                      @foreach ($teacher_modal_datas as $teacher_modal_data)
-                                          <select class="form-select"  id="courseSelect">
-                                          <option selected disabled>Select a course</option>
-                                          <option selected >{{$teacher_modal_data->course}}/option>
-                                          
-                                      </select>
-                                      @endforeach
-                                      
-                                  </div> --}}
-                                  @php
-                                      use App\Models\Teacher;
-                                      $teacher_modal_datas = Teacher::get();
-                                  @endphp
 
-                                  <!-- Course -->
-                                  <div class="mb-3">
-                                      <label class="form-label fw-semibold small">Course *</label>
-                                      <select class="form-select" id="courseSelect">
-                                          <option selected disabled>Select a course</option>
-                                          @foreach ($teacher_modal_datas as $teacher_modal_data)
-                                              <option value="{{ $teacher_modal_data->course }}">
-                                                  {{ $teacher_modal_data->course }}
-                                              </option>
-                                          @endforeach
-                                      </select>
+                              <!-- ✅ FORM STARTS HERE -->
+                              @php
+                                  use App\Models\Course;
+                                  use App\Models\Teacher;
+                                  $teacher_data = Teacher::all();
+                                  $course_datas = Course::with('eduSystem', 'subject', 'examBoard')->get();
+                              @endphp
+                              <form action="{{ route('taxonomies_teacher_course.store') }}" method="post">
+                                  @csrf
+
+                                  <div class="modal-body">
+                                      <p class="text-muted small mb-3">
+                                          Set the revenue sharing percentage for
+                                          <strong id="teacherNameInModal"></strong>
+                                          on a specific course.
+                                      </p>
+
+
+
+
+                                      <!-- Hidden Teacher ID -->
+                                      <input type="hidden" id="teacherId" name="teacherId">
+
+                                      <!-- Course -->
+                                      <div class="mb-3">
+                                          <label class="form-label fw-semibold small">Course *</label>
+                                          <select class="form-select" id="courseSelect" name="courseId" required>
+                                              <option selected disabled>Select a course</option>
+                                              @foreach ($course_datas as $row)
+                                                  <option value="{{ $row->id }}">
+                                                      {{ $row->examBoard->examination_board_title }} -
+                                                      {{ $row->subject->subject_title }} |
+                                                      {{ $row->eduSystem->educational_title }} -
+                                                      {{ $row->subject->subject_title }}
+                                                  </option>
+                                              @endforeach
+                                          </select>
+                                      </div>
+
+                                      <!-- Teacher Percentage -->
+                                      <div class="mb-3">
+                                          <label class="form-label fw-semibold small">Teacher Percentage *</label>
+                                          <div class="input-group">
+                                              <input type="number" class="form-control" id="teacherPercentage"
+                                                  value="70" min="0" max="100" step="1"
+                                                  name="teacherPercentage" required>
+                                              <span class="input-group-text">%</span>
+                                          </div>
+                                          <div class="form-text">Percentage of course revenue that goes to the teacher
+                                          </div>
+                                      </div>
+
+                                      <!-- Share Display -->
+                                      {{-- <div class="p-3 bg-light rounded border">
+                                          <div class="d-flex justify-content-between">
+                                              <span>Teacher Share:</span>
+                                              <span id="teacherShare" class="fw-semibold text-success"></span>
+                                          </div>
+                                          <div class="d-flex justify-content-between">
+                                              <span>Platform Share:</span>
+                                              <span id="platformShare" class="fw-semibold text-primary">30%</span>
+                                          </div>
+                                      </div> --}}
                                   </div>
 
+                                  <div class="modal-footer border-0">
+                                      <button type="button" class="btn btn-dark modal-closeBtn"
+                                          data-bs-dismiss="modal">Cancel</button>
 
-                                  <!-- Teacher Percentage -->
-                                  <div class="mb-3">
-                                      <label class="form-label fw-semibold small">Teacher Percentage *</label>
-                                      <div class="input-group">
-                                          <input type="number" class="form-control" id="teacherPercentage"
-                                              value="70" min="0" max="100" step="1">
-                                          <span class="input-group-text">%</span>
-                                      </div>
-                                      <div class="form-text">Percentage of course revenue that goes to the teacher</div>
+                                      <!-- ✅ Submit button (fixed) -->
+                                      <button type="submit" class="btn btn-dark">
+                                          <i class="fa-solid fa-book me-2"></i>Add Course Percentage
+                                      </button>
                                   </div>
 
-                                  <!-- Share Display -->
-                                  <div class="p-3 bg-light rounded border">
-                                      <div class="d-flex justify-content-between">
-                                          <span>Teacher Share:</span>
-                                          <span id="teacherShare" class="fw-semibold text-success">70%</span>
-                                      </div>
-                                      <div class="d-flex justify-content-between">
-                                          <span>Platform Share:</span>
-                                          <span id="platformShare" class="fw-semibold text-primary">30%</span>
-                                      </div>
-                                  </div>
-                              </div>
+                              </form>
+                              <!-- ✅ FORM ENDS HERE -->
 
-                              <div class="modal-footer border-0">
-                                  <button type="button" class="btn btn-dark modal-closeBtn"
-                                      data-bs-dismiss="modal">Cancel</button>
-                                  <button type="button" class="btn btn-dark">
-                                      <i class="fa-solid fa-book me-2"></i>Add Course Percentage
-                                  </button>
-                              </div>
                           </div>
                       </div>
                   </div>
+
               </div>
           </div>
       </div>
@@ -1185,184 +1058,7 @@
 
 
 
-      {{-- <script>
-          document.addEventListener("DOMContentLoaded", function() {
-              const subjectForm = document.getElementById("subjectForm");
-              const subjectInput = document.getElementById("subjectInput");
-              const subjectList = document.getElementById("subjectList");
-              const csrfToken = document.querySelector('input[name="_token"]').value;
 
-              const subjectData = {
-                  list: []
-              };
-
-              // 🔹 Load all subjects
-              async function loadSubjects() {
-                  subjectList.innerHTML = '<small class="text-muted">Loading...</small>';
-                  try {
-                      const res = await fetch("{{ route('taxonomies_subjects.index') }}");
-                      const items = await res.json() || []; // safeguard: ensure array even if null/undefined
-                      subjectData.list = items.map(i => ({
-                          id: i.id,
-                          title: i.subject_title
-                      }));
-                      renderSubjects();
-                  } catch (error) {
-                      console.error("Error loading subjects:", error);
-                      subjectList.innerHTML = '<small class="text-danger">Failed to load subjects.</small>';
-                  }
-              }
-
-              // 🔹 Render subjects
-              function renderSubjects() {
-                  subjectList.innerHTML = '';
-                  if (subjectData.list.length === 0) {
-                      subjectList.innerHTML = '<small class="text-muted">No subjects added yet.</small>';
-                      return;
-                  }
-
-                  subjectData.list.forEach(item => {
-                      const div = document.createElement("div");
-                      div.className =
-                          "taxonomy-item d-flex justify-content-between align-items-center border rounded p-1 mb-1 position-relative";
-                      div.dataset.id = item.id;
-                      div.innerHTML = `
-                <span>${item.title}</span>
-                <i class="fa fa-trash text-danger delete-subject-btn" style="cursor:pointer; font-size:16px;"></i>
-            `;
-                      subjectList.appendChild(div);
-                  });
-              }
-
-              // 🔹 Add Subject
-              subjectForm.addEventListener("submit", async function(e) {
-                  e.preventDefault();
-                  const title = subjectInput.value.trim();
-                  if (!title) return;
-
-                  const button = subjectForm.querySelector("button");
-                  button.disabled = true;
-                  button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
-
-                  const formData = new FormData();
-                  formData.append("subjectInput", title);
-
-                  try {
-                      const res = await fetch(subjectForm.action, {
-                          method: "POST",
-                          headers: {
-                              "X-CSRF-TOKEN": csrfToken,
-                              "Accept": "application/json"
-                          },
-                          body: formData
-                      });
-
-                      const response = await res.json();
-                      if (response.success) {
-                          subjectData.list.push({
-                              id: response.id,
-                              title: response.title
-                          });
-                          renderSubjects();
-                          subjectInput.value = "";
-                      } else {
-                          console.error("Failed to save subject.");
-                      }
-                  } catch (error) {
-                      console.error("Error saving subject:", error);
-                  } finally {
-                      button.disabled = false;
-                      button.innerHTML = '<i class="fa fa-plus"></i>';
-                  }
-              });
-
-              // 🔹 Delete Subject (event delegation, confirm only for subjects)
-              subjectList.addEventListener("click", async function(e) {
-                  if (!e.target.classList.contains("delete-subject-btn")) return;
-
-                  const parent = e.target.closest(".taxonomy-item");
-                  const id = parent.dataset.id;
-
-                  // Confirm deletion
-                  if (!confirm("Are you sure you want to delete this subject?")) return;
-
-                  parent.style.backgroundColor = "#fff8d6";
-                  const deleteIcon = e.target;
-                  deleteIcon.style.visibility = "hidden";
-
-                  const spinner = document.createElement("i");
-                  spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
-                  parent.appendChild(spinner);
-
-                  try {
-                      const res = await fetch(`/taxonomies/subjects/delete/${id}`, {
-                          method: "DELETE",
-                          headers: {
-                              "X-CSRF-TOKEN": csrfToken,
-                              "Accept": "application/json"
-                          }
-                      });
-
-                      const response = await res.json();
-
-                      if (response.success) {
-                          spinner.remove();
-
-                          // Remove from data list but do not remove DOM yet
-                          subjectData.list = subjectData.list.filter(i => i.id != id);
-
-                          // Show toast
-                          showToast(parent, "✔ Subject deleted successfully", "success");
-
-                          // Remove the item after toast fades
-                          setTimeout(() => {
-                              parent.remove();
-                              // Re-render to show "No subjects added yet" if list is empty
-                              if (subjectData.list.length === 0) renderSubjects();
-                          }, 1800); // same as toast duration
-                      } else {
-                          resetDeleteState();
-                      }
-                  } catch (error) {
-                      console.error("Error deleting subject:", error);
-                      resetDeleteState();
-                  }
-
-                  function resetDeleteState() {
-                      parent.style.backgroundColor = "";
-                      spinner.remove();
-                      deleteIcon.style.visibility = "visible";
-                  }
-              });
-
-              // 🔹 Toast Message (kept exactly like education)
-              function showToast(parent, message, type = "success") {
-                  const toast = document.createElement("div");
-                  toast.textContent = message;
-                  toast.style.position = "absolute";
-                  toast.style.bottom = "-35px";
-                  toast.style.right = "0";
-                  toast.style.background = type === "success" ? "#28a745" : "#dc3545";
-                  toast.style.color = "white";
-                  toast.style.padding = "4px 10px";
-                  toast.style.borderRadius = "6px";
-                  toast.style.fontSize = "13px";
-                  toast.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
-                  toast.style.opacity = "0";
-                  toast.style.transition = "opacity 0.3s ease";
-                  parent.appendChild(toast);
-
-                  setTimeout(() => (toast.style.opacity = "1"), 50);
-
-                  setTimeout(() => {
-                      toast.style.opacity = "0";
-                      setTimeout(() => toast.remove(), 400);
-                  }, 1500);
-              }
-
-              loadSubjects();
-          });
-      </script> --}}
 
       <script>
           document.addEventListener("DOMContentLoaded", function() {
@@ -1558,188 +1254,6 @@
 
 
 
-      {{-- <script>
-          document.addEventListener("DOMContentLoaded", function() {
-              const boardForm = document.getElementById("boardForm");
-              const boardInput = document.getElementById("boardInput");
-              const boardList = document.getElementById("boardList");
-              const csrfToken = document.querySelector('input[name="_token"]').value;
-              const data = {
-                  boardList: []
-              };
-
-              // 🔹 Load all boards
-              async function loadBoards() {
-                  boardList.innerHTML = '<small class="text-muted">Loading...</small>';
-                  try {
-                      const res = await fetch("{{ route('taxonomies_examination_board.index') }}");
-                      const items = await res.json();
-
-                      data.boardList = items.map(i => ({
-                          id: i.id,
-                          title: i.examination_board_title
-                      }));
-                      renderBoards();
-                  } catch (error) {
-                      console.error("Error loading boards:", error);
-                      boardList.innerHTML = '<small class="text-danger">Failed to load boards.</small>';
-                  }
-              }
-
-              // 🔹 Render boards
-              function renderBoards() {
-                  boardList.innerHTML = '';
-
-                  if (data.boardList.length === 0) {
-                      boardList.innerHTML = '<small class="text-muted">No examination boards added yet.</small>';
-                      return;
-                  }
-
-                  data.boardList.forEach(item => {
-                      const div = document.createElement("div");
-                      div.className =
-                          "taxonomy-item d-flex justify-content-between align-items-center border rounded p-1 mb-1 position-relative";
-                      div.dataset.id = item.id;
-                      div.innerHTML = `
-                <span>${item.title}</span>
-                <i class="fa fa-trash text-danger delete-btn" style="cursor:pointer; font-size:16px;"></i>
-            `;
-                      boardList.appendChild(div);
-                  });
-
-                  attachDeleteListeners();
-              }
-
-              // 🔹 Add new board
-              boardForm.addEventListener("submit", async function(e) {
-                  e.preventDefault();
-                  const title = boardInput.value.trim();
-                  if (!title) return;
-
-                  const button = boardForm.querySelector("button");
-                  button.disabled = true;
-                  button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
-
-                  try {
-                      const res = await fetch(boardForm.action, {
-                          method: "POST",
-                          headers: {
-                              "Content-Type": "application/json",
-                              "X-CSRF-TOKEN": csrfToken,
-                              "Accept": "application/json"
-                          },
-                          body: JSON.stringify({
-                              boardInput: title
-                          })
-                      });
-
-                      const response = await res.json();
-
-                      if (response.success) {
-                          data.boardList.push({
-                              id: response.id,
-                              title: response.title
-                          });
-                          renderBoards();
-                          boardInput.value = '';
-                      } else {
-                          console.error("❌ Failed to save board.");
-                      }
-                  } catch (error) {
-                      console.error("Error saving board:", error);
-                  } finally {
-                      button.disabled = false;
-                      button.innerHTML = '<i class="fa fa-plus"></i>';
-                  }
-              });
-
-              // 🔹 Delete board (Confirm + Spinner + Yellow highlight + Green toast)
-              function attachDeleteListeners() {
-                  document.querySelectorAll(".delete-btn").forEach(btn => {
-                      btn.addEventListener("click", async function() {
-                          const parent = this.closest(".taxonomy-item");
-                          const id = parent.dataset.id;
-
-                          // Confirm deletion
-                          if (!confirm("Are you sure you want to delete this examination board?"))
-                              return;
-
-                          // Highlight in yellow
-                          parent.style.backgroundColor = "#fff8d6";
-
-                          // Hide delete icon, show spinner
-                          const deleteIcon = this;
-                          deleteIcon.style.visibility = "hidden";
-                          const spinner = document.createElement("i");
-                          spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
-                          parent.appendChild(spinner);
-
-                          try {
-                              const res = await fetch(
-                                  `/taxonomies/examination_board/delete/${id}`, {
-                                      method: "DELETE",
-                                      headers: {
-                                          "X-CSRF-TOKEN": csrfToken,
-                                          "Accept": "application/json"
-                                      }
-                                  });
-
-                              const response = await res.json();
-
-                              if (response.success) {
-                                  setTimeout(() => {
-                                      spinner.remove();
-
-                                      // ✅ Green toast
-                                      const toast = document.createElement("div");
-                                      toast.textContent = "✔ Board deleted successfully";
-                                      toast.style.position = "absolute";
-                                      toast.style.bottom = "-35px";
-                                      toast.style.right = "0";
-                                      toast.style.background = "#28a745";
-                                      toast.style.color = "white";
-                                      toast.style.padding = "4px 10px";
-                                      toast.style.borderRadius = "6px";
-                                      toast.style.fontSize = "13px";
-                                      toast.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
-                                      toast.style.opacity = "0";
-                                      toast.style.transition = "opacity 0.3s ease";
-                                      parent.appendChild(toast);
-
-                                      setTimeout(() => (toast.style.opacity = "1"), 50);
-
-                                      // Toast stays visible for 6s
-                                      setTimeout(() => {
-                                          toast.style.opacity = "0";
-                                          setTimeout(() => {
-                                              toast.remove();
-                                              data.boardList = data
-                                                  .boardList.filter(i => i
-                                                      .id != id);
-                                              renderBoards();
-                                          }, 400);
-                                      }, 1500);
-                                  }, 800);
-                              } else {
-                                  deleteIcon.style.visibility = "visible";
-                                  spinner.remove();
-                                  parent.style.backgroundColor = "";
-                                  console.error("Failed to delete board.");
-                              }
-                          } catch (error) {
-                              deleteIcon.style.visibility = "visible";
-                              spinner.remove();
-                              parent.style.backgroundColor = "";
-                              console.error("Error deleting board:", error);
-                          }
-                      });
-                  });
-              }
-
-              // 🔹 Load boards on startup
-              loadBoards();
-          });
-      </script> --}}
       <script>
           document.addEventListener("DOMContentLoaded", function() {
               const boardForm = document.getElementById("boardForm");
@@ -2142,11 +1656,12 @@
           });
       </script>
 
+      {{-- This is the script for teacher accordion --}}
 
 
 
 
-      <script>
+      {{-- <script>
           document.addEventListener("DOMContentLoaded", function() {
 
               const teacherAccordion = document.getElementById("teacherAccordion");
@@ -2155,26 +1670,44 @@
               const csrf = document.getElementById("csrfToken").value;
               const teacherModal = new bootstrap.Modal(document.getElementById('teacherModal'));
 
-              // ✅ Card render function — your HTML preserved
+              // ✅ Toast function
+              function showToast(message, type = "success") {
+                  const toast = document.createElement("div");
+                  toast.textContent = message;
+                  toast.className = `position-fixed top-0 end-0 m-3 p-2 rounded shadow text-white`;
+                  toast.style.zIndex = 9999;
+                  toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
+                  document.body.appendChild(toast);
+                  setTimeout(() => toast.remove(), 3000);
+              }
+
+              // ✅ Render Teacher Card with courses
               function renderTeacherCard(t) {
                   const uid = 'teacher' + t.id;
                   const headingId = 'heading' + t.id;
 
-                  // ✅ Dynamic course list with Course + Subject title
                   let courseHtml = "";
                   if (t.courses && t.courses.length > 0) {
                       t.courses.forEach(c => {
                           const teacherPct = c.teacher_percentage ?? 0;
-                          const platformPct = 100 - teacherPct; // ✅ platform percentage formula
+                          const platformPct = 100 - teacherPct;
 
                           courseHtml += `
-                    <div class="percentage-box mb-2 p-2">
+                <div class="percentage-box mb-2 p-2 d-flex justify-content-between align-items-center border rounded bg-white">
+                    <div>
                         <span>${c.course?.course_title ?? 'N/A'} - ${c.course?.subject?.subject_title ?? 'N/A'}</span>
-                        <small>
+                        <small class="d-block">
                             Teacher: <span class="text-success">${teacherPct}%</span> |
                             Platform: <span class="text-primary">${platformPct}%</span>
                         </small>
-                    </div>`;
+                    </div>
+                    <div>
+                        <!-- Use pivot ID for deletion -->
+                        <button class="btn btn-light btn-sm border delete-btn px-2" data-pivot-id="${c.id}">
+                            <i class="fa-regular fa-trash-can text-danger"></i>
+                        </button>
+                    </div>
+                </div>`;
                       });
                   } else {
                       courseHtml = `<small class="text-muted">No courses assigned yet</small>`;
@@ -2183,8 +1716,8 @@
                   return `
         <div class="accordion-item teacher-card border mb-2 rounded">
             <h3 class="accordion-header" id="${headingId}">
-                <button class="accordion-button collapsed bg-white" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#${uid}" aria-expanded="false" aria-controls="${uid}">
+                <button class="accordion-button collapsed bg-white" type="button" 
+                    data-bs-toggle="collapse" data-bs-target="#${uid}">
                     <div class="teacher-info d-flex align-items-center gap-3">
                         <div class="teacher-icon"><i class="fa-solid fa-user"></i></div>
                         <div>
@@ -2194,15 +1727,16 @@
                     </div>
                 </button>
             </h3>
-            <!-- Removed data-bs-parent so multiple accordions can stay open -->
-            <div id="${uid}" class="accordion-collapse collapse" aria-labelledby="${headingId}">
+
+            <div id="${uid}" class="accordion-collapse collapse">
                 <div class="accordion-body bg-light border-top">
                     <div class="fw-semibold mb-2 percentage-title">Course Revenue Percentages</div>
-
-                    <!-- ✅ Dynamic course + subject injected here -->
                     ${courseHtml}
-
-                    <button class="btn btn-dark btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#addCourseModal" style="font-size: 15px;">
+                    <button class="btn btn-dark btn-sm mt-2 addCourseBtn"
+                        data-id="${t.id}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addCourseModal"
+                        style="font-size: 15px;">
                         <i class="fa-solid fa-plus"></i> Add Course Percentage
                     </button>
                 </div>
@@ -2210,8 +1744,8 @@
         </div>`;
               }
 
-              // ✅ Load Teachers
-              async function loadTeachers() {
+              // ✅ Load teachers via AJAX
+              window.loadTeachers = async function() {
                   try {
                       const res = await fetch("{{ route('teacher_setting.index') }}");
                       const response = await res.json();
@@ -2221,15 +1755,16 @@
                           response.data.forEach(t => {
                               teacherAccordion.insertAdjacentHTML("beforeend", renderTeacherCard(t));
                           });
+                          document.dispatchEvent(new Event("teachersUpdated"));
                       }
                   } catch (error) {
                       console.error("Load Error:", error);
                   }
               }
 
-              loadTeachers();
+              loadTeachers(); // initial load
 
-              // ✅ Save Teacher
+              // ✅ Save teacher
               teacherForm.addEventListener("submit", async function(e) {
                   e.preventDefault();
 
@@ -2248,7 +1783,7 @@
                           method: "POST",
                           headers: {
                               "Content-Type": "application/json",
-                              "X-CSRF-TOKEN": csrf,
+                              "X-CSRF-TOKEN": csrf
                           },
                           body: JSON.stringify(payload),
                       });
@@ -2259,24 +1794,275 @@
                           await loadTeachers();
                           teacherForm.reset();
                           teacherModal.hide();
-
-                          const toast = document.createElement("div");
-                          toast.textContent = "✔ Teacher added successfully";
-                          toast.className =
-                              "position-fixed top-0 end-0 m-3 p-2 bg-success text-white rounded shadow";
-                          toast.style.zIndex = 9999;
-                          document.body.appendChild(toast);
-                          setTimeout(() => toast.remove(), 3000);
-                      } else {
-                          alert("Error saving teacher!");
+                          showToast("✔ Teacher added successfully", "success");
                       }
                   } catch (error) {
                       console.error("Save Error:", error);
-                      alert("Something went wrong!");
                   }
 
                   submitBtn.disabled = false;
                   submitBtn.innerHTML = "Save Teacher";
+              });
+
+              // ✅ Set teacher ID in Add Course Modal
+              document.addEventListener("click", function(e) {
+                  if (e.target.closest(".addCourseBtn")) {
+                      const teacherId = e.target.closest(".addCourseBtn").getAttribute("data-id");
+                      document.getElementById("teacherId").value = teacherId;
+                  }
+              });
+
+              // ✅ Delete course assignment using pivot ID
+              document.addEventListener("click", async function(e) {
+                  if (e.target.closest(".delete-btn")) {
+                      const button = e.target.closest(".delete-btn");
+                      const pivotId = button.getAttribute("data-pivot-id");
+                      const courseBox = button.closest(".percentage-box");
+
+                      if (!confirm("Are you sure you want to delete this course assignment?")) return;
+
+                      try {
+                          const res = await fetch(`/taxonomies/teacher_course/delete/${pivotId}`, {
+                              method: "DELETE",
+                              headers: {
+                                  "X-CSRF-TOKEN": csrf,
+                                  "Accept": "application/json"
+                              },
+                          });
+
+                          const response = await res.json();
+
+                          if (response.success) {
+                              courseBox.remove();
+                              showToast("✔ Course assignment deleted successfully", "success");
+                          } else {
+                              showToast(response.message || "Failed to delete course", "error");
+                          }
+                      } catch (err) {
+                          console.error(err);
+                          showToast("Something went wrong!", "error");
+                      }
+                  }
+              });
+
+              // ✅ Auto-open last updated teacher accordion
+              document.addEventListener("teachersUpdated", function() {
+                  if (window.lastUpdatedTeacher) {
+                      const acc = document.getElementById("teacher" + window.lastUpdatedTeacher);
+                      if (acc) {
+                          acc.classList.add("show");
+                          acc.scrollIntoView({
+                              behavior: "smooth",
+                              block: "start"
+                          });
+                      }
+                  }
+              });
+
+          });
+      </script> --}}
+      <script>
+          document.addEventListener("DOMContentLoaded", function() {
+
+              const teacherAccordion = document.getElementById("teacherAccordion");
+              const teacherForm = document.getElementById("teacherForm");
+              const submitBtn = document.getElementById("teacherSubmitBtn");
+              const csrf = document.getElementById("csrfToken").value;
+              const teacherModal = new bootstrap.Modal(document.getElementById('teacherModal'));
+              const addCourseModalEl = document.getElementById("addCourseModal");
+              const addCourseModal = new bootstrap.Modal(addCourseModalEl);
+
+              // ✅ Toast function
+              function showToast(message, type = "success") {
+                  const toast = document.createElement("div");
+                  toast.textContent = message;
+                  toast.className = `position-fixed top-0 end-0 m-3 p-2 rounded shadow text-white`;
+                  toast.style.zIndex = 9999;
+                  toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
+                  document.body.appendChild(toast);
+                  setTimeout(() => toast.remove(), 3000);
+              }
+
+              // ✅ Render Teacher Card with courses
+              function renderTeacherCard(t) {
+                  const uid = 'teacher' + t.id;
+                  const headingId = 'heading' + t.id;
+
+                  let courseHtml = "";
+                  if (t.courses && t.courses.length > 0) {
+                      t.courses.forEach(c => {
+                          const teacherPct = c.teacher_percentage ?? 0;
+                          const platformPct = 100 - teacherPct;
+
+                          courseHtml += `
+                <div class="percentage-box mb-2 p-2 d-flex justify-content-between align-items-center border rounded bg-white">
+                    <div>
+                        <span>${c.course?.course_title ?? 'N/A'} - ${c.course?.subject?.subject_title ?? 'N/A'}</span>
+                        <small class="d-block">
+                            Teacher: <span class="text-success">${teacherPct}%</span> |
+                            Platform: <span class="text-primary">${platformPct}%</span>
+                        </small>
+                    </div>
+                    <div>
+                        <!-- Use pivot ID for deletion -->
+                        <button class="btn btn-light btn-sm border delete-btn px-2" data-pivot-id="${c.id}">
+                            <i class="fa-regular fa-trash-can text-danger"></i>
+                        </button>
+                    </div>
+                </div>`;
+                      });
+                  } else {
+                      courseHtml = `<small class="text-muted">No courses assigned yet</small>`;
+                  }
+
+                  return `
+        <div class="accordion-item teacher-card border mb-2 rounded">
+            <h3 class="accordion-header" id="${headingId}">
+                <button class="accordion-button collapsed bg-white" type="button" 
+                    data-bs-toggle="collapse" data-bs-target="#${uid}">
+                    <div class="teacher-info d-flex align-items-center gap-3">
+                        <div class="teacher-icon"><i class="fa-solid fa-user"></i></div>
+                        <div>
+                            <h6 class="mb-0 fw-semibold">${t.teacher_name}</h6>
+                            <small class="text-muted">${t.teacher_email}</small>
+                        </div>
+                    </div>
+                </button>
+            </h3>
+
+            <div id="${uid}" class="accordion-collapse collapse">
+                <div class="accordion-body bg-light border-top">
+                    <div class="fw-semibold mb-2 percentage-title">Course Revenue Percentages</div>
+                    ${courseHtml}
+                    <button class="btn btn-dark btn-sm mt-2 addCourseBtn"
+                        data-id="${t.id}"
+                        data-name="${t.teacher_name}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addCourseModal"
+                        style="font-size: 15px;">
+                        <i class="fa-solid fa-plus"></i> Add Course Percentage
+                    </button>
+                </div>
+            </div>
+        </div>`;
+              }
+
+              // ✅ Load teachers via AJAX
+              window.loadTeachers = async function() {
+                  try {
+                      const res = await fetch("{{ route('teacher_setting.index') }}");
+                      const response = await res.json();
+
+                      if (response.success) {
+                          teacherAccordion.innerHTML = "";
+                          response.data.forEach(t => {
+                              teacherAccordion.insertAdjacentHTML("beforeend", renderTeacherCard(t));
+                          });
+                          document.dispatchEvent(new Event("teachersUpdated"));
+                      }
+                  } catch (error) {
+                      console.error("Load Error:", error);
+                  }
+              }
+
+              loadTeachers(); // initial load
+
+              // ✅ Save teacher
+              teacherForm.addEventListener("submit", async function(e) {
+                  e.preventDefault();
+                  submitBtn.disabled = true;
+                  submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
+
+                  const payload = {
+                      teacherName: document.getElementById("teacherName").value,
+                      teacherContact: document.getElementById("teacherContact").value,
+                      teacherEmail: document.getElementById("teacherEmail").value,
+                      teacherOtherinfo: document.getElementById("teacherOtherinfo").value,
+                  };
+
+                  try {
+                      const res = await fetch("{{ route('teacher_setting.store') }}", {
+                          method: "POST",
+                          headers: {
+                              "Content-Type": "application/json",
+                              "X-CSRF-TOKEN": csrf
+                          },
+                          body: JSON.stringify(payload),
+                      });
+
+                      const response = await res.json();
+
+                      if (response.success) {
+                          await loadTeachers();
+                          teacherForm.reset();
+                          teacherModal.hide();
+                          showToast("✔ Teacher added successfully", "success");
+                      }
+                  } catch (error) {
+                      console.error("Save Error:", error);
+                  }
+
+                  submitBtn.disabled = false;
+                  submitBtn.innerHTML = "Save Teacher";
+              });
+
+              // ✅ Open Add Course modal and set teacher ID + name dynamically
+              document.addEventListener("click", function(e) {
+                  if (e.target.closest(".addCourseBtn")) {
+                      const button = e.target.closest(".addCourseBtn");
+                      const teacherId = button.getAttribute("data-id");
+                      const teacherName = button.getAttribute("data-name");
+
+                      document.getElementById("teacherId").value = teacherId;
+                      document.getElementById("teacherNameInModal").textContent = teacherName;
+                  }
+              });
+
+              // ✅ Delete course assignment using pivot ID
+              document.addEventListener("click", async function(e) {
+                  if (e.target.closest(".delete-btn")) {
+                      const button = e.target.closest(".delete-btn");
+                      const pivotId = button.getAttribute("data-pivot-id");
+                      const courseBox = button.closest(".percentage-box");
+
+                      if (!confirm("Are you sure you want to delete this course assignment?")) return;
+
+                      try {
+                          const res = await fetch(`/taxonomies/teacher_course/delete/${pivotId}`, {
+                              method: "DELETE",
+                              headers: {
+                                  "X-CSRF-TOKEN": csrf,
+                                  "Accept": "application/json"
+                              },
+                          });
+
+                          const response = await res.json();
+
+                          if (response.success) {
+                              courseBox.remove();
+                              showToast("✔ Course assignment deleted successfully", "success");
+                          } else {
+                              showToast(response.message || "Failed to delete course", "error");
+                          }
+                      } catch (err) {
+                          console.error(err);
+                          showToast("Something went wrong!", "error");
+                      }
+                  }
+              });
+
+              // ✅ Auto-open last updated teacher accordion
+              document.addEventListener("teachersUpdated", function() {
+                  if (window.lastUpdatedTeacher) {
+                      const acc = document.getElementById("teacher" + window.lastUpdatedTeacher);
+                      if (acc) {
+                          acc.classList.add("show");
+                          acc.scrollIntoView({
+                              behavior: "smooth",
+                              block: "start"
+                          });
+                      }
+                  }
               });
 
           });
@@ -2284,157 +2070,8 @@
 
 
 
+
       {{-- <script>
-          document.addEventListener("DOMContentLoaded", function() {
-              const courseForm = document.getElementById("courseForm");
-              const courseListContainer = document.createElement("div");
-              const csrfToken = document.querySelector('input[name="_token"]').value;
-              const eduSelect = document.getElementById("edu_option");
-              const subSelect = document.getElementById("sub_option");
-              const boardSelect = document.getElementById("board_option");
-
-              // Append course list container after form
-              courseForm.parentElement.appendChild(courseListContainer);
-
-              let courses = [];
-
-              // Load courses from server
-              async function loadCourses() {
-                  courseListContainer.innerHTML = '<small class="text-muted">Loading courses...</small>';
-                  try {
-                      const res = await fetch("{{ route('taxonomies_course.index') }}");
-                      const data = await res.json();
-                      courses = data.map(c => ({
-                          id: c.id,
-                          title: c.course_title,
-                          edu_system: c.edu_system_title,
-                          subject: c.subject_title,
-                          board: c.exam_board_title
-                      }));
-                      renderCourseList();
-                  } catch (error) {
-                      console.error("Error loading courses:", error);
-                      courseListContainer.innerHTML =
-                      '<small class="text-danger">Failed to load courses.</small>';
-                  }
-              }
-
-              // Render course list
-              function renderCourseList() {
-                  courseListContainer.innerHTML = '';
-                  if (courses.length === 0) {
-                      courseListContainer.innerHTML = '<small class="text-muted">No courses added yet.</small>';
-                      return;
-                  }
-
-                  courses.forEach(c => {
-                      const row = document.createElement("div");
-                      row.className =
-                          "row align-items-center border-bottom py-1 text-center position-relative";
-
-                      row.innerHTML = `
-                <div class="col-5">${c.title}</div>
-                <div class="col-2">${c.edu_system}</div>
-                <div class="col-2">${c.subject}</div>
-                <div class="col-2">${c.board}</div>
-                <div class="col-1">
-                    <i class="fa fa-trash text-danger delete-course-btn" style="cursor:pointer;"></i>
-                </div>
-            `;
-                      row.dataset.id = c.id;
-                      courseListContainer.appendChild(row);
-                  });
-              }
-
-              // Delete course
-              courseListContainer.addEventListener("click", async function(e) {
-                  if (!e.target.classList.contains("delete-course-btn")) return;
-                  const row = e.target.closest(".row");
-                  const id = row.dataset.id;
-
-                  if (!confirm("Are you sure you want to delete this course?")) return;
-
-                  const spinner = document.createElement("i");
-                  spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
-                  row.appendChild(spinner);
-                  e.target.style.visibility = "hidden";
-
-                  try {
-                      const res = await fetch(`/taxonomies/course/delete/${id}`, {
-                          method: "DELETE",
-                          headers: {
-                              "X-CSRF-TOKEN": csrfToken,
-                              "Accept": "application/json"
-                          }
-                      });
-                      const response = await res.json();
-                      if (response.success) {
-                          courses = courses.filter(c => c.id != id);
-                          renderCourseList();
-                          alert("✔ Course deleted successfully");
-                      } else {
-                          e.target.style.visibility = "visible";
-                          spinner.remove();
-                          console.error("Failed to delete course");
-                      }
-                  } catch (error) {
-                      e.target.style.visibility = "visible";
-                      spinner.remove();
-                      console.error("Error deleting course:", error);
-                  }
-              });
-
-              // Add new course
-              courseForm.addEventListener("submit", async function(e) {
-                  e.preventDefault();
-                  const formData = {
-                      course_title: this.course_title.value,
-                      edu_system_id: this.edu_system_id.value,
-                      subject_id: this.subject_id.value,
-                      exam_board_id: this.exam_board_id.value
-                  };
-
-                  const submitBtn = this.querySelector("button[type='submit']");
-                  submitBtn.disabled = true;
-                  submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
-
-                  try {
-                      const res = await fetch(this.action, {
-                          method: "POST",
-                          headers: {
-                              "Content-Type": "application/json",
-                              "X-CSRF-TOKEN": csrfToken,
-                              "Accept": "application/json"
-                          },
-                          body: JSON.stringify(formData)
-                      });
-                      const response = await res.json();
-                      if (response.success) {
-                          courses.push({
-                              id: response.id,
-                              title: response.course_title,
-                              edu_system: response.edu_system_title,
-                              subject: response.subject_title,
-                              board: response.exam_board_title
-                          });
-                          renderCourseList();
-                          this.reset();
-                      } else {
-                          alert("Failed to add course");
-                      }
-                  } catch (error) {
-                      console.error("Error saving course:", error);
-                  } finally {
-                      submitBtn.disabled = false;
-                      submitBtn.innerHTML = '<i class="fa fa-plus"></i>';
-                  }
-              });
-
-              loadCourses();
-          });
-      </script> --}}
-
-      <script>
           document.addEventListener("DOMContentLoaded", function() {
               const courseForm = document.getElementById("courseForm");
               const courseList = document.getElementById("courseList");
@@ -2463,7 +2100,8 @@
                     <div class="col-2">${c.subject_title}</div>
                     <div class="col-2">${c.exam_board_title}</div>
                     <div class="col-1">
-                        <i class="fa fa-trash text-danger delete-course-btn" style="cursor:pointer;"></i>
+                       <i class="fa-regular fa-trash-can text-danger delete-btn" style="cursor:pointer;font-size:16px;"></i>
+
                     </div>
                 `;
                           courseList.appendChild(row);
@@ -2539,6 +2177,280 @@
               });
 
               loadCourses();
+          });
+      </script> --}}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const courseForm = document.getElementById("courseForm");
+    const courseList = document.getElementById("courseList");
+    const csrfToken = document.querySelector('input[name="_token"]').value;
+
+    // 🔹 Toast function
+    function showToast(message, type = "success") {
+        const toast = document.createElement("div");
+        toast.textContent = message;
+        toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
+        toast.style.color = "#fff";
+        toast.style.padding = "10px 15px";
+        toast.style.borderRadius = "5px";
+        toast.style.position = "fixed";
+        toast.style.top = "10px";
+        toast.style.right = "10px";
+        toast.style.zIndex = 9999;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // 🔹 Load all courses
+    async function loadCourses() {
+        courseList.innerHTML = '<small class="text-muted">Loading...</small>';
+        try {
+            const res = await fetch("{{ route('taxonomies_course.index') }}");
+            const courses = await res.json();
+
+            if (!courses || courses.length === 0) {
+                courseList.innerHTML = '<small class="text-muted">No courses added yet.</small>';
+                return;
+            }
+
+            courseList.innerHTML = '';
+            courses.forEach(c => {
+                const row = document.createElement("div");
+                row.className = "row align-items-center text-center border-bottom py-1";
+                row.dataset.id = c.id;
+                row.innerHTML = `
+                    <div class="col-5">${c.course_title}</div>
+                    <div class="col-2">${c.edu_system_title}</div>
+                    <div class="col-2">${c.subject_title}</div>
+                    <div class="col-2">${c.exam_board_title}</div>
+                    <div class="col-1">
+                       <button class="btn p-0 delete-course-btn" style="background:none; border:none;">
+                           <i class="fa-regular fa-trash-can text-danger" style="cursor:pointer;font-size:16px;"></i>
+                       </button>
+                    </div>
+                `;
+                courseList.appendChild(row);
+            });
+        } catch (error) {
+            console.error("Error loading courses:", error);
+            courseList.innerHTML = '<small class="text-danger">Failed to load courses.</small>';
+        }
+    }
+
+    // 🔹 Add Course
+    courseForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const formData = {
+            course_title: this.course_title.value,
+            edu_system_id: this.edu_system_id.value,
+            subject_id: this.subject_id.value,
+            exam_board_id: this.exam_board_id.value,
+            _token: csrfToken
+        };
+
+        try {
+            const res = await fetch(this.action, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const response = await res.json();
+            if (response.success) {
+                this.reset();
+                await loadCourses();
+                showToast(response.message || "Course added successfully", "success");
+            } else {
+                showToast(response.message || "Error saving course!", "error");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            showToast("Something went wrong!", "error");
+        }
+    });
+
+    // 🔹 Delete Course (proper delegation)
+    courseList.addEventListener("click", async function(e) {
+        const btn = e.target.closest(".delete-course-btn");
+        if (!btn) return;
+
+        const row = btn.closest(".row");
+        const id = row.dataset.id;
+
+        if (!confirm("Are you sure you want to delete this course?")) return;
+
+        try {
+            const res = await fetch(`/taxonomies/course/delete/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "X-CSRF-TOKEN": csrfToken,
+                    "Accept": "application/json"
+                }
+            });
+
+            const response = await res.json();
+            if (response.success) {
+                row.remove();
+                showToast(response.message || "Course deleted successfully", "success");
+            } else {
+                showToast(response.message || "Failed to delete course.", "error");
+            }
+        } catch (error) {
+            console.error("Error deleting course:", error);
+            showToast("Something went wrong!", "error");
+        }
+    });
+
+    loadCourses();
+});
+</script>
+
+
+
+
+
+
+    
+     
+
+      <script>
+          document.addEventListener("DOMContentLoaded", function() {
+
+              document.querySelector('#addCourseModal form').addEventListener("submit", async function(e) {
+                  e.preventDefault();
+
+                  const submitBtn = this.querySelector("button[type='submit']");
+                  submitBtn.disabled = true;
+                  submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
+
+                  // Clear previous toasts inside modal
+                  const existingToasts = this.querySelectorAll('.modal-toast');
+                  existingToasts.forEach(t => t.remove());
+
+                  const formData = new FormData();
+                  formData.append("teacherId", document.getElementById("teacherId").value);
+                  formData.append("courseId", document.getElementById("courseSelect").value);
+                  formData.append("teacherPercentage", document.getElementById("teacherPercentage")
+                      .value);
+                  formData.append("_token", "{{ csrf_token() }}");
+
+                  try {
+                      let res = await fetch("{{ route('taxonomies_teacher_course.store') }}", {
+                          method: "POST",
+                          body: formData
+                      });
+
+                      let response = await res.json();
+
+                      // Toast function
+                      function showToast(message, type = "success", duration = 3000, outside = false) {
+                          const toast = document.createElement("div");
+                          toast.className = `modal-toast p-2 rounded shadow text-white`;
+                          toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
+                          toast.style.fontWeight = "bold";
+                          toast.style.padding = "10px 15px";
+                          toast.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+                          toast.style.zIndex = 9999;
+
+                          if (outside) {
+                              // Outside modal at top-right
+                              toast.style.position = "fixed";
+                              toast.style.top = "1rem";
+                              toast.style.right = "1rem";
+                              toast.style.minWidth = "220px";
+                              toast.style.textAlign = "center";
+                              toast.textContent = message; // ensure text is set
+                              document.body.appendChild(toast);
+                          } else {
+                              // Inside modal
+                              toast.style.position = "relative";
+                              toast.textContent = message; // ensure text is set
+                              this.prepend(toast);
+                          }
+
+                          setTimeout(() => toast.remove(), duration);
+                      }
+
+                      if (response.success) {
+                          // Save updated teacher id for scroll
+                          window.lastUpdatedTeacher = document.getElementById("teacherId").value;
+
+                          // Close modal
+                          bootstrap.Modal.getInstance(document.getElementById('addCourseModal')).hide();
+
+                          // Reset form
+                          this.reset();
+
+                          // Show success toast outside modal for 5 seconds
+                          showToast.call(this, "✔ Course percentage added successfully", "success", 2000,
+                              true);
+
+                          // Refresh accordion
+                          loadTeachers().then(() => {
+                              setTimeout(() => {
+                                  const acc = document.getElementById("teacher" + window
+                                      .lastUpdatedTeacher);
+                                  if (acc) {
+                                      acc.classList.add("show");
+                                      acc.scrollIntoView({
+                                          behavior: "smooth",
+                                          block: "start"
+                                      });
+                                  }
+                              }, 2000);
+                          });
+
+                      } else if (response.errors) {
+                          // Only show duplicate course message inside modal
+                          if (response.errors.teacher_course) {
+                              showToast.call(this, "This course has already been taken", "error", 3000,
+                                  false);
+                          } else {
+                              // Other validation errors
+                              let messages = [];
+                              for (let key in response.errors) {
+                                  messages.push(...response.errors[key]);
+                              }
+                              showToast.call(this, messages.join(" | "), "error", 3000, false);
+                          }
+                      }
+
+                  } catch (err) {
+                      console.error(err);
+                      showToast.call(this, "Something went wrong!", "error", 3000, false);
+                  }
+
+                  submitBtn.disabled = false;
+                  submitBtn.innerHTML = '<i class="fa-solid fa-book me-2"></i>Add Course Percentage';
+              });
+
+          });
+      </script>
+
+
+      <script>
+          $(document).ready(function() {
+              $('#courseSelect').select2({
+                  width: '100%',
+                  templateResult: function(option) {
+                      if (!option.element) return option.text;
+
+                      var board = $(option.element).data('board');
+                      var system = $(option.element).data('system');
+                      var subject = $(option.element).data('subject');
+
+                      return $(`
+                <div>
+                    <strong>${board} ${subject}</strong><br>
+                    <small>${system} ${subject}</small>
+                </div>
+            `);
+                  }
+              });
           });
       </script>
   @endsection

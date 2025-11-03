@@ -80,6 +80,12 @@ Route::post('taxonomies/course/store' ,[Taxonomies_settingController::class , 's
 Route::get('taxonomies/course/index', [Taxonomies_settingController::class, 'index'])->name('taxonomies_course.index');
 Route::delete('taxonomies/course/delete/{id}', [Taxonomies_settingController::class, 'destroy'])->name('taxonomies_course.delete');
 
+Route::post('taxonomies/teacher_course/store', [Teacher_settingController::class, 'teacher_course_store'])->name('taxonomies_teacher_course.store');
+Route::delete('taxonomies/teacher_course/delete/{id}', [Teacher_settingController::class, 'teacher_course_delete'])->name('taxonomies_teacher_course.delete');
+
+
+
+
 
 
 
