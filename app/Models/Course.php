@@ -27,6 +27,11 @@ class Course extends Model
     {
         return $this->belongsTo(Taxonomies_examination_boards::class, 'exam_board_id');
     }
+
+    public function transaction()
+    {
+        return $this->belongsTo(Transaction::class, 'course_id');
+    }
 }
 
 

@@ -183,6 +183,28 @@ class Taxonomies_settingController extends Controller
     }
 
 
+// public function store_course(Request $request)
+// {
+//     $request->validate([
+//         'course_title'   => 'required|string|max:255',
+//         'edu_system_id'  => 'required|exists:taxonomies_educational_systems,id',
+//         'subject_id'     => 'required|exists:taxonomies_subjects,id',
+//         'exam_board_id'  => 'required|exists:taxonomies_examination_boards,id',
+//     ]);
+
+//     Course::create([
+//         'course_title'  => $request->course_title,
+//         'edu_system_id' => $request->edu_system_id,
+//         'subject_id'    => $request->subject_id,
+//         'exam_board_id' => $request->exam_board_id,
+//     ]);
+
+//     return response()->json([
+//         'success' => true,
+//         'message' => 'Course added successfully ✅'
+//     ]);
+// }
+
 public function store_course(Request $request)
 {
     $request->validate([
@@ -192,19 +214,30 @@ public function store_course(Request $request)
         'exam_board_id'  => 'required|exists:taxonomies_examination_boards,id',
     ]);
 
-    Course::create([
+    $course = Course::create([
         'course_title'  => $request->course_title,
         'edu_system_id' => $request->edu_system_id,
         'subject_id'    => $request->subject_id,
         'exam_board_id' => $request->exam_board_id,
     ]);
 
+    // load relation data to send back
+    $course->load('eduSystem', 'subject', 'examBoard');
+
     return response()->json([
         'success' => true,
-        'message' => 'Course added successfully ✅'
+        'message' => 'Course added successfully ✅',
+        'data' => [
+            'id' => $course->id,
+            'course_title' => $course->course_title,
+            'edu_system_title' => $course->eduSystem->educational_title,
+            'subject_title' => $course->subject->subject_title,
+            'exam_board_title' => $course->examBoard->examination_board_title,
+        ]
     ]);
 }
- public function index()
+
+ public function index_course()
     {
         $courses = Course::with(['eduSystem', 'subject', 'examBoard'])->get();
 
@@ -222,7 +255,7 @@ public function store_course(Request $request)
     }
 
     // 🔹 Delete a course
-    public function destroy($id)
+    public function delete_course($id)
     {
         $course = Course::find($id);
 

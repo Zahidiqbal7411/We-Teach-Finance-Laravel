@@ -509,10 +509,11 @@
                                       <input type="hidden" id="teacherId" name="teacherId">
 
                                       <!-- Course -->
+
                                       <div class="mb-3">
                                           <label class="form-label fw-semibold small">Course *</label>
                                           <select class="form-select" id="courseSelect" name="courseId" required>
-                                              <option selected disabled>Select a course</option>
+                                              <option selected disabled value="">Select a course</option>
                                               @foreach ($course_datas as $row)
                                                   <option value="{{ $row->id }}">
                                                       {{ $row->examBoard->examination_board_title }} -
@@ -524,30 +525,21 @@
                                           </select>
                                       </div>
 
+
                                       <!-- Teacher Percentage -->
                                       <div class="mb-3">
                                           <label class="form-label fw-semibold small">Teacher Percentage *</label>
                                           <div class="input-group">
                                               <input type="number" class="form-control" id="teacherPercentage"
-                                                  value="70" min="0" max="100" step="1"
-                                                  name="teacherPercentage" required>
+                                                  min="0" max="100" step="1" name="teacherPercentage"
+                                                  required>
                                               <span class="input-group-text">%</span>
                                           </div>
                                           <div class="form-text">Percentage of course revenue that goes to the teacher
                                           </div>
                                       </div>
 
-                                      <!-- Share Display -->
-                                      {{-- <div class="p-3 bg-light rounded border">
-                                          <div class="d-flex justify-content-between">
-                                              <span>Teacher Share:</span>
-                                              <span id="teacherShare" class="fw-semibold text-success"></span>
-                                          </div>
-                                          <div class="d-flex justify-content-between">
-                                              <span>Platform Share:</span>
-                                              <span id="platformShare" class="fw-semibold text-primary">30%</span>
-                                          </div>
-                                      </div> --}}
+
                                   </div>
 
                                   <div class="modal-footer border-0">
@@ -1057,9 +1049,6 @@
 
 
 
-
-
-
       <script>
           document.addEventListener("DOMContentLoaded", function() {
               const subjectForm = document.getElementById("subjectForm");
@@ -1253,6 +1242,8 @@
       </script>
 
 
+      {{-- This is the script for examination board --}}
+
 
       <script>
           document.addEventListener("DOMContentLoaded", function() {
@@ -1260,14 +1251,13 @@
               const boardInput = document.getElementById("boardInput");
               const boardList = document.getElementById("boardList");
               const csrfToken = document.querySelector('input[name="_token"]').value;
-
-              const boardSelect = document.getElementById("board_option"); // ✅ Dropdown reference
+              const boardSelect = document.getElementById("board_option");
 
               const data = {
                   boardList: []
               };
 
-              // 🔹 Load all boards
+              // Load Boards
               async function loadBoards() {
                   boardList.innerHTML = '<small class="text-muted">Loading...</small>';
                   try {
@@ -1278,9 +1268,9 @@
                           id: i.id,
                           title: i.examination_board_title
                       }));
+
                       renderBoards();
 
-                      // ✅ Populate dropdown
                       boardSelect.innerHTML = '<option selected disabled>Select Board</option>';
                       data.boardList.forEach(item => {
                           let opt = document.createElement("option");
@@ -1290,15 +1280,14 @@
                       });
 
                   } catch (error) {
-                      console.error("Error loading boards:", error);
-                      boardList.innerHTML = '<small class="text-danger">Failed to load boards.</small>';
+                      console.error("Error loading items:", error);
+                      boardList.innerHTML = '<small class="text-danger">Failed to load items.</small>';
                   }
               }
 
-              // 🔹 Render boards
+              // Render Boards
               function renderBoards() {
                   boardList.innerHTML = '';
-
                   if (data.boardList.length === 0) {
                       boardList.innerHTML = '<small class="text-muted">No examination boards added yet.</small>';
                       return;
@@ -1311,17 +1300,95 @@
                       div.dataset.id = item.id;
                       div.innerHTML = `
                 <span>${item.title}</span>
-                <i class="fa fa-trash text-danger delete-btn" style="cursor:pointer; font-size:16px;"></i>
+                <i class="fa fa-trash text-danger delete-board-btn" style="cursor:pointer; font-size:16px;"></i>
             `;
                       boardList.appendChild(div);
                   });
-
-                  attachDeleteListeners();
               }
 
-              // 🔹 Add new board
+              // Delete Board (same pattern as subject delete)
+              boardList.addEventListener("click", async function(e) {
+                  if (!e.target.classList.contains("delete-board-btn")) return;
+
+                  const parent = e.target.closest(".taxonomy-item");
+                  const id = parent.dataset.id;
+
+                  // ✅ Only ONE confirmation
+                  if (!confirm("Are you sure you want to delete this examination board?")) return;
+
+                  parent.style.backgroundColor = "#fff8d6";
+                  const deleteIcon = e.target;
+                  deleteIcon.style.visibility = "hidden";
+
+                  const spinner = document.createElement("i");
+                  spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
+                  parent.appendChild(spinner);
+
+                  try {
+                      const res = await fetch(`/taxonomies/examination_board/delete/${id}`, {
+                          method: "DELETE",
+                          headers: {
+                              "X-CSRF-TOKEN": csrfToken,
+                              "Accept": "application/json"
+                          }
+                      });
+
+                      const response = await res.json();
+
+                      if (response.success) {
+                          setTimeout(() => {
+                              spinner.remove();
+
+                              const toast = document.createElement("div");
+                              toast.textContent = "✔ Board deleted successfully";
+                              toast.style.position = "absolute";
+                              toast.style.bottom = "-35px";
+                              toast.style.right = "0";
+                              toast.style.background = "#28a745";
+                              toast.style.color = "white";
+                              toast.style.padding = "4px 10px";
+                              toast.style.borderRadius = "6px";
+                              toast.style.fontSize = "13px";
+                              toast.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+                              toast.style.opacity = "0";
+                              toast.style.transition = "opacity 0.3s ease";
+                              parent.appendChild(toast);
+
+                              setTimeout(() => (toast.style.opacity = "1"), 50);
+
+                              setTimeout(() => {
+                                  toast.style.opacity = "0";
+                                  setTimeout(() => {
+                                      toast.remove();
+                                      data.boardList = data.boardList.filter(i =>
+                                          i.id != id);
+                                      renderBoards();
+
+                                      [...boardSelect.options].forEach(opt => {
+                                          if (opt.value == id) opt
+                                          .remove();
+                                      });
+
+                                  }, 400);
+                              }, 1500);
+                          }, 800);
+                      } else {
+                          deleteIcon.style.visibility = "visible";
+                          spinner.remove();
+                          parent.style.backgroundColor = "";
+                      }
+                  } catch (error) {
+                      deleteIcon.style.visibility = "visible";
+                      spinner.remove();
+                      parent.style.backgroundColor = "";
+                      console.error("Error deleting item:", error);
+                  }
+              });
+
+              // Add Board
               boardForm.addEventListener("submit", async function(e) {
                   e.preventDefault();
+
                   const title = boardInput.value.trim();
                   if (!title) return;
 
@@ -1349,126 +1416,30 @@
                               id: response.id,
                               title: response.title
                           });
-                          renderBoards();
-                          boardInput.value = '';
 
-                          // ✅ Add new option to dropdown
+                          renderBoards();
+
                           let opt = document.createElement("option");
                           opt.value = response.id;
                           opt.textContent = response.title;
                           boardSelect.appendChild(opt);
 
-                      } else {
-                          console.error("❌ Failed to save board.");
+                          boardInput.value = '';
                       }
                   } catch (error) {
-                      console.error("Error saving board:", error);
+                      console.error("Error saving item:", error);
                   } finally {
                       button.disabled = false;
                       button.innerHTML = '<i class="fa fa-plus"></i>';
                   }
               });
 
-              // 🔹 Delete board
-              function attachDeleteListeners() {
-                  document.querySelectorAll(".delete-btn").forEach(btn => {
-                      btn.addEventListener("click", async function() {
-                          const parent = this.closest(".taxonomy-item");
-                          const id = parent.dataset.id;
-
-                          if (!confirm("Are you sure you want to delete this examination board?"))
-                              return;
-
-                          parent.style.backgroundColor = "#fff8d6";
-
-                          const deleteIcon = this;
-                          deleteIcon.style.visibility = "hidden";
-                          const spinner = document.createElement("i");
-                          spinner.className = "fa fa-spinner fa-spin text-warning ms-2";
-                          parent.appendChild(spinner);
-
-                          try {
-                              const res = await fetch(
-                                  `/taxonomies/examination_board/delete/${id}`, {
-                                      method: "DELETE",
-                                      headers: {
-                                          "X-CSRF-TOKEN": csrfToken,
-                                          "Accept": "application/json"
-                                      }
-                                  });
-
-                              const response = await res.json();
-
-                              if (response.success) {
-                                  setTimeout(() => {
-                                      spinner.remove();
-
-                                      // ✅ Toast
-                                      const toast = document.createElement("div");
-                                      toast.textContent = "✔ Board deleted successfully";
-                                      toast.style.position = "absolute";
-                                      toast.style.bottom = "-35px";
-                                      toast.style.right = "0";
-                                      toast.style.background = "#28a745";
-                                      toast.style.color = "white";
-                                      toast.style.padding = "4px 10px";
-                                      toast.style.borderRadius = "6px";
-                                      toast.style.fontSize = "13px";
-                                      toast.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
-                                      toast.style.opacity = "0";
-                                      toast.style.transition = "opacity 0.3s ease";
-                                      parent.appendChild(toast);
-
-                                      setTimeout(() => (toast.style.opacity = "1"), 50);
-
-                                      setTimeout(() => {
-                                          toast.style.opacity = "0";
-                                          setTimeout(() => {
-                                              toast.remove();
-                                              data.boardList = data
-                                                  .boardList.filter(i => i
-                                                      .id != id);
-                                              renderBoards();
-
-                                              // ✅ Remove option from dropdown
-                                              [...boardSelect.options]
-                                              .forEach(opt => {
-                                                  if (opt.value ==
-                                                      id) opt
-                                                      .remove();
-                                              });
-
-                                          }, 400);
-                                      }, 1500);
-                                  }, 800);
-                              } else {
-                                  deleteIcon.style.visibility = "visible";
-                                  spinner.remove();
-                                  parent.style.backgroundColor = "";
-                                  console.error("Failed to delete board.");
-                              }
-                          } catch (error) {
-                              deleteIcon.style.visibility = "visible";
-                              spinner.remove();
-                              parent.style.backgroundColor = "";
-                              console.error("Error deleting board:", error);
-                          }
-                      });
-                  });
-              }
-
-              // 🔹 Load boards on startup
               loadBoards();
           });
       </script>
 
 
-
-
       {{-- This is the script of sessions --}}
-
-
-
 
 
       <script>
@@ -1661,206 +1632,7 @@
 
 
 
-      {{-- <script>
-          document.addEventListener("DOMContentLoaded", function() {
 
-              const teacherAccordion = document.getElementById("teacherAccordion");
-              const teacherForm = document.getElementById("teacherForm");
-              const submitBtn = document.getElementById("teacherSubmitBtn");
-              const csrf = document.getElementById("csrfToken").value;
-              const teacherModal = new bootstrap.Modal(document.getElementById('teacherModal'));
-
-              // ✅ Toast function
-              function showToast(message, type = "success") {
-                  const toast = document.createElement("div");
-                  toast.textContent = message;
-                  toast.className = `position-fixed top-0 end-0 m-3 p-2 rounded shadow text-white`;
-                  toast.style.zIndex = 9999;
-                  toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
-                  document.body.appendChild(toast);
-                  setTimeout(() => toast.remove(), 3000);
-              }
-
-              // ✅ Render Teacher Card with courses
-              function renderTeacherCard(t) {
-                  const uid = 'teacher' + t.id;
-                  const headingId = 'heading' + t.id;
-
-                  let courseHtml = "";
-                  if (t.courses && t.courses.length > 0) {
-                      t.courses.forEach(c => {
-                          const teacherPct = c.teacher_percentage ?? 0;
-                          const platformPct = 100 - teacherPct;
-
-                          courseHtml += `
-                <div class="percentage-box mb-2 p-2 d-flex justify-content-between align-items-center border rounded bg-white">
-                    <div>
-                        <span>${c.course?.course_title ?? 'N/A'} - ${c.course?.subject?.subject_title ?? 'N/A'}</span>
-                        <small class="d-block">
-                            Teacher: <span class="text-success">${teacherPct}%</span> |
-                            Platform: <span class="text-primary">${platformPct}%</span>
-                        </small>
-                    </div>
-                    <div>
-                        <!-- Use pivot ID for deletion -->
-                        <button class="btn btn-light btn-sm border delete-btn px-2" data-pivot-id="${c.id}">
-                            <i class="fa-regular fa-trash-can text-danger"></i>
-                        </button>
-                    </div>
-                </div>`;
-                      });
-                  } else {
-                      courseHtml = `<small class="text-muted">No courses assigned yet</small>`;
-                  }
-
-                  return `
-        <div class="accordion-item teacher-card border mb-2 rounded">
-            <h3 class="accordion-header" id="${headingId}">
-                <button class="accordion-button collapsed bg-white" type="button" 
-                    data-bs-toggle="collapse" data-bs-target="#${uid}">
-                    <div class="teacher-info d-flex align-items-center gap-3">
-                        <div class="teacher-icon"><i class="fa-solid fa-user"></i></div>
-                        <div>
-                            <h6 class="mb-0 fw-semibold">${t.teacher_name}</h6>
-                            <small class="text-muted">${t.teacher_email}</small>
-                        </div>
-                    </div>
-                </button>
-            </h3>
-
-            <div id="${uid}" class="accordion-collapse collapse">
-                <div class="accordion-body bg-light border-top">
-                    <div class="fw-semibold mb-2 percentage-title">Course Revenue Percentages</div>
-                    ${courseHtml}
-                    <button class="btn btn-dark btn-sm mt-2 addCourseBtn"
-                        data-id="${t.id}"
-                        data-bs-toggle="modal"
-                        data-bs-target="#addCourseModal"
-                        style="font-size: 15px;">
-                        <i class="fa-solid fa-plus"></i> Add Course Percentage
-                    </button>
-                </div>
-            </div>
-        </div>`;
-              }
-
-              // ✅ Load teachers via AJAX
-              window.loadTeachers = async function() {
-                  try {
-                      const res = await fetch("{{ route('teacher_setting.index') }}");
-                      const response = await res.json();
-
-                      if (response.success) {
-                          teacherAccordion.innerHTML = "";
-                          response.data.forEach(t => {
-                              teacherAccordion.insertAdjacentHTML("beforeend", renderTeacherCard(t));
-                          });
-                          document.dispatchEvent(new Event("teachersUpdated"));
-                      }
-                  } catch (error) {
-                      console.error("Load Error:", error);
-                  }
-              }
-
-              loadTeachers(); // initial load
-
-              // ✅ Save teacher
-              teacherForm.addEventListener("submit", async function(e) {
-                  e.preventDefault();
-
-                  submitBtn.disabled = true;
-                  submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
-
-                  const payload = {
-                      teacherName: document.getElementById("teacherName").value,
-                      teacherContact: document.getElementById("teacherContact").value,
-                      teacherEmail: document.getElementById("teacherEmail").value,
-                      teacherOtherinfo: document.getElementById("teacherOtherinfo").value,
-                  };
-
-                  try {
-                      const res = await fetch("{{ route('teacher_setting.store') }}", {
-                          method: "POST",
-                          headers: {
-                              "Content-Type": "application/json",
-                              "X-CSRF-TOKEN": csrf
-                          },
-                          body: JSON.stringify(payload),
-                      });
-
-                      const response = await res.json();
-
-                      if (response.success) {
-                          await loadTeachers();
-                          teacherForm.reset();
-                          teacherModal.hide();
-                          showToast("✔ Teacher added successfully", "success");
-                      }
-                  } catch (error) {
-                      console.error("Save Error:", error);
-                  }
-
-                  submitBtn.disabled = false;
-                  submitBtn.innerHTML = "Save Teacher";
-              });
-
-              // ✅ Set teacher ID in Add Course Modal
-              document.addEventListener("click", function(e) {
-                  if (e.target.closest(".addCourseBtn")) {
-                      const teacherId = e.target.closest(".addCourseBtn").getAttribute("data-id");
-                      document.getElementById("teacherId").value = teacherId;
-                  }
-              });
-
-              // ✅ Delete course assignment using pivot ID
-              document.addEventListener("click", async function(e) {
-                  if (e.target.closest(".delete-btn")) {
-                      const button = e.target.closest(".delete-btn");
-                      const pivotId = button.getAttribute("data-pivot-id");
-                      const courseBox = button.closest(".percentage-box");
-
-                      if (!confirm("Are you sure you want to delete this course assignment?")) return;
-
-                      try {
-                          const res = await fetch(`/taxonomies/teacher_course/delete/${pivotId}`, {
-                              method: "DELETE",
-                              headers: {
-                                  "X-CSRF-TOKEN": csrf,
-                                  "Accept": "application/json"
-                              },
-                          });
-
-                          const response = await res.json();
-
-                          if (response.success) {
-                              courseBox.remove();
-                              showToast("✔ Course assignment deleted successfully", "success");
-                          } else {
-                              showToast(response.message || "Failed to delete course", "error");
-                          }
-                      } catch (err) {
-                          console.error(err);
-                          showToast("Something went wrong!", "error");
-                      }
-                  }
-              });
-
-              // ✅ Auto-open last updated teacher accordion
-              document.addEventListener("teachersUpdated", function() {
-                  if (window.lastUpdatedTeacher) {
-                      const acc = document.getElementById("teacher" + window.lastUpdatedTeacher);
-                      if (acc) {
-                          acc.classList.add("show");
-                          acc.scrollIntoView({
-                              behavior: "smooth",
-                              block: "start"
-                          });
-                      }
-                  }
-              });
-
-          });
-      </script> --}}
       <script>
           document.addEventListener("DOMContentLoaded", function() {
 
@@ -2071,13 +1843,30 @@
 
 
 
-      {{-- <script>
+
+
+      {{-- This is the script for course addition --}}
+      <script>
           document.addEventListener("DOMContentLoaded", function() {
               const courseForm = document.getElementById("courseForm");
               const courseList = document.getElementById("courseList");
               const csrfToken = document.querySelector('input[name="_token"]').value;
 
-              // 🔹 Load all courses
+              function showToast(message, type = "success") {
+                  const toast = document.createElement("div");
+                  toast.textContent = message;
+                  toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
+                  toast.style.color = "#fff";
+                  toast.style.padding = "10px 15px";
+                  toast.style.borderRadius = "5px";
+                  toast.style.position = "fixed";
+                  toast.style.top = "10px";
+                  toast.style.right = "10px";
+                  toast.style.zIndex = 9999;
+                  document.body.appendChild(toast);
+                  setTimeout(() => toast.remove(), 1000);
+              }
+
               async function loadCourses() {
                   courseList.innerHTML = '<small class="text-muted">Loading...</small>';
                   try {
@@ -2100,20 +1889,20 @@
                     <div class="col-2">${c.subject_title}</div>
                     <div class="col-2">${c.exam_board_title}</div>
                     <div class="col-1">
-                       <i class="fa-regular fa-trash-can text-danger delete-btn" style="cursor:pointer;font-size:16px;"></i>
-
+                        <button class="btn p-0 delete-course-btn" style="background:none; border:none;">
+                            <i class="fa-regular fa-trash-can text-danger" style="cursor:pointer;font-size:16px;"></i>
+                        </button>
                     </div>
                 `;
                           courseList.appendChild(row);
                       });
-
                   } catch (error) {
                       console.error("Error loading courses:", error);
                       courseList.innerHTML = '<small class="text-danger">Failed to load courses.</small>';
                   }
               }
 
-              // 🔹 Add Course
+              // ✅ Add course without reloading table
               courseForm.addEventListener("submit", async function(e) {
                   e.preventDefault();
 
@@ -2136,190 +1925,86 @@
                       });
 
                       const response = await res.json();
+
                       if (response.success) {
-                          this.reset();
-                          await loadCourses();
-                      } else {
-                          alert("Error saving course!");
-                      }
-                  } catch (error) {
-                      console.error("Error:", error);
-                  }
-              });
 
-              // 🔹 Delete Course
-              courseList.addEventListener("click", async function(e) {
-                  if (!e.target.classList.contains("delete-course-btn")) return;
+                          const c = response.data;
 
-                  const parent = e.target.closest(".row");
-                  const id = parent.dataset.id;
-
-                  if (!confirm("Are you sure you want to delete this course?")) return;
-
-                  try {
-                      const res = await fetch(`/taxonomies/course/delete/${id}`, {
-                          method: "DELETE",
-                          headers: {
-                              "X-CSRF-TOKEN": csrfToken,
-                              "Accept": "application/json"
-                          }
-                      });
-
-                      const response = await res.json();
-                      if (response.success) {
-                          parent.remove();
-                      } else {
-                          alert("Failed to delete course.");
-                      }
-                  } catch (error) {
-                      console.error("Error deleting course:", error);
-                  }
-              });
-
-              loadCourses();
-          });
-      </script> --}}
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const courseForm = document.getElementById("courseForm");
-    const courseList = document.getElementById("courseList");
-    const csrfToken = document.querySelector('input[name="_token"]').value;
-
-    // 🔹 Toast function
-    function showToast(message, type = "success") {
-        const toast = document.createElement("div");
-        toast.textContent = message;
-        toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
-        toast.style.color = "#fff";
-        toast.style.padding = "10px 15px";
-        toast.style.borderRadius = "5px";
-        toast.style.position = "fixed";
-        toast.style.top = "10px";
-        toast.style.right = "10px";
-        toast.style.zIndex = 9999;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
-
-    // 🔹 Load all courses
-    async function loadCourses() {
-        courseList.innerHTML = '<small class="text-muted">Loading...</small>';
-        try {
-            const res = await fetch("{{ route('taxonomies_course.index') }}");
-            const courses = await res.json();
-
-            if (!courses || courses.length === 0) {
-                courseList.innerHTML = '<small class="text-muted">No courses added yet.</small>';
-                return;
-            }
-
-            courseList.innerHTML = '';
-            courses.forEach(c => {
-                const row = document.createElement("div");
-                row.className = "row align-items-center text-center border-bottom py-1";
-                row.dataset.id = c.id;
-                row.innerHTML = `
+                          // ✅ Append only new row — no refresh
+                          const row = document.createElement("div");
+                          row.className = "row align-items-center text-center border-bottom py-1";
+                          row.dataset.id = c.id;
+                          row.innerHTML = `
                     <div class="col-5">${c.course_title}</div>
                     <div class="col-2">${c.edu_system_title}</div>
                     <div class="col-2">${c.subject_title}</div>
                     <div class="col-2">${c.exam_board_title}</div>
                     <div class="col-1">
-                       <button class="btn p-0 delete-course-btn" style="background:none; border:none;">
-                           <i class="fa-regular fa-trash-can text-danger" style="cursor:pointer;font-size:16px;"></i>
-                       </button>
-                    </div>
-                `;
-                courseList.appendChild(row);
-            });
-        } catch (error) {
-            console.error("Error loading courses:", error);
-            courseList.innerHTML = '<small class="text-danger">Failed to load courses.</small>';
-        }
-    }
+                        <button class="btn p-0 delete-course-btn" style="background:none; border:none;">
+                            <i class="fa-regular fa-trash-can text-danger" style="cursor:pointer;font-size:16px;"></i>
+                        </button>
+                    </div>`;
 
-    // 🔹 Add Course
-    courseForm.addEventListener("submit", async function(e) {
-        e.preventDefault();
+                          courseList.prepend(row); // ✅ insert at top
 
-        const formData = {
-            course_title: this.course_title.value,
-            edu_system_id: this.edu_system_id.value,
-            subject_id: this.subject_id.value,
-            exam_board_id: this.exam_board_id.value,
-            _token: csrfToken
-        };
+                          this.reset();
+                          showToast(response.message);
+                          return; // ❗ stop here — no loadCourses()
+                      } else {
+                          showToast(response.message || "Error saving course!", "error");
+                      }
 
-        try {
-            const res = await fetch(this.action, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": csrfToken
-                },
-                body: JSON.stringify(formData)
-            });
+                  } catch (error) {
+                      console.error("Error:", error);
+                      showToast("Something went wrong!", "error");
+                  }
+              });
 
-            const response = await res.json();
-            if (response.success) {
-                this.reset();
-                await loadCourses();
-                showToast(response.message || "Course added successfully", "success");
-            } else {
-                showToast(response.message || "Error saving course!", "error");
-            }
-        } catch (error) {
-            console.error("Error:", error);
-            showToast("Something went wrong!", "error");
-        }
-    });
+              // ✅ Delete
+              courseList.addEventListener("click", async function(e) {
+                  const btn = e.target.closest(".delete-course-btn");
+                  if (!btn) return;
+                  const row = btn.closest(".row");
+                  const id = row.dataset.id;
 
-    // 🔹 Delete Course (proper delegation)
-    courseList.addEventListener("click", async function(e) {
-        const btn = e.target.closest(".delete-course-btn");
-        if (!btn) return;
+                  if (!confirm("Are you sure you want to delete this course?")) return;
 
-        const row = btn.closest(".row");
-        const id = row.dataset.id;
+                  const res = await fetch(`/taxonomies/course/delete/${id}`, {
+                      method: "DELETE",
+                      headers: {
+                          "X-CSRF-TOKEN": csrfToken,
+                          "Accept": "application/json"
+                      }
+                  });
 
-        if (!confirm("Are you sure you want to delete this course?")) return;
+                  const response = await res.json();
+                  if (response.success) {
+                      row.remove();
+                      showToast(response.message);
+                  }
+              });
 
-        try {
-            const res = await fetch(`/taxonomies/course/delete/${id}`, {
-                method: "DELETE",
-                headers: {
-                    "X-CSRF-TOKEN": csrfToken,
-                    "Accept": "application/json"
-                }
-            });
-
-            const response = await res.json();
-            if (response.success) {
-                row.remove();
-                showToast(response.message || "Course deleted successfully", "success");
-            } else {
-                showToast(response.message || "Failed to delete course.", "error");
-            }
-        } catch (error) {
-            console.error("Error deleting course:", error);
-            showToast("Something went wrong!", "error");
-        }
-    });
-
-    loadCourses();
-});
-</script>
+              loadCourses();
+          });
+      </script>
 
 
 
-
-
-
-    
-     
+      {{-- This is the script for teacher course modal --}}
 
       <script>
           document.addEventListener("DOMContentLoaded", function() {
 
+              const modalEl = document.getElementById('addCourseModal');
+              const percentageInput = document.getElementById("teacherPercentage");
+              const courseSelect = document.getElementById("courseSelect");
+
+              // Disable browser auto-fill on number input
+              percentageInput.setAttribute("autocomplete", "off");
+              percentageInput.setAttribute("inputmode", "numeric");
+              percentageInput.addEventListener("focus", () => percentageInput.value = "");
+
+              // ********* FORM SUBMIT *********
               document.querySelector('#addCourseModal form').addEventListener("submit", async function(e) {
                   e.preventDefault();
 
@@ -2327,69 +2012,59 @@ document.addEventListener("DOMContentLoaded", function() {
                   submitBtn.disabled = true;
                   submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
 
-                  // Clear previous toasts inside modal
                   const existingToasts = this.querySelectorAll('.modal-toast');
                   existingToasts.forEach(t => t.remove());
 
                   const formData = new FormData();
                   formData.append("teacherId", document.getElementById("teacherId").value);
-                  formData.append("courseId", document.getElementById("courseSelect").value);
-                  formData.append("teacherPercentage", document.getElementById("teacherPercentage")
-                      .value);
+                  formData.append("courseId", courseSelect.value);
+                  formData.append("teacherPercentage", percentageInput.value);
                   formData.append("_token", "{{ csrf_token() }}");
+
+                  function showToast(message, type = "success", duration = 3000, outside = false) {
+                      const toast = document.createElement("div");
+                      toast.className = "modal-toast p-2 rounded shadow text-white";
+                      toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
+                      toast.style.fontWeight = "bold";
+                      toast.style.padding = "10px 15px";
+                      toast.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+                      toast.style.zIndex = 9999;
+
+                      if (outside) {
+                          toast.style.position = "fixed";
+                          toast.style.top = "1rem";
+                          toast.style.right = "1rem";
+                          toast.style.minWidth = "220px";
+                          toast.style.textAlign = "center";
+                          toast.textContent = message;
+                          document.body.appendChild(toast);
+                      } else {
+                          toast.style.position = "relative";
+                          toast.textContent = message;
+                          this.prepend(toast);
+                      }
+
+                      setTimeout(() => toast.remove(), duration);
+                  }
 
                   try {
                       let res = await fetch("{{ route('taxonomies_teacher_course.store') }}", {
                           method: "POST",
                           body: formData
                       });
-
                       let response = await res.json();
 
-                      // Toast function
-                      function showToast(message, type = "success", duration = 3000, outside = false) {
-                          const toast = document.createElement("div");
-                          toast.className = `modal-toast p-2 rounded shadow text-white`;
-                          toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
-                          toast.style.fontWeight = "bold";
-                          toast.style.padding = "10px 15px";
-                          toast.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
-                          toast.style.zIndex = 9999;
-
-                          if (outside) {
-                              // Outside modal at top-right
-                              toast.style.position = "fixed";
-                              toast.style.top = "1rem";
-                              toast.style.right = "1rem";
-                              toast.style.minWidth = "220px";
-                              toast.style.textAlign = "center";
-                              toast.textContent = message; // ensure text is set
-                              document.body.appendChild(toast);
-                          } else {
-                              // Inside modal
-                              toast.style.position = "relative";
-                              toast.textContent = message; // ensure text is set
-                              this.prepend(toast);
-                          }
-
-                          setTimeout(() => toast.remove(), duration);
-                      }
-
                       if (response.success) {
-                          // Save updated teacher id for scroll
                           window.lastUpdatedTeacher = document.getElementById("teacherId").value;
 
-                          // Close modal
-                          bootstrap.Modal.getInstance(document.getElementById('addCourseModal')).hide();
-
-                          // Reset form
+                          bootstrap.Modal.getInstance(modalEl).hide();
                           this.reset();
+                          percentageInput.value = "";
+                          courseSelect.value = "";
 
-                          // Show success toast outside modal for 5 seconds
                           showToast.call(this, "✔ Course percentage added successfully", "success", 2000,
                               true);
 
-                          // Refresh accordion
                           loadTeachers().then(() => {
                               setTimeout(() => {
                                   const acc = document.getElementById("teacher" + window
@@ -2405,17 +2080,13 @@ document.addEventListener("DOMContentLoaded", function() {
                           });
 
                       } else if (response.errors) {
-                          // Only show duplicate course message inside modal
+
                           if (response.errors.teacher_course) {
                               showToast.call(this, "This course has already been taken", "error", 3000,
                                   false);
                           } else {
-                              // Other validation errors
-                              let messages = [];
-                              for (let key in response.errors) {
-                                  messages.push(...response.errors[key]);
-                              }
-                              showToast.call(this, messages.join(" | "), "error", 3000, false);
+                              let msg = Object.values(response.errors).flat().join(" | ");
+                              showToast.call(this, msg, "error", 3000, false);
                           }
                       }
 
@@ -2426,6 +2097,26 @@ document.addEventListener("DOMContentLoaded", function() {
 
                   submitBtn.disabled = false;
                   submitBtn.innerHTML = '<i class="fa-solid fa-book me-2"></i>Add Course Percentage';
+              });
+
+              // ✅ Clear fields when modal closes (Cancel / X)
+              modalEl.addEventListener('hidden.bs.modal', function() {
+                  const form = modalEl.querySelector('form');
+                  form.reset();
+                  courseSelect.value = "";
+                  percentageInput.value = "";
+                  percentageInput.removeAttribute("value");
+
+                  const toasts = modalEl.querySelectorAll('.modal-toast');
+                  toasts.forEach(t => t.remove());
+              });
+
+              // ✅ Focus course when modal opens
+              modalEl.addEventListener('shown.bs.modal', function() {
+                  courseSelect.value = "";
+                  percentageInput.value = "";
+                  percentageInput.removeAttribute("value");
+                  courseSelect.focus();
               });
 
           });
