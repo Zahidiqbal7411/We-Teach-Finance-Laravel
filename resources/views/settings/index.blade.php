@@ -318,20 +318,10 @@
                                   <div class="settings-card">
                                       @php
                                           use App\Models\Setting;
+                                          use App\Models\Currency;
                                           $admin = Setting::where('type', 'admin-pin')->first();
                                           $session_timeout = Setting::where('type', 'session_timeout')->first();
-                                          $currencies = Setting::where('type', 'default_currency')->first();
-                                          $selected_currency = Setting::where('type', 'selected_currency')->first();
-                                          $default_currencies = [];
-                                          if ($currencies) {
-                                              $default_currencies = array_map(
-                                                  'trim',
-                                                  explode(',', trim($currencies->value, '[]')),
-                                              );
-                                          }
-                                          $selected_currency_value = $selected_currency
-                                              ? trim($selected_currency->value)
-                                              : null;
+
                                           $email_notification = Setting::where('type', 'email_notification')->first();
                                           $payment_alert = Setting::where('type', 'payment_alert')->first();
                                           $low_balance_warning = Setting::where('type', 'low_balance_warning')->first();
@@ -364,37 +354,81 @@
                                       </form>
                                   </div>
                               </div>
-
                               <div class="col-md-6">
                                   <div class="settings-card">
                                       <h6>Currency Settings</h6>
-                                      <form id="currencySettingForm"
-                                          action="{{ route('currency_setting.update', $currencies->id) }}"
-                                          method="POST">
+
+                                      <form id="currencySettingForm" method="POST">
                                           @csrf
+
+                                          {{-- Default Currency Select --}}
                                           <div class="mb-3">
                                               <label class="form-label">Default Currency</label>
-                                              <select class="form-select form-select-sm" name="default_currency">
-                                                  @foreach ($default_currencies as $default_currency)
-                                                      <option value="{{ $default_currency }}"
-                                                          {{ $selected_currency_value == $default_currency ? 'selected' : '' }}>
-                                                          {{ $default_currency }}
+                                              <select class="form-select form-select-sm" name="default_currency"
+                                                  id="defaultCurrencySelect" required>
+                                                  @foreach ($currency_datas as $currency)
+                                                      <option value="{{ $currency->id }}"
+                                                          {{ $currency->selected_currency ? 'selected' : '' }}>
+                                                          {{ $currency->currency_name }}
                                                       </option>
                                                   @endforeach
                                               </select>
                                           </div>
-                                          <div class="exchange-box mb-3">
+
+                                          {{-- Exchange Rates Info --}}
+                                          {{-- <div class="exchange-box mb-3">
                                               <strong>Exchange Rates (Auto-update)</strong><br>
-                                              1 USD = 30.85 EGP<br>
+                                              1 USD = {{$currency_datas->exchange_rate}} EGP<br>
                                               1 EUR = 33.42 EGP<br>
                                               <small class="text-muted">Last updated: 2 hours ago</small>
+                                          </div> --}}
+                                          {{-- <div class="exchange-box mb-3">
+                                              <strong>Exchange Rates (Auto-update)</strong><br>
+                                              @foreach ($currency_datas as $currency)
+                                                  1 {{ $currency->currency_name }} = {{ $currency->exchange_rate }}
+                                                  EGP<br>
+                                              @endforeach
+                                              <small class="text-muted">Last updated: 2 hours ago</small>
+                                          </div> --}}
+
+                                          <div class="exchange-box mb-3">
+                                              <strong>Exchange Rates (Auto-update)</strong><br>
+                                              @foreach ($currency_datas as $currency)
+                                                  @if ($currency->exchange_rate != 1)
+                                                      <!-- Skip EGP itself -->
+                                                      1 {{ $currency->currency_name }} = {{ $currency->exchange_rate }}
+                                                      EGP<br>
+                                                  @endif
+                                              @endforeach
+                                              <small class="text-muted">Last updated: 2 hours ago</small>
                                           </div>
-                                          <button type="submit" id="currencyUpdateBtn" class="btn btn-dark btn-sm w-20">
-                                              Update Currency Settings
-                                          </button>
+
+                                          {{-- Submit Button --}}
+                                          <div class="text-start">
+                                              <button type="submit" id="currencyUpdateBtn"
+                                                  class="btn btn-dark btn-sm px-4">
+                                                  <i class="bi bi-arrow-repeat me-1"></i> Update Currency Setting
+                                              </button>
+                                          </div>
+
+                                          <div id="currencyResponseMsg" class="mt-3" style="display:none;"></div>
                                       </form>
                                   </div>
                               </div>
+
+
+                              {{-- Toast Notification --}}
+                              <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+                                  <div id="currencyToast" class="toast align-items-center text-bg-success border-0"
+                                      role="alert" aria-live="assertive" aria-atomic="true">
+                                      <div class="d-flex">
+                                          <div class="toast-body" id="currencyToastBody"></div>
+                                          <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                              data-bs-dismiss="toast" aria-label="Close"></button>
+                                      </div>
+                                  </div>
+                              </div>
+
 
                               <div class="col-md-6">
                                   <div class="settings-card">
@@ -642,23 +676,20 @@
 
       {{-- this is the script of default_currency --}}
 
-      <script>
+
+
+      {{-- <script>
           $(document).ready(function() {
-              // Save the initially selected value
-              let lastSelectedCurrency = $('#currencySettingForm select[name="default_currency"]').val();
+              let lastSelectedCurrency = $('#defaultCurrencySelect').val();
 
               $('#currencySettingForm').on('submit', function(e) {
                   e.preventDefault();
 
-                  const form = $(this);
-                  const url = form.attr('action');
+                  const selectedCurrency = $('#defaultCurrencySelect').val();
                   const btn = $('#currencyUpdateBtn');
                   const responseMsg = $('#currencyResponseMsg');
-                  const formData = form.serialize();
-                  const selectedCurrency = form.find('select[name="default_currency"]').val();
-                  const originalText = btn.html();
 
-                  // ✅ Check if value is unchanged
+                  // If no change
                   if (selectedCurrency === lastSelectedCurrency) {
                       responseMsg
                           .removeClass()
@@ -667,66 +698,154 @@
                           .fadeIn()
                           .delay(2000)
                           .fadeOut();
-                      return; // Stop here — don’t send AJAX
+                      return;
                   }
 
-                  // ✅ Show spinner and disable button
-                  btn.prop('disabled', true).html(`
-            <span class="spinner-border spinner-border-sm me-2"></span>
-            Please wait, updating currency...
-        `);
+                  // Hide button and show loading message in green
+                  btn.hide();
+                  responseMsg
+                      .removeClass()
+                      .addClass('alert alert-success text-center')
+                      .html('⏳ Updating currency, please wait...')
+                      .fadeIn();
 
-                  // ✅ Start AJAX
                   $.ajax({
                       type: 'POST',
-                      url: url,
-                      data: formData,
+                      url: "{{ url('currency/update') }}",
+                      data: {
+                          default_currency: selectedCurrency,
+                          _token: $('meta[name="csrf-token"]').attr('content')
+                      },
                       success: function(res) {
-                          setTimeout(() => {
+                          if (res.success) {
+                              lastSelectedCurrency = selectedCurrency;
                               responseMsg
                                   .removeClass()
                                   .addClass('alert alert-success text-center')
-                                  .html('✅ Currency settings updated successfully!')
-                                  .fadeIn();
+                                  .html('✅ Currency updated successfully!')
+                                  .fadeIn()
+                                  .delay(2000)
+                                  .fadeOut(function() {
+                                      btn.show(); // Show the button again
+                                  });
+                          } else {
+                              responseMsg
+                                  .removeClass()
+                                  .addClass('alert alert-danger text-center')
+                                  .html(res.message || '❌ Something went wrong.')
+                                  .fadeIn()
+                                  .delay(2500)
+                                  .fadeOut(function() {
+                                      btn.show(); // Show button again
+                                  });
+                          }
+                      },
+                      error: function(xhr) {
+                          console.log(xhr.responseText);
+                          responseMsg
+                              .removeClass()
+                              .addClass('alert alert-danger text-center')
+                              .html('❌ Something went wrong. Please try again.')
+                              .fadeIn()
+                              .delay(2500)
+                              .fadeOut(function() {
+                                  btn.show(); // Show button again
+                              });
+                      }
+                  });
+              });
+          });
+      </script> --}}
 
-                              btn.html(
-                                      '<i class="bi bi-check-circle me-2"></i> Updated Successfully'
-                                  )
+      <script>
+          $(document).ready(function() {
+              // ✅ Store initial selected currency
+              let lastSelectedCurrency = $('#defaultCurrencySelect').val();
+
+              // ✅ Handle form submit
+              $('#currencySettingForm').on('submit', function(e) {
+                  e.preventDefault();
+
+                  const form = $(this);
+                  const url = "{{ url('currency/update') }}"; // Use URL instead of route
+                  const btn = $('#currencyUpdateBtn');
+                  const responseMsg = $('#currencyResponseMsg');
+                  const originalText = btn.html();
+                  const selectedCurrency = $('#defaultCurrencySelect').val();
+
+                  // ✅ Stop if nothing changed
+                  if (selectedCurrency === lastSelectedCurrency) {
+                      responseMsg
+                          .removeClass()
+                          .addClass('alert alert-info text-center')
+                          .html('ℹ️ No changes to update.')
+                          .fadeIn()
+                          .delay(2000)
+                          .fadeOut();
+                      return;
+                  }
+
+                  // ✅ Show loading message on button
+                  btn.prop('disabled', true).html(`
+            Please wait, updating settings...
+        `);
+
+                  $.ajax({
+                      type: 'POST',
+                      url: url,
+                      data: {
+                          default_currency: selectedCurrency,
+                          _token: $('meta[name="csrf-token"]').attr('content')
+                      },
+                      success: function(res) {
+                          if (res.success) {
+                              lastSelectedCurrency = selectedCurrency;
+
+                              responseMsg
+                                  .removeClass()
+
+
+                              // ✅ Show success on button
+                              btn.html('✅ Updated Successfully')
                                   .removeClass('btn-dark')
                                   .addClass('btn-success');
 
-                              // update reference currency
-                              lastSelectedCurrency = selectedCurrency;
-
+                              // ✅ Reset button after 3 seconds
                               setTimeout(() => {
                                   btn.prop('disabled', false)
                                       .removeClass('btn-success')
                                       .addClass('btn-dark')
                                       .html(originalText);
-
                                   responseMsg.fadeOut();
-                              }, 2500);
-                          }, 1000);
-                      },
-                      error: function() {
-                          setTimeout(() => {
-                              btn.prop('disabled', false).html(originalText);
+                              }, 3000);
+                          } else {
                               responseMsg
                                   .removeClass()
                                   .addClass('alert alert-danger text-center')
-                                  .html('❌ Something went wrong. Please try again.')
+                                  .html(res.message || '❌ Something went wrong.')
                                   .fadeIn()
                                   .delay(2500)
                                   .fadeOut();
-                          }, 1000);
+
+                              btn.prop('disabled', false).html(originalText);
+                          }
+                      },
+                      error: function(xhr) {
+                          console.log(xhr.responseText); // Debug server response
+                          responseMsg
+                              .removeClass()
+                              .addClass('alert alert-danger text-center')
+                              .html('❌ Something went wrong. Please try again.')
+                              .fadeIn()
+                              .delay(2500)
+                              .fadeOut();
+
+                          btn.prop('disabled', false).html(originalText);
                       }
                   });
               });
           });
       </script>
-
-
-
 
       {{-- this is the script of notification --}}
 
@@ -1366,7 +1485,7 @@
 
                                       [...boardSelect.options].forEach(opt => {
                                           if (opt.value == id) opt
-                                          .remove();
+                                              .remove();
                                       });
 
                                   }, 400);

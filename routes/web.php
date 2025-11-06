@@ -44,7 +44,7 @@ Route::get('system_setting/create', [SettingController::class , 'create'])->name
 
 // Developer personal comments: this is the routes for setting updates.
 Route::post('security/{id}/update', [System_settingController::class,'security_update'])->name('security_setting.update');
-Route::post('currency/{id}/update', [System_settingController::class,'currency_update'])->name('currency_setting.update');
+Route::post('currency/update', [System_settingController::class,'currency_update']);
 Route::post('/notification-settings/update', [System_settingController::class, 'notification_settings_update'])->name('notification_settings.update');
 
 
@@ -94,6 +94,7 @@ Route::post('/platform/transactions/{transaction}/restore', [PlatformController:
     ->name('platform_transactions.restore');
 
 
+Route::post('/currency/update', [PlatformController::class, 'platform_currency_update'])->name('platform_currency.update');
 
 
 require __DIR__.'/auth.php';

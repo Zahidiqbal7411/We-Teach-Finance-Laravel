@@ -7,24 +7,7 @@
 
 
 
-        @php
-            use App\Models\Setting;
-            use App\Models\Taxonomies_sessions;
 
-            // Fetch currency and session rows (assuming both have id=3 for now)
-            $currency_data = Setting::find(3);
-            $session_datas = Taxonomies_sessions::get(); // Replace id with actual session id if different
-
-            // Prepare currency options
-            $currency_options = [];
-            if ($currency_data) {
-                $clean_value = str_replace(['[', ']'], '', $currency_data->value); // remove brackets
-                $currency_options = array_map('trim', explode(',', $clean_value)); // split and trim
-            }
-
-            // Prepare session options
-
-        @endphp
 
         <div class="teacher-topbar d-flex justify-content-between align-items-center mb-4 p-3"
             style="background: #ffffff; border-radius: 10px;">
@@ -41,11 +24,23 @@
                 </select>
 
                 <!-- Currency Dropdown -->
-                <select class="form-select form-select-md" id="currencySelect">
-                    @foreach ($currency_options as $option)
-                        <option value="{{ $option }}">{{ $option }}</option>
+
+
+                <label class="form-label">Default Currency</label>
+                <select class="form-select form-select-md w-25" name="default_currency" id="currencySelect">
+                    @foreach ($currency_datas as $currency_data)
+                        <option value="{{ $currency_data->id }}"
+                            {{ $currency_data->selected_currency == 1 ? 'selected' : '' }}>
+                            {{ $currency_data->currency_name }}
+                        </option>
                     @endforeach
                 </select>
+
+
+
+
+
+                <div id="currencyResponseMsg" class="mt-2"></div>
 
             </div>
         </div>
@@ -129,186 +124,7 @@
 
         <!-- Transactions Modal -->
 
-        {{-- <button type="button" class="btn btn-dark mb-3 ms-2" id="openTransactionsModal">
-            View Transactions
-        </button> --}}
-        {{-- <div class="d-flex justify-content-end mb-3 me-2">
-            <button type="button" class="btn btn-dark" id="openTransactionsModal">
-                Add Transaction
-            </button>
-        </div> --}}
 
-        <!-- Transactions Modal -->
-        {{-- <div class="modal fade" id="transactionsModal" tabindex="-1" aria-labelledby="transactionsModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="transactionsModalLabel">Transaction Details</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <form id="transactionsForm">
-
-                            <!-- Transaction 1 -->
-
-
-                            <div class="mb-3">
-                                <label for="transaction1_date" class="form-label">Date/Time</label>
-                                <input type="datetime-local" class="form-control" id="transaction1_date" name="date_time[]"
-                                    value="2025-11-04T14:30">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_teacher" class="form-label">Teacher</label>
-                                <input type="text" class="form-control" id="transaction1_teacher" name="teacher[]"
-                                    value="Mr. Ali">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_course" class="form-label">Course</label>
-                                <input type="text" class="form-control" id="transaction1_course" name="course[]"
-                                    value="Mathematics">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_session" class="form-label">Session</label>
-                                <input type="text" class="form-control" id="transaction1_session" name="session[]"
-                                    value="2025">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_student" class="form-label">Student</label>
-                                <input type="text" class="form-control" id="transaction1_student" name="student[]"
-                                    value="Ahmed">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_parent" class="form-label">Parent</label>
-                                <input type="text" class="form-control" id="transaction1_parent" name="parent[]"
-                                    value="Mr. Khan">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_total" class="form-label">Total</label>
-                                <input type="number" class="form-control" id="transaction1_total" name="total[]"
-                                    value="500" step="0.01">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_paid" class="form-label">Paid</label>
-                                <input type="number" class="form-control" id="transaction1_paid" name="paid[]"
-                                    value="200" step="0.01">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_remaining" class="form-label">Remaining</label>
-                                <input type="number" class="form-control" id="transaction1_remaining"
-                                    name="remaining[]" value="300" step="0.01">
-                            </div>
-
-                            <!-- You can duplicate the above block for more transactions -->
-
-                        </form>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-success" form="transactionsForm">Save Changes</button>
-                    </div>
-                </div>
-            </div>
-        </div> --}}
-
-
-
-        {{-- <div class="modal fade" id="transactionsModal" tabindex="-1" aria-labelledby="transactionsModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content border-0 shadow-lg rounded-4">
-                    <div class="modal-header bg-dark text-white rounded-top-4">
-                        <h5 class="modal-title" id="transactionsModalLabel">Transaction Details</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <form id="transactionsForm">
-                            <!-- Transaction 1 -->
-
-
-
-                            <div class="mb-3">
-                                <label for="transaction1_teacher" class="form-label">Teacher</label>
-                                <select class="form-select" id="transaction1_teacher" name="teacher">
-                                    <option selected disabled>Select Teacher</option>
-                                    @foreach ($teacher_datas as $teacher)
-                                        <option value="{{ $teacher->id }}">{{ $teacher->teacher_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_course" class="form-label">Course</label>
-                                <select class="form-select" id="transaction1_course" name="course">
-                                    <option selected disabled>Select Course</option>
-                                    @foreach ($subject_datas as $course)
-                                        <option value="{{ $course->id }}">{{ $course->course_title }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_session" class="form-label">Session</label>
-                                <select class="form-select" id="transaction1_session" name="session">
-                                    <option selected disabled>Select Session</option>
-                                    @foreach ($session_datas as $session)
-                                        <option value="{{ $session->id }}">{{ $session->session_title }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-
-                            <div class="mb-3">
-                                <label for="transaction1_student" class="form-label">Student</label>
-                                <input type="text" class="form-control" id="transaction1_student" name="student">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_parent" class="form-label">Parent</label>
-                                <input type="text" class="form-control" id="transaction1_parent" name="parent">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_total" class="form-label">Total</label>
-                                <input type="number" class="form-control" id="transaction1_total" name="total"
-                                    step="0.01">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_paid" class="form-label">Paid</label>
-                                <input type="number" class="form-control" id="transaction1_paid" name="paid"
-                                    step="0.01">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="transaction1_remaining" class="form-label">Remaining</label>
-                                <input type="number" class="form-control" id="transaction1_remaining" name="remaining"
-                                    step="0.01">
-                            </div>
-
-                            <!-- You can duplicate the above block for more transactions -->
-
-                            <div class="modal-footer border-0">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-dark">Save Changes</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div> --}}
 
         <div class="modal fade" id="transactionsModal" tabindex="-1" aria-labelledby="transactionsModalLabel"
             aria-hidden="true">
@@ -369,6 +185,28 @@
                                 <label class="form-label">Parent</label>
                                 <input type="text" class="form-control" name="parent_name" id="transaction_parent">
                             </div>
+                            {{-- <div class="mb-3">
+                                <label class="form-label">Currency</label>
+                                <input type="text" class="form-control"
+                                    value="{{ $current_currency->currency_name }}" name="parent_name"
+                                    id="transaction_parent" readonly>
+
+                                <!-- Hidden input to hold the currency ID -->
+                                <input type="hidden" name="selected_currency_id" value="{{ $current_currency->id }}">
+                            </div> --}}
+                            <div class="mb-3">
+                                <label class="form-label">Currency</label>
+                                <input type="text" class="form-control text-start"
+                                    value="{{ $current_currency->currency_name }}" name="current_currency"
+                                    id="current_currency" readonly>
+
+                                <!-- Hidden input to hold the currency ID -->
+                                <input type="hidden" name="selected_currency_id" id="selected_currency_id"
+                                    value="{{ $current_currency->id }}">
+                            </div>
+
+
+
 
                             <!-- Total -->
                             <div class="mb-3">
@@ -609,158 +447,7 @@
 
     </div>
     <!-- Restore Modal -->
-    {{-- <div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
 
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="restoreModalLabel">
-                        <i class="bi bi-arrow-counterclockwise me-2"></i> Restore Transaction
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <input type="hidden" id="restoreTransactionId">
-
-
-                    <div class="row">
-                        <div class="mb-3 col-md-6">
-                            <label class="form-label">Total</label>
-                            <input type="number" class="form-control" readonly>
-                        </div>
-
-                        <div class="mb-3 col-md-6">
-                            <label class="form-label">Paid amount</label>
-                            <input type="number" id="restorePaid" class="form-control" readonly>
-                        </div>
-                    </div>
-
-
-
-                    <div class="mb-3">
-                        <label class="form-label">Paid Amount</label>
-                        <input type="number" class="form-control">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label"></label>
-                        <input type="number" id="restoreRemaining" class="form-control" readonly>
-                    </div>
-                </div>
-
-                <div class="modal-footer border-0 justify-content-center">
-                    <button type="button" class="btn btn-dark btn-sm" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle"></i> Cancel
-                    </button>
-                    <button type="button" class="btn btn-dark btn-sm" id="confirmRestore">
-                        <i class="bi bi-check-circle"></i> Restore
-                    </button>
-                </div>
-
-            </div>
-        </div>
-    </div> --}}
-    {{-- <div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="restoreModalLabel">
-                        <i class="bi bi-arrow-counterclockwise me-2"></i> Restore Transaction
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                    <form action="" method="post">
-                <div class="modal-body">
-                    <form>
-                    <input type="hidden" id="restoreTransactionId">
-
-                    <div class="row">
-                        <div class="mb-3 col-md-6">
-                            <label class="form-label">Total</label>
-                            <input type="number" id="restoreTotal" class="form-control" readonly>
-                        </div>
-
-                        <div class="mb-3 col-md-6">
-                            <label class="form-label">Paid amount</label>
-                            <input type="number" id="restorePaidReadonly" class="form-control" readonly>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Pay new amount</label>
-                        <input type="number" id="restorePaid" class="form-control">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Remaining</label>
-                        <input type="number" id="restoreRemaining" class="form-control" readonly>
-                    </div>
-                </div>
-
-                <div class="modal-footer border-0 justify-content-center">
-                    <button type="button" class="btn btn-dark btn-sm" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle"></i> Cancel
-                    </button>
-                    <button type="button" class="btn btn-dark btn-sm" id="confirmRestore">
-                        <i class="bi bi-check-circle"></i> Recover amounts
-                    </button>
-                </div>
-                 </form>
-            </div>
-        </div>
-    </div> --}}
-
-    {{-- <div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <form id="restoreForm" method="post">
-                    <div class="modal-header border-0">
-                        <h5 class="modal-title" id="restoreModalLabel">
-                            <i class="bi bi-arrow-counterclockwise me-2"></i> Restore Transaction
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <input type="hidden" id="restoreTransactionId">
-
-                        <div class="row">
-                            <div class="mb-3 col-md-6">
-                                <label class="form-label">Total</label>
-                                <input type="number" id="restoreTotal" class="form-control" readonly>
-                            </div>
-
-                            <div class="mb-3 col-md-6">
-                                <label class="form-label">Paid amount</label>
-                                <input type="number" id="restorePaidReadonly" class="form-control" readonly>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Pay new amount</label>
-                            <input type="number" id="restorePaid" name="new_paid" class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Remaining</label>
-                            <input type="number" id="restoreRemaining" class="form-control" readonly>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer border-0 justify-content-center">
-                        <button type="button" class="btn btn-dark btn-sm" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </button>
-                        <button type="submit" class="btn btn-dark btn-sm" id="confirmRestore">
-                            <i class="bi bi-check-circle"></i> Recover amounts
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div> --}}
 
     <div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -816,146 +503,6 @@
 @endsection
 
 @section('scripts')
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            // ======= TAB LOGIC =======
-            const mainTabs = document.querySelectorAll('#mainTabContainer .tab-btn');
-            const subRecent = document.getElementById('sub-recent');
-            const subPerCourse = document.getElementById('sub-percourse');
-            const balanceTeacher = document.getElementById('balance-teacher');
-            const balancePlatform = document.getElementById('balance-platform');
-            const tableHead = document.getElementById('transactionsTableHead');
-            const tableBody = document.getElementById('transactionsTableBody');
-
-            const perCourseHead = `
-<tr>
-<th>Course Name</th>
-<th>Session</th>
-<th>Transactions</th>
-<th>Total Amount</th>
-<th>Total Paid</th>
-<th>Total Remaining</th>
-<th>Actions</th>
-</tr>`;
-
-            function resetSubTabs() {
-                subRecent.style.display = 'none';
-                subPerCourse.style.display = 'none';
-                balanceTeacher.style.display = 'none';
-                balancePlatform.style.display = 'none';
-            }
-
-            mainTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    mainTabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-
-                    const target = this.dataset.target;
-                    ['transactionsDiv', 'payoutsDiv', 'balancesDiv', 'reportsDiv'].forEach(
-                        id => document.getElementById(id).style.display = id === target ?
-                        'block' : 'none'
-                    );
-
-                    resetSubTabs();
-
-                    if (target === 'transactionsDiv') {
-                        subRecent.style.display = 'inline-block';
-                        subPerCourse.style.display = 'inline-block';
-                        subRecent.click();
-                    } else if (target === 'balancesDiv') {
-                        balanceTeacher.style.display = 'inline-block';
-                        balancePlatform.style.display = 'inline-block';
-                        balanceTeacher.click();
-                    }
-                });
-            });
-
-            // ======= SUB-TAB EVENTS =======
-            subRecent.addEventListener('click', function() {
-                subRecent.classList.add('active');
-                subPerCourse.classList.remove('active');
-
-                tableHead.innerHTML = `
-<tr>
-<th>ID</th>
-<th>Date/Time</th>
-<th>Teacher</th>
-<th>Course</th>
-<th>Session</th>
-<th>Student</th>
-<th>Parent</th>
-<th>Total</th>
-<th>Paid</th>
-<th>Remaining</th>
-<th class="text-end">Actions</th>
-</tr>`;
-                loadPlatformTransactions();
-            });
-
-            subPerCourse.addEventListener('click', function() {
-                subPerCourse.classList.add('active');
-                subRecent.classList.remove('active');
-                tableHead.innerHTML = perCourseHead;
-                tableBody.innerHTML = "";
-            });
-
-            // ======= LOAD TRANSACTIONS =======
-            function loadPlatformTransactions() {
-                fetch("{{ route('platform_transactions.index') }}")
-                    .then(res => res.json())
-                    .then(res => {
-                        if (res.status !== "success") {
-                            toastr.error("Failed to load transactions");
-                            return;
-                        }
-
-                        const data = res.data;
-                        tableBody.innerHTML = "";
-
-                        data.forEach(row => {
-                            const remaining = row.remaining ?? (row.total - row.paid_amount);
-
-                            tableBody.insertAdjacentHTML('beforeend', `
-<tr>
-<td>${row.id}</td>
-<td>${row.created_at}</td>
-<td>${row.teacher?.teacher_name ?? '-'}</td>
-<td>${row.course?.course_title ?? '-'}</td>
-<td>${row.session?.session_title ?? '-'}</td>
-<td>${row.student_name ?? '-'}</td>
-<td>${row.parent_name ?? '-'}</td>
-<td>${row.total ?? 0}</td>
-<td>${row.paid_amount ?? 0}</td>
-<td>${remaining.toFixed(2)}</td>
-
-<td class="text-end">
-      <button class="btn btn-sm icon-btn restore-btn"
-        data-id="${row.id}"
-        data-total="${row.total}"
-        data-paid="${row.paid_amount}"
-        data-remaining="${remaining}">
-        <i class="bi bi-arrow-counterclockwise"></i>
-    </button>
-
-    <button class="btn btn-sm icon-btn text-danger delete-btn">
-        <i class="bi bi-trash3-fill"></i>
-    </button>
-</td>
-
-</tr>`);
-                        });
-
-                        toastr.success(res.message);
-                    })
-                    .catch(() => toastr.error("Error fetching transaction data"));
-            }
-
-            // Initial load
-            loadPlatformTransactions();
-
-        });
-    </script> --}}
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
@@ -1011,6 +558,7 @@
                 });
             });
 
+            // ================= SUB TABS =================
             subRecent.addEventListener('click', function() {
                 subRecent.classList.add('active');
                 subPerCourse.classList.remove('active');
@@ -1045,6 +593,7 @@
                     .then(res => res.json())
                     .then(res => {
                         if (res.status !== "success") {
+                            toastr.clear();
                             toastr.error("Failed to load transactions");
                             return;
                         }
@@ -1064,9 +613,9 @@
 <td>${row.session?.session_title ?? '-'}</td>
 <td>${row.student_name ?? '-'}</td>
 <td>${row.parent_name ?? '-'}</td>
-<td>${row.total ?? 0}</td>
-<td>${row.paid_amount ?? 0}</td>
-<td>${remaining.toFixed(2)}</td>
+<td>${Number(row.total).toFixed(2)}</td>
+<td>${Number(row.paid_amount).toFixed(2)}</td>
+<td>${Number(remaining).toFixed(2)}</td>
 
 <td class="text-end">
     <button class="btn btn-sm icon-btn restore-btn"
@@ -1084,143 +633,16 @@
 </tr>`);
                         });
                     })
-                    .catch(() => toastr.error("Error fetching transaction data"));
+                    .catch(() => {
+                        toastr.clear();
+                        toastr.error("Error fetching transaction data");
+                    });
             }
 
             // Initial load
             loadPlatformTransactions();
 
-            // ================= TRANSACTION MODAL SUBMISSION =================
-            const transactionForm = document.getElementById("transactionsForm");
-            const totalInput = document.getElementById("transaction_total");
-            const paidInput = document.getElementById("transaction_paid");
-            const remainingInput = document.getElementById("transaction_remaining");
-
-            function calculateRemaining() {
-                let total = parseFloat(totalInput.value) || 0;
-                let paid = parseFloat(paidInput.value) || 0;
-                remainingInput.value = (total - paid >= 0 ? (total - paid).toFixed(2) : 0);
-            }
-
-            totalInput.addEventListener("input", calculateRemaining);
-            paidInput.addEventListener("input", calculateRemaining);
-
-            transactionForm.addEventListener("submit", function(e) {
-                e.preventDefault();
-                let formData = new FormData(transactionForm);
-
-                fetch("{{ route('platform_transaction.store') }}", {
-                        method: "POST",
-                        body: formData
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.status === "success") {
-                            toastr.success(data.message || "Transaction Saved Successfully");
-
-                            transactionForm.reset();
-                            remainingInput.value = "";
-
-                            const modalCloseBtn = document.querySelector(
-                                '#transactionsModal .btn-close');
-                            if (modalCloseBtn) modalCloseBtn.click();
-
-                            // 🔹 Refresh table immediately
-                            loadPlatformTransactions();
-                        } else {
-                            toastr.error(data.message || "Something went wrong");
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        toastr.error("Error submitting transaction");
-                    });
-            });
-
-            // ================= RESTORE BUTTON MODAL =================
-            const restoreModalEl = document.getElementById('restoreModal');
-            const restoreModal = new bootstrap.Modal(restoreModalEl);
-
-            document.body.addEventListener('click', function(e) {
-                const btn = e.target.closest('.restore-btn');
-                if (!btn) return;
-
-                const id = btn.dataset.id;
-                const total = parseFloat(btn.dataset.total) || 0;
-                const paid = parseFloat(btn.dataset.paid) || 0;
-
-                document.getElementById('restoreTransactionId').value = id;
-                document.getElementById('restoreTotal').value = total;
-                document.getElementById('restorePaidReadonly').value = paid;
-                document.getElementById('restorePaid').value = 0;
-                document.getElementById('restoreRemaining').value = total - paid;
-
-                restoreModal.show();
-            });
-
-            document.getElementById('restorePaid').addEventListener('input', function() {
-                const total = parseFloat(document.getElementById('restoreTotal').value) || 0;
-                const paidReadonly = parseFloat(document.getElementById('restorePaidReadonly').value) || 0;
-                let newPaid = parseFloat(this.value) || 0;
-
-                if (newPaid < 0) newPaid = 0;
-                if (newPaid > total - paidReadonly) newPaid = total - paidReadonly;
-                this.value = newPaid;
-
-                document.getElementById('restoreRemaining').value = (total - paidReadonly - newPaid)
-                    .toFixed(2);
-            });
-
-            document.getElementById('restoreForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const transactionId = document.getElementById('restoreTransactionId').value;
-                const newPaid = parseFloat(document.getElementById('restorePaid').value) || 0;
-
-                fetch(`/platform/transactions/${transactionId}/restore`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                .getAttribute('content')
-                        },
-                        body: JSON.stringify({
-                            new_paid: newPaid
-                        })
-                    })
-                    .then(res => res.json())
-                    .then(res => {
-                        if (res.status === 'success') {
-                            toastr.success(res.message || "Transaction restored successfully");
-
-                            restoreModal.hide();
-
-                            // 🔹 Refresh table immediately
-                            loadPlatformTransactions();
-                        } else {
-                            toastr.error(res.message || "Failed to update transaction");
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        toastr.error('Error updating transaction');
-                    });
-            });
-
-        });
-    </script>
-
-
-
-    <!-- Restore Modal -->
-
-
-
-
-
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
+            // ================= RESTORE MODAL =================
             const restoreModalEl = document.getElementById('restoreModal');
             const restoreModal = new bootstrap.Modal(restoreModalEl);
             const restoreForm = document.getElementById('restoreForm');
@@ -1231,25 +653,10 @@
             const restorePaid = document.getElementById('restorePaid');
             const restoreRemaining = document.getElementById('restoreRemaining');
 
-            let isSubmitting = false;
 
-            // Function to calculate remaining
-            function updateRemaining() {
-                const total = parseFloat(restoreTotal.value) || 0;
-                const paidReadonly = parseFloat(restorePaidReadonly.value) || 0;
-                let newPaid = parseFloat(restorePaid.value) || 0;
+            let isSubmittingRestore = false;
 
-                if (newPaid < 0) newPaid = 0;
-                if (newPaid > total - paidReadonly) newPaid = total - paidReadonly;
-
-                restorePaid.value = newPaid;
-                restoreRemaining.value = (total - paidReadonly - newPaid).toFixed(2);
-            }
-
-            // Only attach input listener once
-            restorePaid.addEventListener('input', updateRemaining);
-
-            // Open modal and populate data
+            // Open restore modal
             document.body.addEventListener('click', function(e) {
                 const btn = e.target.closest('.restore-btn');
                 if (!btn) return;
@@ -1259,115 +666,303 @@
                 const paid = parseFloat(btn.dataset.paid) || 0;
 
                 restoreTransactionId.value = id;
-                restoreTotal.value = total;
-                restorePaidReadonly.value = paid;
-                restorePaid.value = 0;
+                restoreTotal.value = total.toFixed(2);
+                restorePaidReadonly.value = paid.toFixed(2);
+                restorePaid.value = "";
                 restoreRemaining.value = (total - paid).toFixed(2);
 
                 restoreModal.show();
             });
 
-            // Reset modal on close
-            restoreModalEl.addEventListener('hidden.bs.modal', function() {
-                restoreForm.reset();
-                restoreRemaining.value = '';
-                isSubmitting = false;
-                document.body.classList.remove('modal-open');
-                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            // Update remaining in modal
+            restorePaid.addEventListener('input', function() {
+                const total = parseFloat(restoreTotal.value) || 0;
+                const paidReadonly = parseFloat(restorePaidReadonly.value) || 0;
+                let newPaid = parseFloat(this.value) || 0;
+
+                const maxPayable = Math.max(0, total - paidReadonly);
+                if (newPaid < 0) newPaid = 0;
+                if (newPaid > maxPayable) newPaid = maxPayable;
+
+                this.value = newPaid.toFixed(2);
+                restoreRemaining.value = (total - paidReadonly - newPaid).toFixed(2);
             });
 
-            // Submit form — only once
+            // Submit restore form
             restoreForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                if (isSubmitting) return;
+                if (isSubmittingRestore) return;
 
-                isSubmitting = true;
-                const submitBtn = restoreForm.querySelector('button[type="submit"]');
-                submitBtn.disabled = true;
+                isSubmittingRestore = true;
 
                 const transactionId = restoreTransactionId.value;
-                const newPaidValue = parseFloat(restorePaid.value) || 0;
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute(
-                    'content') || '';
+                const newPaid = parseFloat(restorePaid.value) || 0;
+                console.log(newPaid);
 
                 fetch(`/platform/transactions/${transactionId}/restore`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content')
+                        },
+                        body: JSON.stringify({
+                            new_paid: newPaid
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        isSubmittingRestore = false;
+                        restoreModal.hide();
+
+                        toastr.clear();
+                        if (res.status === 'success') {
+                            toastr.success(res.message || "Transaction restored successfully");
+                            // Refresh table immediately
+                            loadPlatformTransactions();
+                        } else {
+                            toastr.error(res.message || "Failed to update transaction");
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        isSubmittingRestore = false;
+                        restoreModal.hide();
+                        toastr.clear();
+                        toastr.error('Error updating transaction');
+                    });
+            });
+
+            // Ensure modal backdrop is removed on close
+            restoreModalEl.addEventListener('hidden.bs.modal', function() {
+                document.body.classList.remove('modal-open');
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                restoreForm.reset();
+                restoreRemaining.value = '';
+                isSubmittingRestore = false;
+            });
+
+        });
+    </script>
+
+    <!-- Restore Modal -->
+
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // This flag is fine here, as this whole script only runs once.
+            let isSubmitting = false;
+
+            // ===================== Helper Toasts =====================
+            function safeToastr(type, msg) {
+                if (typeof toastr !== 'undefined') {
+                    // 🚨 FIX 1: Removed setTimeout.
+                    // Clear toasts immediately before showing the new one
+                    // to prevent stacking or race conditions.
+                    toastr.clear();
+                    if (type === 'success') {
+                        toastr.success(msg);
+                    } else if (type === 'error') {
+                        toastr.error(msg);
+                    }
+                } else {
+                    console.log(`TOAST ${type.toUpperCase()}:`, msg);
+                }
+            }
+
+            // ===================== Remaining Calculation =====================
+            // 🚨 FIX 2 (Part A): Use event delegation for the 'input' event
+            document.body.addEventListener('input', function(e) {
+                // Only act if the event came from our specific input
+                if (e.target.id !== 'restorePaid') {
+                    return;
+                }
+
+                // Find related elements from the input's form
+                const form = e.target.closest('form');
+                if (!form) return;
+
+                const restoreTotal = form.querySelector('#restoreTotal');
+                const restorePaidReadonly = form.querySelector('#restorePaidReadonly');
+                const restorePaid = e.target; // This is '#restorePaid'
+                const restoreRemaining = form.querySelector('#restoreRemaining');
+
+                if (!restoreTotal || !restorePaidReadonly || !restoreRemaining) {
+                    return;
+                }
+
+                // --- Your calculation logic (unchanged) ---
+                const total = parseFloat(restoreTotal.value) || 0;
+                const paidReadonly = parseFloat(restorePaidReadonly.value) || 0;
+                let newPaid = parseFloat(restorePaid.value) || 0;
+
+                if (newPaid < 0) newPaid = 0;
+                const remainingBalance = total - paidReadonly;
+                if (newPaid > remainingBalance) newPaid = remainingBalance;
+
+                restorePaid.value = newPaid.toFixed(2);
+                restoreRemaining.value = (total - paidReadonly - newPaid).toFixed(2);
+            });
+
+            // ===================== Open Modal =====================
+            // Your click listener already used delegation, which is great.
+            // We just need to make sure we get the current modal instance.
+            document.body.addEventListener('click', function(e) {
+                const btn = e.target.closest('.restore-btn');
+                if (!btn) return;
+
+                const id = btn.dataset.id;
+                const total = parseFloat(btn.dataset.total) || 0;
+                const paid = parseFloat(btn.dataset.paid) || 0;
+
+                // Get the modal element now
+                const restoreModalEl = document.getElementById('restoreModal');
+                if (!restoreModalEl) return;
+
+                // Find inputs inside this modal
+                const restoreTransactionId = restoreModalEl.querySelector('#restoreTransactionId');
+                const restoreTotal = restoreModalEl.querySelector('#restoreTotal');
+                const restorePaidReadonly = restoreModalEl.querySelector('#restorePaidReadonly');
+                const restorePaid = restoreModalEl.querySelector('#restorePaid');
+                const restoreRemaining = restoreModalEl.querySelector('#restoreRemaining');
+
+                // Populate the inputs
+                restoreTransactionId.value = id;
+                restoreTotal.value = total;
+                restorePaidReadonly.value = paid.toFixed(2);
+
+                // ✅ ONLY THIS LINE CHANGED (was restorePaid.value = 0.00;)
+                restorePaid.value = ''; // input now starts empty for user entry
+
+                restoreRemaining.value = (total - paid).toFixed(2);
+
+                isSubmitting = false;
+
+                // Get or create the modal instance now
+                const restoreModal = bootstrap.Modal.getOrCreateInstance(restoreModalEl);
+                restoreModal.show();
+            });
+
+            // ===================== Reset Modal on Close =====================
+            // 🚨 FIX 2 (Part B): Delegate the modal close event
+            document.addEventListener('hidden.bs.modal', function(e) {
+                // Only act on the modal we care about
+                if (e.target.id !== 'restoreModal') {
+                    return;
+                }
+
+                const restoreForm = e.target.querySelector('#restoreForm');
+                if (restoreForm) {
+                    restoreForm.reset();
+                }
+
+                const restoreRemaining = e.target.querySelector('#restoreRemaining');
+                if (restoreRemaining) {
+                    restoreRemaining.value = '';
+                }
+                isSubmitting = false;
+
+                // Removed the manual backdrop/overflow cleanup.
+                // Bootstrap handles this automatically and manually
+                // removing it can cause bugs.
+            });
+
+            // ===================== Submit Form =====================
+            // 🚨 FIX 2 (Part C): Use event delegation for the 'submit' event
+            document.addEventListener('submit', function(e) {
+                    // Only act if the event came from our specific form
+                    if (e.target.id !== 'restoreForm') {
+                        return;
+                    }
+
+                    // This will now reliably prevent the page refresh
+                    e.preventDefault();
+                    if (isSubmitting) return;
+
+                    isSubmitting = true;
+                    const submitForm = e.target; // The form that was submitted
+                    const submitBtn = submitForm.querySelector('button[type="submit"]');
+                    submitBtn.disabled = true;
+
+                    // Get values from the form that was just submitted
+                    const transactionId = submitForm.querySelector('#restoreTransactionId').value;
+                    const newPaidValue = parseFloat(submitForm.querySelector('#restorePaid').value) || 0;
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+                        'content') || '';
+
+                    fetch(/platform/transactions / $ {
+                            transactionId
+                        }
+                        /restore, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
                         },
                         body: JSON.stringify({
                             new_paid: newPaidValue
                         })
                     })
-                    .then(res => res.json())
-                    .then(res => {
-                        submitBtn.disabled = false;
-                        isSubmitting = false;
-                        restoreModal.hide();
+                .then(res => res.json())
+                .then(res => {
+                    submitBtn.disabled = false;
+                    isSubmitting = false;
 
-                        // ✅ Single toast
-                        if (typeof toastr !== 'undefined') {
-                            toastr.clear();
-                            setTimeout(() => {
-                                if (res.status === 'success') {
-                                    toastr.success(res.message ||
-                                        'Transaction updated successfully');
-                                } else {
-                                    toastr.error(res.message || 'Failed to update transaction');
-                                }
-                            }, 50);
+                    // Get the modal instance to hide it
+                    const restoreModalEl = document.getElementById('restoreModal');
+                    const restoreModal = bootstrap.Modal.getInstance(restoreModalEl);
+
+                    if (res.status === 'success') {
+                        safeToastr('success', res.message || 'Transaction updated successfully');
+                        if (restoreModal) {
+                            restoreModal.hide();
                         }
 
-                        if (res.status === 'success' && res.data) {
+                        // --- Your row-update logic (unchanged) ---
+                        if (res.data) {
                             const updated = res.data;
+                            const newRemainingAmount = (parseFloat(updated.total) - parseFloat(updated
+                                .paid_amount)).toFixed(2);
+                            const row = document.querySelector(#transaction - row - $ {
+                                transactionId
+                            });
 
-                            // 🔹 Update modal row if exists
-                            const modalRow = document.querySelector(
-                            `#transaction-row-${transactionId}`);
-                            if (modalRow) {
-                                const paidCell = modalRow.querySelector('.paid-amount');
-                                const remainingCell = modalRow.querySelector('.remaining-amount');
-                                const restoreBtn = modalRow.querySelector('.restore-btn');
+                            if (row) {
+                                const paidCell = row.querySelector('.paid-amount');
+                                const remainingCell = row.querySelector('.remaining-amount');
+                                const restoreBtn = row.querySelector('.restore-btn');
 
                                 if (paidCell) paidCell.textContent = parseFloat(updated.paid_amount)
                                     .toFixed(2);
-                                if (remainingCell) remainingCell.textContent = (parseFloat(updated
-                                    .total) - parseFloat(updated.paid_amount)).toFixed(2);
+                                if (remainingCell) remainingCell.textContent = newRemainingAmount;
                                 if (restoreBtn) restoreBtn.dataset.paid = updated.paid_amount;
                             }
-
-                            // 🔹 Update other tables if needed
-                            const otherRows = document.querySelectorAll(
-                                `[data-transaction-id="${transactionId}"]`);
-                            otherRows.forEach(row => {
-                                const paidCell = row.querySelector('.paid-amount');
-                                const remainingCell = row.querySelector('.remaining-amount');
-
-                                if (paidCell) paidCell.textContent = parseFloat(updated
-                                    .paid_amount).toFixed(2);
-                                if (remainingCell) remainingCell.textContent = (parseFloat(
-                                        updated.total) - parseFloat(updated.paid_amount))
-                                    .toFixed(2);
-                            });
                         }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        submitBtn.disabled = false;
-                        isSubmitting = false;
-                        restoreModal.hide();
+                    } else {
+                        safeToastr('error', res.message || 'Failed to update transaction');
+                    }
+                })
+                .catch(err => {
+                    console.error("Fetch Error:", err);
+                    submitBtn.disabled = false;
+                    isSubmitting = false;
 
-                        if (typeof toastr !== 'undefined') {
-                            toastr.clear();
-                            setTimeout(() => toastr.error('Something went wrong. Please try again.'),
-                                50);
-                        }
-                    });
+                    const restoreModalEl = document.getElementById('restoreModal');
+                    const restoreModal = bootstrap.Modal.getInstance(restoreModalEl);
+                    if (restoreModal) {
+                        restoreModal.hide(); // Hide on catastrophic network failure
+                    }
+                    safeToastr('error', 'Network error or unhandled exception. Please try again.');
+                });
             });
-
         });
     </script>
+
+
 
     <!-- ✅ Open Modal Script -->
     <script>
@@ -1380,8 +975,7 @@
     </script>
 
 
-    <!-- ✅ Store Modal Form -->
-
+    <!-- ✅ Store Transaction Modal Form -->
     {{-- <script>
         document.addEventListener("DOMContentLoaded", function() {
 
@@ -1389,143 +983,542 @@
             const totalInput = document.getElementById("transaction_total");
             const paidInput = document.getElementById("transaction_paid");
             const remainingInput = document.getElementById("transaction_remaining");
+            const transactionsModal = document.getElementById('transactionsModal');
+            const tableBody = document.getElementById(
+                'transactionsTableBody'); // Updated to match your table structure
 
+            // 1️⃣ Calculate remaining dynamically
             function calculateRemaining() {
-                let total = parseFloat(totalInput.value) || 0;
-                let paid = parseFloat(paidInput.value) || 0;
-                let remaining = total - paid;
-                remainingInput.value = remaining >= 0 ? remaining.toFixed(2) : 0;
+                const total = parseFloat(totalInput.value) || 0;
+                const paid = parseFloat(paidInput.value) || 0;
+                remainingInput.value = (total - paid >= 0 ? (total - paid).toFixed(2) : 0);
             }
 
             totalInput.addEventListener("input", calculateRemaining);
             paidInput.addEventListener("input", calculateRemaining);
 
-            // Use a function so we can attach it every time modal opens
-            function attachFormSubmit() {
-                form.addEventListener("submit", function submitHandler(e) {
+            // 2️⃣ Submit form via AJAX only once
+            let isSubmitting = false; // Prevent double submission
+
+            if (!form.dataset.listener) {
+                form.dataset.listener = "true";
+
+                form.addEventListener("submit", async function(e) {
                     e.preventDefault();
 
-                    let formData = new FormData(form);
+                    // Prevent multiple simultaneous submissions
+                    if (isSubmitting) {
+                        console.log("Form is already being submitted");
+                        return;
+                    }
 
-                    fetch("{{ route('platform_transaction.store') }}", {
+                    isSubmitting = true;
+
+                    // Log form data for debugging
+                    const formData = new FormData(form);
+                    console.log("Submitting form data:");
+                    for (let [key, value] of formData.entries()) {
+                        console.log(key, ":", value);
+                    }
+
+                    try {
+                        // Get fresh CSRF token
+                        const csrfToken = document.querySelector('input[name="_token"]')?.value ||
+                            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                        const res = await fetch("{{ route('platform_transaction.store') }}", {
                             method: "POST",
                             body: formData,
                             headers: {
-                                "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+                                "X-CSRF-TOKEN": csrfToken
                             }
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.status == "success") {
-                                if (typeof toastr !== "undefined") {
-                                    toastr.success(data.message || "Transaction Saved Successfully");
-                                }
+                        });
 
-                                form.reset();
-                                remainingInput.value = "";
+                        // Read response text only once
+                        const text = await res.text();
+                        console.log("Server Response Status:", res.status);
+                        console.log("Server Response Text:", text);
 
-                                // Close modal
-                                const modalCloseBtn = document.querySelector(
-                                    '#transactionsModal .btn-close');
-                                if (modalCloseBtn) modalCloseBtn.click();
+                        // Parse JSON safely
+                        let data;
+                        try {
+                            data = JSON.parse(text);
+                            console.log("Parsed Data:", data);
+                        } catch (parseErr) {
+                            console.error("Server response is not valid JSON:", text);
+                            isSubmitting = false;
+                            throw new Error("Server did not return valid JSON");
+                        }
 
-                            } else {
-                                if (typeof toastr !== "undefined") {
-                                    toastr.error(data.message || "Something went wrong");
-                                }
+                        // ✅ Success: transaction saved
+                        if (res.ok && data.status === "success" && data.transaction) {
+
+                            if (typeof toastr !== "undefined") {
+                                toastr.clear();
+                                toastr.success(data.message || "Transaction saved successfully");
                             }
-                        })
-                        .catch(err => console.log(err));
 
-                    // Remove this listener after submission to prevent multiple bindings
-                    form.removeEventListener("submit", submitHandler);
+                            // Reset form and close modal
+                            form.reset();
+                            remainingInput.value = "";
+
+                            // Reset submission flag before closing modal
+                            isSubmitting = false;
+
+                            const modalCloseBtn = document.querySelector(
+                                '#transactionsModal .btn-close');
+                            if (modalCloseBtn) modalCloseBtn.click();
+
+                            // 🎯 Insert new row with smooth animation
+                            if (tableBody) {
+                                const newRow = document.createElement('tr');
+
+                                // Add a special class for the new row
+                                newRow.classList.add('new-transaction-row');
+
+                                // Initial animation styles
+                                newRow.style.opacity = '0';
+                                newRow.style.transform = 'scale(0.95) translateY(-20px)';
+                                newRow.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+
+                                newRow.innerHTML = `
+                                <td>${data.transaction.id}</td>
+                                <td>${data.transaction.created_at}</td>
+                                <td>${data.transaction.teacher || '-'}</td>
+                                <td>${data.transaction.course || '-'}</td>
+                                <td>${data.transaction.session || '-'}</td>
+                                <td>${data.transaction.student_name || '-'}</td>
+                                <td>${data.transaction.parent_name || '-'}</td>
+                                <td>${Number(data.transaction.total).toFixed(2)}</td>
+                                <td>${Number(data.transaction.paid_amount).toFixed(2)}</td>
+                                <td>${Number(data.transaction.remaining).toFixed(2)}</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm icon-btn restore-btn"
+                                        data-id="${data.transaction.id}"
+                                        data-total="${data.transaction.total}"
+                                        data-paid="${data.transaction.paid_amount}"
+                                        data-remaining="${data.transaction.remaining}">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                    <button class="btn btn-sm icon-btn text-danger delete-btn">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </td>
+                            `;
+
+                                // Insert at the top of table for recent transactions
+                                tableBody.insertBefore(newRow, tableBody.firstChild);
+
+                                // Trigger slide and fade-in animation
+                                setTimeout(() => {
+                                    newRow.style.opacity = '1';
+                                    newRow.style.transform = 'scale(1) translateY(0)';
+                                }, 10);
+
+                                // Add pulsing highlight effect
+                                setTimeout(() => {
+                                    newRow.style.backgroundColor = '#28a745';
+                                    newRow.style.color = '#ffffff';
+                                    newRow.style.boxShadow = '0 0 20px rgba(40, 167, 69, 0.6)';
+
+                                    // First pulse
+                                    setTimeout(() => {
+                                        newRow.style.backgroundColor = '#d4edda';
+                                        newRow.style.color = '#155724';
+                                        newRow.style.boxShadow =
+                                            '0 0 10px rgba(40, 167, 69, 0.3)';
+                                    }, 600);
+
+                                    // Second pulse
+                                    setTimeout(() => {
+                                        newRow.style.backgroundColor = '#28a745';
+                                        newRow.style.color = '#ffffff';
+                                        newRow.style.boxShadow =
+                                            '0 0 20px rgba(40, 167, 69, 0.6)';
+                                    }, 1200);
+
+                                    // Final fade to light green
+                                    setTimeout(() => {
+                                        newRow.style.backgroundColor = '#d4edda';
+                                        newRow.style.color = '#155724';
+                                        newRow.style.boxShadow = 'none';
+                                    }, 1800);
+
+                                    // Return to normal
+                                    setTimeout(() => {
+                                        newRow.style.backgroundColor = '';
+                                        newRow.style.color = '';
+                                        newRow.style.transition = 'all 1.5s ease';
+                                        newRow.classList.remove('new-transaction-row');
+                                    }, 3500);
+
+                                }, 600);
+
+                                // Smooth scroll to the new row
+                                setTimeout(() => {
+                                    newRow.scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "center",
+                                        inline: "nearest"
+                                    });
+                                }, 150);
+                            }
+
+                        }
+                        // 422 validation errors
+                        else if (res.status === 422 && data.errors) {
+                            const messages = Object.values(data.errors).flat().join("<br>");
+                            if (typeof toastr !== "undefined") {
+                                toastr.clear();
+                                toastr.error(messages);
+                            }
+                            isSubmitting = false; // Reset flag on error
+
+                        }
+                        // Other server errors
+                        else {
+                            if (typeof toastr !== "undefined") {
+                                toastr.clear();
+                                toastr.error(data.message || "Server error while saving transaction");
+                            }
+                            isSubmitting = false; // Reset flag on error
+                        }
+
+                    } catch (err) {
+                        console.error("AJAX/JS Error:", err);
+                        if (typeof toastr !== "undefined") {
+                            toastr.clear();
+                            toastr.error(err.message ||
+                                "Unexpected error occurred while saving transaction");
+                        }
+                        isSubmitting = false; // Reset flag on exception
+                    }
                 });
             }
 
-            // Attach listener initially
-            attachFormSubmit();
-
-            // Reattach submit listener every time modal opens (for multiple submissions)
-            const transactionsModal = document.getElementById('transactionsModal');
-            transactionsModal.addEventListener('shown.bs.modal', function() {
-                attachFormSubmit();
-            });
-
-            // Reset form on modal close
+            // 3️⃣ Reset form when modal closes
             transactionsModal.addEventListener('hidden.bs.modal', function() {
                 form.reset();
                 remainingInput.value = "";
+                isSubmitting = false; // Reset submission flag when modal closes
+
+                // Remove any lingering backdrops
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
             });
 
         });
     </script> --}}
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
+<script>
+document.addEventListener("DOMContentLoaded", function() {
 
-            const form = document.getElementById("transactionsForm");
-            const totalInput = document.getElementById("transaction_total");
-            const paidInput = document.getElementById("transaction_paid");
-            const remainingInput = document.getElementById("transaction_remaining");
-            const transactionsModal = document.getElementById('transactionsModal');
+    const form = document.getElementById("transactionsForm");
+    const totalInput = document.getElementById("transaction_total");
+    const paidInput = document.getElementById("transaction_paid");
+    const remainingInput = document.getElementById("transaction_remaining");
+    const transactionsModal = document.getElementById('transactionsModal');
+    const tableBody = document.getElementById('transactionsTableBody'); // Updated to match your table structure
 
-            function calculateRemaining() {
-                let total = parseFloat(totalInput.value) || 0;
-                let paid = parseFloat(paidInput.value) || 0;
-                let remaining = total - paid;
-                remainingInput.value = remaining >= 0 ? remaining.toFixed(2) : 0;
+    // 1️⃣ Calculate remaining dynamically
+    function calculateRemaining() {
+        const total = parseFloat(totalInput.value) || 0;
+        const paid = parseFloat(paidInput.value) || 0;
+        remainingInput.value = (total - paid >= 0 ? (total - paid).toFixed(2) : 0);
+    }
+
+    totalInput.addEventListener("input", calculateRemaining);
+    paidInput.addEventListener("input", calculateRemaining);
+
+    // 2️⃣ Submit form via AJAX only once
+    let isSubmitting = false; // Prevent double submission
+
+    if (!form.dataset.listener) {
+        form.dataset.listener = "true";
+
+        form.addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            // Prevent multiple simultaneous submissions
+            if (isSubmitting) {
+                console.log("Form is already being submitted");
+                return;
             }
 
-            totalInput.addEventListener("input", calculateRemaining);
-            paidInput.addEventListener("input", calculateRemaining);
+            isSubmitting = true;
 
-            // ✅ Attach submit listener only once
-            if (!form.dataset.listener) {
-                form.dataset.listener = "true";
+            // Log form data for debugging
+            const formData = new FormData(form);
 
-                form.addEventListener("submit", function(e) {
-                    e.preventDefault();
+            // ✅ Ensure hidden input selected_currency_id is included
+            const selectedCurrencyInput = document.getElementById("selected_currency_id");
+            if (selectedCurrencyInput) {
+                formData.set("selected_currency", selectedCurrencyInput.value);
+            }
 
-                    let formData = new FormData(form);
+            console.log("Submitting form data:");
+            for (let [key, value] of formData.entries()) {
+                console.log(key, ":", value);
+            }
 
-                    fetch("{{ route('platform_transaction.store') }}", {
-                            method: "POST",
-                            body: formData,
-                            headers: {
-                                "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
-                            }
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.status == "success") {
-                                // ✅ Only Toastr, no alert
-                                if (typeof toastr !== "undefined") {
-                                    toastr.success(data.message || "Transaction Saved Successfully");
-                                }
+            try {
+                // Get fresh CSRF token
+                const csrfToken = document.querySelector('input[name="_token"]')?.value ||
+                    document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-                                form.reset();
-                                remainingInput.value = "";
-
-                                // Close modal
-                                const modalCloseBtn = document.querySelector(
-                                    '#transactionsModal .btn-close');
-                                if (modalCloseBtn) modalCloseBtn.click();
-
-                            } else {
-                                if (typeof toastr !== "undefined") {
-                                    toastr.error(data.message || "Something went wrong");
-                                }
-                            }
-                        })
-                        .catch(err => console.log(err));
+                const res = await fetch("{{ route('platform_transaction.store') }}", {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken
+                    }
                 });
+
+                // Read response text only once
+                const text = await res.text();
+                console.log("Server Response Status:", res.status);
+                console.log("Server Response Text:", text);
+
+                // Parse JSON safely
+                let data;
+                try {
+                    data = JSON.parse(text);
+                    console.log("Parsed Data:", data);
+                } catch (parseErr) {
+                    console.error("Server response is not valid JSON:", text);
+                    isSubmitting = false;
+                    throw new Error("Server did not return valid JSON");
+                }
+
+                // ✅ Success: transaction saved
+                if (res.ok && data.status === "success" && data.transaction) {
+
+                    if (typeof toastr !== "undefined") {
+                        toastr.clear();
+                        toastr.success(data.message || "Transaction saved successfully");
+                    }
+
+                    // Reset form and close modal
+                    form.reset();
+                    remainingInput.value = "";
+
+                    // Reset submission flag before closing modal
+                    isSubmitting = false;
+
+                    const modalCloseBtn = document.querySelector('#transactionsModal .btn-close');
+                    if (modalCloseBtn) modalCloseBtn.click();
+
+                    // 🎯 Insert new row with smooth animation
+                    if (tableBody) {
+                        const newRow = document.createElement('tr');
+
+                        // Add a special class for the new row
+                        newRow.classList.add('new-transaction-row');
+
+                        // Initial animation styles
+                        newRow.style.opacity = '0';
+                        newRow.style.transform = 'scale(0.95) translateY(-20px)';
+                        newRow.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+
+                        newRow.innerHTML = `
+                        <td>${data.transaction.id}</td>
+                        <td>${data.transaction.created_at}</td>
+                        <td>${data.transaction.teacher || '-'}</td>
+                        <td>${data.transaction.course || '-'}</td>
+                        <td>${data.transaction.session || '-'}</td>
+                        <td>${data.transaction.student_name || '-'}</td>
+                        <td>${data.transaction.parent_name || '-'}</td>
+                        <td>${Number(data.transaction.total).toFixed(2)}</td>
+                        <td>${Number(data.transaction.paid_amount).toFixed(2)}</td>
+                        <td>${Number(data.transaction.remaining).toFixed(2)}</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm icon-btn restore-btn"
+                                data-id="${data.transaction.id}"
+                                data-total="${data.transaction.total}"
+                                data-paid="${data.transaction.paid_amount}"
+                                data-remaining="${data.transaction.remaining}">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                            <button class="btn btn-sm icon-btn text-danger delete-btn">
+                                <i class="bi bi-trash3-fill"></i>
+                            </button>
+                        </td>
+                    `;
+
+                        // Insert at the top of table for recent transactions
+                        tableBody.insertBefore(newRow, tableBody.firstChild);
+
+                        // Trigger slide and fade-in animation
+                        setTimeout(() => {
+                            newRow.style.opacity = '1';
+                            newRow.style.transform = 'scale(1) translateY(0)';
+                        }, 10);
+
+                        // Add pulsing highlight effect
+                        setTimeout(() => {
+                            newRow.style.backgroundColor = '#28a745';
+                            newRow.style.color = '#ffffff';
+                            newRow.style.boxShadow = '0 0 20px rgba(40, 167, 69, 0.6)';
+
+                            // First pulse
+                            setTimeout(() => {
+                                newRow.style.backgroundColor = '#d4edda';
+                                newRow.style.color = '#155724';
+                                newRow.style.boxShadow = '0 0 10px rgba(40, 167, 69, 0.3)';
+                            }, 600);
+
+                            // Second pulse
+                            setTimeout(() => {
+                                newRow.style.backgroundColor = '#28a745';
+                                newRow.style.color = '#ffffff';
+                                newRow.style.boxShadow = '0 0 20px rgba(40, 167, 69, 0.6)';
+                            }, 1200);
+
+                            // Final fade to light green
+                            setTimeout(() => {
+                                newRow.style.backgroundColor = '#d4edda';
+                                newRow.style.color = '#155724';
+                                newRow.style.boxShadow = 'none';
+                            }, 1800);
+
+                            // Return to normal
+                            setTimeout(() => {
+                                newRow.style.backgroundColor = '';
+                                newRow.style.color = '';
+                                newRow.style.transition = 'all 1.5s ease';
+                                newRow.classList.remove('new-transaction-row');
+                            }, 3500);
+
+                        }, 600);
+
+                        // Smooth scroll to the new row
+                        setTimeout(() => {
+                            newRow.scrollIntoView({
+                                behavior: "smooth",
+                                block: "center",
+                                inline: "nearest"
+                            });
+                        }, 150);
+                    }
+
+                }
+                // 422 validation errors
+                else if (res.status === 422 && data.errors) {
+                    const messages = Object.values(data.errors).flat().join("<br>");
+                    if (typeof toastr !== "undefined") {
+                        toastr.clear();
+                        toastr.error(messages);
+                    }
+                    isSubmitting = false; // Reset flag on error
+
+                }
+                // Other server errors
+                else {
+                    if (typeof toastr !== "undefined") {
+                        toastr.clear();
+                        toastr.error(data.message || "Server error while saving transaction");
+                    }
+                    isSubmitting = false; // Reset flag on error
+                }
+
+            } catch (err) {
+                console.error("AJAX/JS Error:", err);
+                if (typeof toastr !== "undefined") {
+                    toastr.clear();
+                    toastr.error(err.message || "Unexpected error occurred while saving transaction");
+                }
+                isSubmitting = false; // Reset flag on exception
             }
-
-            // Reset form on modal close
-            transactionsModal.addEventListener('hidden.bs.modal', function() {
-                form.reset();
-                remainingInput.value = "";
-            });
-
         });
-    </script>
+    }
+
+    // 3️⃣ Reset form when modal closes
+    transactionsModal.addEventListener('hidden.bs.modal', function() {
+        form.reset();
+        remainingInput.value = "";
+        isSubmitting = false; // Reset submission flag when modal closes
+
+        // Remove any lingering backdrops
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    });
+
+    // Optional: If you later have a select for changing currency dynamically
+    const currencySelect = document.getElementById("currencySelect");
+    if (currencySelect) {
+        currencySelect.addEventListener("change", function() {
+            const selectedCurrencyId = this.value;
+            const selectedCurrencyName = this.options[this.selectedIndex].text;
+
+            // Update hidden input
+            const hiddenInput = document.getElementById("selected_currency_id");
+            if (hiddenInput) hiddenInput.value = selectedCurrencyId;
+
+            // Update readonly text input
+            const textInput = document.getElementById("current_currency");
+            if (textInput) textInput.value = selectedCurrencyName;
+        });
+    }
+
+});
+</script>
+
+
+    {{-- This is the script for currency_update --}}
+
+
+
+    
+    <script>
+$(document).ready(function() {
+    $('#currencySelect').on('change', function() {
+        const selectedCurrencyId = $(this).val();
+        const selectedCurrencyName = $('#currencySelect option:selected').text();
+        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+        $.ajax({
+            url: "{{ route('platform_currency.update') }}",
+            type: 'POST',
+            data: {
+                default_currency: selectedCurrencyId,
+                _token: csrfToken
+            },
+            beforeSend: function() {
+                toastr.clear();
+            },
+            success: function(res) {
+                if (res.success) {
+                    // Update inputs only after successful response
+                    $('#current_currency').val(selectedCurrencyName); 
+                    $('#selected_currency_id').val(selectedCurrencyId);
+
+                    toastr.clear();
+                    setTimeout(() => {
+                        toastr.success('✅ Currency updated successfully!');
+                    }, 200);
+
+                    // Update the selected option visually
+                    $('#currencySelect option').each(function() {
+                        $(this).prop('selected', $(this).val() == selectedCurrencyId);
+                    });
+                } else {
+                    toastr.clear();
+                    setTimeout(() => {
+                        toastr.error('❌ Something went wrong.');
+                    }, 200);
+                }
+            },
+            error: function() {
+                toastr.clear();
+                setTimeout(() => {
+                    toastr.error('❌ Server error. Please try again.');
+                }, 200);
+            }
+        });
+    });
+});
+</script>
 @endsection

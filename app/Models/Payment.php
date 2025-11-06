@@ -8,9 +8,7 @@ class Payment extends Model
 {
     protected $fillable = ['transaction_id', 'paid_amount'];
 
-
-    public function transaction()
-    {
-        return $this->hasMany(Transaction::class);
+    public function transaction() {
+        return $this->belongsTo(Transaction::class, 'transaction_id');
     }
 }

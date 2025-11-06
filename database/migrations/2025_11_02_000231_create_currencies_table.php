@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('currencies', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('transaction_id');
-            $table->decimal('paid_amount',10,2);
-            $table->foreign('transaction_id')->references('id')->on('transactions')->onDelete('cascade');
-            
-            
+            $table->string('currency_name', 100);
+            $table->string('exchange_rate', 100);
+
+
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payments');
+        Schema::dropIfExists('currencies');
     }
 };
