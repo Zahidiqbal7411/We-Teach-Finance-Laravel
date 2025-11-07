@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
-protected $fillable = [
-    'type',
-    'value'
-];
+    protected $table = 'settings';
+    protected $fillable = ['type', 'value'];
+    public $timestamps = true;
+
 }

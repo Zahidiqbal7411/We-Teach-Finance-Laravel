@@ -21,12 +21,11 @@ class PlatformController extends Controller
         $teacher_datas = Teacher::all();
         $session_datas = Taxonomies_sessions::all();
         $currency_datas = Currency::all();
-        $current_currency = Currency::where('selected_currency', 1)->first();
+        $currentCurrency = Currency::find(Setting::find(6)?->value);
+
+
         // Prepare currency options
 
-        if (!$current_currency) {
-            $current_currency = Currency::first();
-        }
         // Pass to view
         return view('platform.index', get_defined_vars());
     }
@@ -99,9 +98,11 @@ class PlatformController extends Controller
                     'total' => $transaction->total,
                     'paid_amount' => $transaction->paid_amount,
                     'remaining' => $transaction->total - $transaction->paid_amount,
+                    'selected_currency' => $transaction->currency->currency_name ?? '', // Added
                     'created_at' => $transaction->created_at->format('Y-m-d H:i:s'),
                 ]
             ];
+
 
             \Log::info('Returning success response');
             return response()->json($response);
@@ -149,36 +150,92 @@ class PlatformController extends Controller
 
 
 
+    // public function platform_transaction_modal_store(Request $request, $transactionId)
+    // {
+    //     $validated = $request->validate([
+    //         'new_paid' => 'required|numeric|min:0',
+    //     ]);
+
+    //     $transaction = Transaction::find($transactionId);
+    //     if (!$transaction) {
+    //         return response()->json(['status' => 'error', 'message' => 'Transaction not found'], 404);
+    //     }
+
+    //     $newPaid = $validated['new_paid'];
+    //     $alreadyPaid = $transaction->paid_amount;
+    //     $total = $transaction->total;
+
+    //     if (($alreadyPaid + $newPaid) > $total) {
+    //         return response()->json(['status' => 'error', 'message' => 'Paid amount exceeds total transaction amount']);
+    //     }
+
+    //     // ✅ Update transactions
+    //     $transaction->paid_amount += $newPaid;
+    //     $transaction->save();
+
+    //     // ✅ Insert into payments table
+    //     Payment::create([
+    //         'transaction_id' => $transaction->id,
+    //         'paid_amount' => $newPaid,
+    //     ]);
+
+    //     // ✅ Return the updated transaction
+    //     $transaction = Transaction::with('teacher', 'course', 'session')->find($transactionId);
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'Transaction updated and payment recorded successfully',
+    //         'data' => $transaction
+    //     ]);
+    // }
+
     public function platform_transaction_modal_store(Request $request, $transactionId)
     {
+        // ✅ Validate inputs
         $validated = $request->validate([
             'new_paid' => 'required|numeric|min:0',
+            'current_currency' => 'nullable|exists:currencies,id',
         ]);
 
+        // ✅ Find transaction
         $transaction = Transaction::find($transactionId);
         if (!$transaction) {
-            return response()->json(['status' => 'error', 'message' => 'Transaction not found'], 404);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Transaction not found'
+            ], 404);
         }
 
         $newPaid = $validated['new_paid'];
         $alreadyPaid = $transaction->paid_amount;
         $total = $transaction->total;
 
+        // ✅ Prevent overpayment
         if (($alreadyPaid + $newPaid) > $total) {
-            return response()->json(['status' => 'error', 'message' => 'Paid amount exceeds total transaction amount']);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Paid amount exceeds total transaction amount'
+            ]);
         }
 
-        // ✅ Update transactions
+        // ✅ Update transaction
         $transaction->paid_amount += $newPaid;
+
+        // ✅ Optionally update currency
+        if (!empty($validated['current_currency'])) {
+            $transaction->currency_id = $validated['current_currency'];
+        }
+
         $transaction->save();
 
-        // ✅ Insert into payments table
+        // ✅ Record payment
         Payment::create([
             'transaction_id' => $transaction->id,
             'paid_amount' => $newPaid,
+            'currency_id' => $validated['current_currency'] ?? null,
         ]);
 
-        // ✅ Return the updated transaction
+        // ✅ Reload with relationships
         $transaction = Transaction::with('teacher', 'course', 'session')->find($transactionId);
 
         return response()->json([
@@ -190,21 +247,43 @@ class PlatformController extends Controller
 
 
 
+
     public function platform_currency_update(Request $request)
     {
-        // Get selected currency id from request
-        $selectedCurrencyId = $request->input('default_currency');
+        try {
+            $currencyId = $request->input('default_currency');
 
-        // Reset all currencies selected_currency to 0
-        Currency::query()->update(['selected_currency' => 0]);
+            if (!$currencyId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No currency selected.'
+                ]);
+            }
 
-        // Set the chosen currency as selected
-        $currency = Currency::find($selectedCurrencyId);
-        if ($currency) {
-            $currency->selected_currency = 1;
-            $currency->save();
+            // ✅ Update only the row with ID = 6
+            $setting = Setting::find(6);
+
+            if (!$setting) {
+                // Optional: auto-create the record if it doesn’t exist
+                $setting = Setting::create([
+                    'type' => 'default_currency',
+                    'value' => $currencyId,
+                ]);
+            } else {
+                $setting->value = $currencyId;
+                $setting->save();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Default currency updated successfully!'
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Currency update failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ]);
         }
-
-        return response()->json(['success' => true]);
     }
 }

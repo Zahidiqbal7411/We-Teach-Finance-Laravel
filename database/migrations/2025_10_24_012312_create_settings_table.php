@@ -15,6 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('type', 45);
             $table->string('value', 45);
+            // $table->unsignedBigInteger('selected_currency');
+            // $table->foreign('selected_currency')
+            //     ->references('id')
+            //     ->on('currencies')
+            //     ->onDelete('cascade'); // corrected typo
             $table->timestamps();
         });
     }
