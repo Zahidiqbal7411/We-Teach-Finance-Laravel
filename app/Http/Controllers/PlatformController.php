@@ -16,7 +16,7 @@ class PlatformController extends Controller
     public function create()
     {
         // Fetch currency
-        $currency_data = Setting::find(3);
+        
         $subject_datas = Course::all();
         $teacher_datas = Teacher::all();
         $session_datas = Taxonomies_sessions::all();

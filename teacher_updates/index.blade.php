@@ -54,7 +54,6 @@
                     <label for="teacherSelect" class="form-label fw-semibold">Select Teacher</label>
 
                     <select id="teacherSelect" class="form-select" name="teacher_id">
-                        <option selected disabled>Select a teacher</option>
                         @foreach ($teacher_datas as $teacher)
                             <option value="{{ $teacher->id }}">
                                 {{ $teacher->teacher_name }}
@@ -857,6 +856,4 @@
             });
         });
     </script>
-
-   
 @endsection

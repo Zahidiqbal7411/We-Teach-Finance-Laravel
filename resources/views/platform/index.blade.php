@@ -505,516 +505,591 @@
 @endsection
 
 @section('scripts')
-    <!-- Restore Modal -->
+    {{-- This is the script for trransaction modal --}}
 
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // ================= GLOBAL GUARD =================
-        // This prevents the entire script from initializing more than once.
-        if (window.platformFinanceScriptInitialized) {
-            return;
-        }
-        window.platformFinanceScriptInitialized = true;
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
 
-        // ================= GLOBAL VARIABLES (for Create Modal) =================
-        const form = document.getElementById("transactionsForm");
-        const totalInput = document.getElementById("transaction_total");
-        const paidInput = document.getElementById("transaction_paid");
-        const remainingInput = document.getElementById("transaction_remaining");
-        const transactionsModal = document.getElementById("transactionsModal");
-        const tableBody = document.getElementById("transactionsTableBody");
-        const mainTabs = document.querySelectorAll('#mainTabContainer .tab-btn');
-        const subRecent = document.getElementById('sub-recent');
-        const subPerCourse = document.getElementById('sub-percourse');
-        const balanceTeacher = document.getElementById('balance-teacher');
-        const balancePlatform = document.getElementById('balance-platform');
-        const tableHead = document.getElementById('transactionsTableHead');
+            // ================= GLOBAL GUARD =================
+            if (window.platformFinanceScriptInitialized) return;
+            window.platformFinanceScriptInitialized = true;
 
-        const perCourseHead = `
-            <tr>
-                <th>Course Name</th>
-                <th>Session</th>
-                <th>Transactions</th>
-                <th>Total Amount</th>
-                <th>Total Paid</th>
-                <th>Total Remaining</th>
-                <th>Actions</th>
-            </tr>
-        `;
+            // ================= GLOBAL VARIABLES =================
+            const form = document.getElementById("transactionsForm");
+            const totalInput = document.getElementById("transaction_total");
+            const paidInput = document.getElementById("transaction_paid");
+            const remainingInput = document.getElementById("transaction_remaining");
+            const transactionsModal = document.getElementById("transactionsModal");
+            const tableBody = document.getElementById("transactionsTableBody");
+            const mainTabs = document.querySelectorAll('#mainTabContainer .tab-btn');
+            const subRecent = document.getElementById('sub-recent');
+            const subPerCourse = document.getElementById('sub-percourse');
+            const balanceTeacher = document.getElementById('balance-teacher');
+            const balancePlatform = document.getElementById('balance-platform');
+            const tableHead = document.getElementById('transactionsTableHead');
 
-        let isSubmitting = false;
 
-        // ===================== FORM REMAINING CALC (Create Modal) =====================
-        if (totalInput && paidInput && remainingInput) {
-            function calculateRemaining() {
-                const total = parseFloat(totalInput.value) || 0;
-                const paid = parseFloat(paidInput.value) || 0;
-                remainingInput.value = Math.max(0, (total - paid).toFixed(2));
+            const perCourseHead = `
+        <tr>
+            <th>Course Name</th>
+            <th>Session</th>
+            <th>Transactions</th>
+            <th>Total Amount</th>
+            <th>Total Paid</th>
+            <th>Total Remaining</th>
+            <th>Actions</th>
+        </tr>
+    `;
+
+            let isSubmitting = false;
+            let isSubmittingRestore = false;
+
+            function safeToastr(type, msg) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.clear();
+                    if (type === 'success') toastr.success(msg);
+                    else if (type === 'error') toastr.error(msg);
+                    else if (type === 'warning') toastr.warning(msg);
+                } else {
+                    console.log(`TOAST ${type.toUpperCase()}: ${msg}`);
+                }
             }
-            totalInput.addEventListener("input", calculateRemaining);
-            paidInput.addEventListener("input", calculateRemaining);
-        }
 
-        // ===================== FORM SUBMIT (Create Modal) =====================
-        if (form) {
-            form.addEventListener("submit", async function(e) {
-                e.preventDefault();
-                if (isSubmitting) return;
-                isSubmitting = true;
-
-                const formData = new FormData(form);
-                const currencyInput = document.getElementById("current_currency");
-
-                if (!currencyInput || !currencyInput.value) {
-                    toastr.error("Please select a currency before submitting.");
-                    isSubmitting = false;
-                    return;
+            // ===================== FORM REMAINING CALC =====================
+            if (totalInput && paidInput && remainingInput) {
+                function calculateRemaining() {
+                    const total = parseFloat(totalInput.value) || 0;
+                    const paid = parseFloat(paidInput.value) || 0;
+                    remainingInput.value = Math.max(0, (total - paid).toFixed(2));
                 }
-                formData.set("selected_currency_id", currencyInput.value);
+                totalInput.addEventListener("input", calculateRemaining);
+                paidInput.addEventListener("input", calculateRemaining);
+            }
 
-                try {
-                    const csrfToken = document.querySelector('input[name="_token"]').value;
+            // ===================== FORM SUBMIT (CREATE) =====================
+            if (form) {
+                form.addEventListener("submit", async function(e) {
+                    e.preventDefault();
+                    if (isSubmitting) return;
+                    isSubmitting = true;
 
-                    const res = await fetch("{{ route('platform_transaction.store') }}", {
-                        method: "POST",
-                        headers: {
-                            "X-CSRF-TOKEN": csrfToken
-                        },
-                        body: formData
-                    });
+                    const formData = new FormData(form);
+                    const currencyInput = document.getElementById("current_currency");
+                    const currencyNameInput = document.getElementById("current_currency_name");
 
-                    const data = await res.json();
-
-                    if (res.ok && data.status === "success") {
-                        toastr.success(data.message || "Transaction saved successfully");
-                        if (window.loadPlatformTransactions) {
-                            window.loadPlatformTransactions(); // reload table
-                        }
-
-                        form.reset();
-                        if (remainingInput) remainingInput.value = "";
-
-                        if (transactionsModal) {
-                            const modalInstance = bootstrap.Modal.getInstance(transactionsModal);
-                            if (modalInstance) modalInstance.hide();
-                        }
-                    } else {
-                        toastr.error(data.message || "Failed to save transaction");
-                    }
-                } catch (err) {
-                    console.error(err);
-                    toastr.error(err.message || "Unexpected error");
-                } finally {
-                    isSubmitting = false;
-                }
-            });
-        }
-
-        // ===================== CURRENCY SELECT (Create Modal) =====================
-        const currencySelect = document.getElementById("currencySelect");
-        if (currencySelect) {
-            currencySelect.addEventListener("change", function() {
-                const hiddenCurrencyInput = document.getElementById("current_currency");
-                const textInput = document.getElementById("current_currency_name");
-
-                if (hiddenCurrencyInput) {
-                    hiddenCurrencyInput.value = this.value;
-                }
-                if (textInput) {
-                    textInput.value = this.options[this.selectedIndex].text;
-                }
-            });
-        }
-
-        // ===================== TABS =====================
-        function resetSubTabs() {
-            if (subRecent) subRecent.style.display = 'none';
-            if (subPerCourse) subPerCourse.style.display = 'none';
-            if (balanceTeacher) balanceTeacher.style.display = 'none';
-            if (balancePlatform) balancePlatform.style.display = 'none';
-        }
-
-        mainTabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                mainTabs.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-
-                const target = this.dataset.target;
-                ['transactionsDiv', 'payoutsDiv', 'balancesDiv', 'reportsDiv'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.style.display = id === target ? 'block' : 'none';
-                });
-
-                resetSubTabs();
-
-                if (target === 'transactionsDiv') {
-                    if (subRecent) subRecent.style.display = 'inline-block';
-                    if (subPerCourse) subPerCourse.style.display = 'inline-block';
-                    if (subRecent) subRecent.click();
-                } else if (target === 'balancesDiv') {
-                    if (balanceTeacher) balanceTeacher.style.display = 'inline-block';
-                    if (balancePlatform) balancePlatform.style.display = 'inline-block';
-                    if (balanceTeacher) balanceTeacher.click();
-                }
-            });
-        });
-
-        if (subRecent) {
-            subRecent.addEventListener('click', function() {
-                subRecent.classList.add('active');
-                if (subPerCourse) subPerCourse.classList.remove('active');
-
-                if (tableHead) {
-                    tableHead.innerHTML = `
-                        <tr>
-                            <th>ID</th>
-                            <th>Date/Time</th>
-                            <th>Teacher</th>
-                            <th>Course</th>
-                            <th>Session</th>
-                            <th>Student</th>
-                            <th>Parent</th>
-                            <th>Total</th>
-                            <th>Paid</th>
-                            <th>Remaining</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    `;
-                }
-                if (window.loadPlatformTransactions) {
-                    window.loadPlatformTransactions();
-                }
-            });
-        }
-
-        if (subPerCourse) {
-            subPerCourse.addEventListener('click', function() {
-                subPerCourse.classList.add('active');
-                if (subRecent) subRecent.classList.remove('active');
-                if (tableHead) tableHead.innerHTML = perCourseHead;
-                if (tableBody) tableBody.innerHTML = "";
-            });
-        }
-
-        // ===================== LOAD TABLE (NOW FIXED) =====================
-        if (tableBody) {
-            window.loadPlatformTransactions = async function() {
-                try {
-                    const res = await fetch("{{ route('platform_transactions.index') }}");
-                    const data = await res.json();
-
-                    if (data.status !== "success") {
-                        toastr.error("Failed to load transactions");
+                    if (!currencyInput || !currencyInput.value) {
+                        safeToastr("error", "Please select a currency before submitting.");
+                        isSubmitting = false;
                         return;
                     }
 
-                    tableBody.innerHTML = ""; // clear table to prevent duplicates
+                    // attach currency values
+                    formData.set("selected_currency_id", currencyInput.value);
+                    if (currencyNameInput) {
+                        formData.set("selected_currency_name", currencyNameInput.value);
+                    }
 
-                    // --- START: Row logic is now INSIDE this function ---
-                    data.data.forEach(row => {
-                        const remaining = row.remaining ?? (row.total - row.paid_amount);
+                    try {
+                        // NOTE: This assumes a CSRF input field named "_token" exists in the form.
+                        const csrfToken = document.querySelector('input[name="_token"]').value;
 
-                        // This is the correct currency logic
-                        const currencyName = row.selected_currency_name ?? row.currency?.name ?? '';
-                        const currencyText = currencyName ? (${currencyName}) : '';
+                        const res = await fetch("{{ route('platform_transaction.store') }}", {
+                            method: "POST",
+                            headers: {
+                                "X-CSRF-TOKEN": csrfToken
+                            },
+                            body: formData
+                        });
 
-                        const rowHTML = `
-                            <tr data-id="${row.id}" id="transaction-row-${row.id}">
-                                <td>${row.id}</td>
-                                <td>${row.created_at}</td>
-                                <td>${row.teacher?.teacher_name ?? '-'}</td>
-                                <td>${row.course?.course_title ?? '-'}</td>
-                                <td>${row.session?.session_title ?? '-'}</td>
-                                <td>${row.student_name ?? '-'}</td>
-                                <td>${row.parent_name ?? '-'}</td>
-                                <td>${Number(row.total).toFixed(2)} ${currencyText}</td>
-                                <td class="paid-amount">${Number(row.paid_amount).toFixed(2)} ${currencyText}</td>
-                                <td class="remaining-amount">${Number(remaining).toFixed(2)} ${currencyText}</td>
-                                <td class="text-end">
-                                    <button class="btn btn-sm icon-btn restore-btn"
-                                        data-id="${row.id}"
-                                        data-total="${row.total}"
-                                        data-paid="${row.paid_amount}">
-                                        <i class="bi bi-arrow-counterclockwise"></i>
-                                    </button>
-                                    <button class="btn btn-sm icon-btn text-danger delete-btn">
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                        
-                        // Check if row already exists (for updates)
-                        const existingRow = tableBody.querySelector(tr[data-id="${row.id}"]);
-                        if (existingRow) {
-                            existingRow.outerHTML = rowHTML;
-                        } else {
-                            tableBody.insertAdjacentHTML('beforeend', rowHTML);
-                        }
-                    });
-                    // --- END: Row logic ---
+                        const data = await res.json();
 
-                } catch (err) {
-                    console.error(err);
-                    toastr.error("Error fetching transactions");
-                }
-            }
-        }
+                        if (res.ok && data.status === "success") {
+                            safeToastr("success", data.message || "Transaction saved successfully");
+                            if (window.loadPlatformTransactions) window.loadPlatformTransactions();
 
-        // ====================================================================
-        // ===================== RESTORE MODAL LOGIC ==========================
-        // ====================================================================
+                            form.reset();
+                            if (remainingInput) remainingInput.value = "";
 
-        let isSubmittingRestore = false;
-
-        function safeToastr(type, msg) {
-            if (typeof toastr !== 'undefined') {
-                toastr.clear();
-                if (type === 'success') {
-                    toastr.success(msg);
-                } else if (type === 'error') {
-                    toastr.error(msg);
-                }
-            } else {
-                console.log(TOAST ${type.toUpperCase()}:, msg);
-            }
-        }
-
-        document.body.addEventListener('input', function(e) {
-            if (e.target.id !== 'restorePaid') {
-                return;
-            }
-            const form = e.target.closest('form');
-            if (!form) return;
-
-            const restoreTotal = form.querySelector('#restoreTotal');
-            const restorePaidReadonly = form.querySelector('#restorePaidReadonly');
-            const restorePaid = e.target;
-            const restoreRemaining = form.querySelector('#restoreRemaining');
-
-            if (!restoreTotal || !restorePaidReadonly || !restoreRemaining) {
-                return;
-            }
-
-            const total = parseFloat(restoreTotal.value) || 0;
-            const paidReadonly = parseFloat(restorePaidReadonly.value) || 0;
-            let newPaid = parseFloat(restorePaid.value) || 0;
-
-            if (newPaid < 0) newPaid = 0;
-            const remainingBalance = total - paidReadonly;
-            if (newPaid > remainingBalance) {
-                newPaid = remainingBalance;
-            }
-
-            restoreRemaining.value = (total - paidReadonly - newPaid).toFixed(2);
-        });
-
-        document.body.addEventListener('blur', function(e) {
-            if (e.target.id !== 'restorePaid') {
-                return;
-            }
-            const form = e.target.closest('form');
-            if (!form) return;
-
-            const restoreTotal = form.querySelector('#restoreTotal');
-            const restorePaidReadonly = form.querySelector('#restorePaidReadonly');
-            const restorePaid = e.target;
-
-            if (!restoreTotal || !restorePaidReadonly) return;
-
-            const total = parseFloat(restoreTotal.value) || 0;
-            const paidReadonly = parseFloat(restorePaidReadonly.value) || 0;
-            let newPaid = parseFloat(restorePaid.value) || 0;
-
-            if (newPaid < 0) newPaid = 0;
-            const remainingBalance = total - paidReadonly;
-            if (newPaid > remainingBalance) newPaid = remainingBalance;
-
-            restorePaid.value = newPaid.toFixed(2);
-        }, true);
-
-
-        document.body.addEventListener('click', function(e) {
-            const btn = e.target.closest('.restore-btn');
-            if (!btn) return;
-
-            const id = btn.dataset.id;
-            const total = parseFloat(btn.dataset.total) || 0;
-            const paid = parseFloat(btn.dataset.paid) || 0;
-
-            const restoreModalEl = document.getElementById('restoreModal');
-            if (!restoreModalEl) return;
-
-            const restoreTransactionId = restoreModalEl.querySelector('#restoreTransactionId');
-            const restoreTotal = restoreModalEl.querySelector('#restoreTotal');
-            const restorePaidReadonly = restoreModalEl.querySelector('#restorePaidReadonly');
-            const restorePaid = restoreModalEl.querySelector('#restorePaid');
-            const restoreRemaining = restoreModalEl.querySelector('#restoreRemaining');
-
-            if (restoreTransactionId) restoreTransactionId.value = id;
-            if (restoreTotal) restoreTotal.value = total.toFixed(2);
-            if (restorePaidReadonly) restorePaidReadonly.value = paid.toFixed(2);
-            if (restorePaid) restorePaid.value = '';
-            if (restoreRemaining) restoreRemaining.value = (total - paid).toFixed(2);
-
-            isSubmittingRestore = false;
-
-            const restoreModal = bootstrap.Modal.getOrCreateInstance(restoreModalEl);
-            restoreModal.show();
-        });
-
-        document.addEventListener('hidden.bs.modal', function(e) {
-            if (e.target.id !== 'restoreModal') {
-                return;
-            }
-            const restoreForm = e.target.querySelector('#restoreForm');
-            if (restoreForm) {
-                restoreForm.reset();
-            }
-            const restoreRemaining = e.target.querySelector('#restoreRemaining');
-            if (restoreRemaining) {
-                restoreRemaining.value = '';
-            }
-            isSubmittingRestore = false;
-        });
-
-        // ===================== Submit Form (Restore) =====================
-        document.addEventListener('submit', function(e) {
-            if (e.target.id !== 'restoreForm') {
-                return;
-            }
-            e.preventDefault();
-            if (isSubmittingRestore) return;
-
-            isSubmittingRestore = true;
-            const submitForm = e.target;
-            const submitBtn = submitForm.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.disabled = true;
-
-            const transactionId = submitForm.querySelector('#restoreTransactionId').value;
-            const newPaidValue = parseFloat(submitForm.querySelector('#restorePaid').value) || 0;
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-            fetch(/platform/transactions/${transactionId}/restore, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({
-                        new_paid: newPaidValue
-                    })
-                })
-                .then(res => res.json())
-                .then(res => {
-                    if (submitBtn) submitBtn.disabled = false;
-                    isSubmittingRestore = false;
-
-                    const restoreModalEl = document.getElementById('restoreModal');
-                    const restoreModal = bootstrap.Modal.getInstance(restoreModalEl);
-
-                    if (res.status === 'success') {
-                        safeToastr('success', res.message || 'Transaction updated successfully');
-                        if (restoreModal) {
-                            restoreModal.hide();
-                        }
-
-                        if (res.data) {
-                            const updated = res.data;
-                            const newRemainingAmount = (parseFloat(updated.total) - parseFloat(updated.paid_amount)).toFixed(2);
-                            const row = document.querySelector(#transaction-row-${transactionId});
-
-                            // This is the correct currency logic for the update
-                            const currencyName = updated.selected_currency_name ?? updated.currency?.name ?? '';
-                            const currencyText = currencyName ? (${currencyName}) : '';
-
-                            if (row) {
-                                const paidCell = row.querySelector('.paid-amount');
-                                const remainingCell = row.querySelector('.remaining-amount');
-                                const restoreBtn = row.querySelector('.restore-btn');
-
-                                if (paidCell) paidCell.textContent = ${parseFloat(updated.paid_amount).toFixed(2)} ${currencyText};
-                                if (remainingCell) remainingCell.textContent = ${newRemainingAmount} ${currencyText};
-                                if (restoreBtn) restoreBtn.dataset.paid = updated.paid_amount;
+                            if (transactionsModal) {
+                                const modalInstance = bootstrap.Modal.getInstance(transactionsModal);
+                                if (modalInstance) modalInstance.hide();
                             }
+                        } else {
+                            safeToastr("error", data.message || "Failed to save transaction");
                         }
-                    } else {
-                        safeToastr('error', res.message || 'Failed to update transaction');
+                    } catch (err) {
+                        console.error("Submission Error:", err);
+                        safeToastr("error", err.message || "Unexpected error");
+                    } finally {
+                        isSubmitting = false;
                     }
-                })
-                .catch(err => {
-                    console.error("Fetch Error:", err);
-                    if (submitBtn) submitBtn.disabled = false;
-                    isSubmittingRestore = false;
-
-                    const restoreModalEl = document.getElementById('restoreModal');
-                    const restoreModal = bootstrap.Modal.getInstance(restoreModalEl);
-                    if (restoreModal) {
-                        restoreModal.hide();
-                    }
-                    safeToastr('error', 'Network error or unhandled exception. Please try again.');
                 });
+            }
+
+            // ===================== CURRENCY SELECT (FORM INPUTS) =====================
+            const currencySelect = document.getElementById("currencySelect");
+            if (currencySelect) {
+                currencySelect.addEventListener("change", function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    const hiddenCurrencyId = document.getElementById("current_currency");
+                    const hiddenCurrencyName = document.getElementById("current_currency_name");
+
+                    if (hiddenCurrencyId) hiddenCurrencyId.value = selectedOption.value;
+                    if (hiddenCurrencyName) hiddenCurrencyName.value = selectedOption.text.trim();
+                });
+            }
+
+            // ===================== TABS SWITCHING =====================
+            function resetSubTabs() {
+                if (subRecent) subRecent.style.display = 'none';
+                if (subPerCourse) subPerCourse.style.display = 'none';
+                if (balanceTeacher) balanceTeacher.style.display = 'none';
+                if (balancePlatform) balancePlatform.style.display = 'none';
+            }
+
+            mainTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    mainTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const target = this.dataset.target;
+                    ['transactionsDiv', 'payoutsDiv', 'balancesDiv', 'reportsDiv'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.style.display = id === target ? 'block' : 'none';
+                    });
+
+                    resetSubTabs();
+
+                    if (target === 'transactionsDiv') {
+                        if (subRecent) subRecent.style.display = 'inline-block';
+                        if (subPerCourse) subPerCourse.style.display = 'inline-block';
+                        // Automatically click the 'Recent' tab
+                        if (subRecent) subRecent.click();
+                    } else if (target === 'balancesDiv') {
+                        if (balanceTeacher) balanceTeacher.style.display = 'inline-block';
+                        if (balancePlatform) balancePlatform.style.display = 'inline-block';
+                        if (balanceTeacher) balanceTeacher.click();
+                    }
+                });
+            });
+
+            // Sub-tab: Recent Transactions
+            if (subRecent) {
+                subRecent.addEventListener('click', function() {
+                    subRecent.classList.add('active');
+                    if (subPerCourse) subPerCourse.classList.remove('active');
+
+                    if (tableHead) {
+                        tableHead.innerHTML = `
+                    <tr>
+                        <th>ID</th>
+                        <th>Date/Time</th>
+                        <th>Teacher</th>
+                        <th>Course</th>
+                        <th>Session</th>
+                        <th>Student</th>
+                        <th>Parent</th>
+                        <th>Total</th>
+                        <th>Paid</th>
+                        <th>Remaining</th>
+                        <th class="text-end">Actions</th>
+                    </tr>`;
+                    }
+                    if (window.loadPlatformTransactions) window.loadPlatformTransactions();
+                });
+            }
+
+            // Sub-tab: Per Course Transactions
+            if (subPerCourse) {
+                subPerCourse.addEventListener('click', function() {
+                    subPerCourse.classList.add('active');
+                    if (subRecent) subRecent.classList.remove('active');
+                    if (tableHead) tableHead.innerHTML = perCourseHead;
+                    if (tableBody) tableBody.innerHTML = "";
+                    // NOTE: Add logic here to load 'per course' data if needed
+                });
+            }
+
+            // ===================== LOAD TRANSACTIONS TABLE =====================
+            if (tableBody) {
+                window.loadPlatformTransactions = async function() {
+                    try {
+                        const res = await fetch("{{ route('platform_transactions.index') }}");
+                        const data = await res.json();
+
+                        if (data.status !== "success") {
+                            safeToastr("error", "Failed to load transactions");
+                            return;
+                        }
+
+                        tableBody.innerHTML = "";
+
+                        data.data.forEach(row => {
+                            const remaining = row.remaining ?? (row.total - row.paid_amount);
+                            const currencyName = row.selected_currency_name ?? row.currency?.name ??
+                                '';
+                            const currencyText = currencyName ? ` ${currencyName}` : '';
+
+                            const rowHTML = `
+                        <tr data-id="${row.id}" id="transaction-row-${row.id}">
+                            <td>${row.id}</td>
+                            <td>${row.created_at}</td>
+                            <td>${row.teacher?.teacher_name ?? '-'}</td>
+                            <td>${row.course?.course_title ?? '-'}</td>
+                            <td>${row.session?.session_title ?? '-'}</td>
+                            <td>${row.student_name ?? '-'}</td>
+                            <td>${row.parent_name ?? '-'}</td>
+                            <td>${Number(row.total).toFixed(2)}${currencyText}</td>
+                            <td class="paid-amount">${Number(row.paid_amount).toFixed(2)}${currencyText}</td>
+                            <td class="remaining-amount">${Number(remaining).toFixed(2)}${currencyText}</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm icon-btn restore-btn"
+                                    data-id="${row.id}"
+                                    data-total="${row.total}"
+                                    data-paid="${row.paid_amount}">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                </button>
+                                <button class="btn btn-sm icon-btn text-danger delete-btn" data-id="${row.id}">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                            const existingRow = tableBody.querySelector(`tr[data-id="${row.id}"]`);
+                            if (existingRow) existingRow.outerHTML = rowHTML;
+                            else tableBody.insertAdjacentHTML('beforeend', rowHTML);
+                        });
+
+                    } catch (err) {
+                        console.error("Load Error:", err);
+                        safeToastr("error", "Error fetching transactions");
+                    }
+                };
+            }
+
+            // ===================== RESTORE MODAL LOGIC (Partial Payment) =====================
+
+            // Restore modal calculation
+            document.body.addEventListener('input', function(e) {
+                if (e.target.id !== 'restorePaid') return;
+                const form = e.target.closest('form');
+                if (!form) return;
+
+                const restoreTotal = form.querySelector('#restoreTotal');
+                const restorePaidReadonly = form.querySelector('#restorePaidReadonly');
+                const restoreRemaining = form.querySelector('#restoreRemaining');
+
+                const total = parseFloat(restoreTotal.value) || 0;
+                const paidReadonly = parseFloat(restorePaidReadonly.value) || 0;
+                let newPaid = parseFloat(e.target.value) || 0;
+
+                const remainingBalance = total - paidReadonly;
+
+                if (newPaid < 0) newPaid = 0;
+                // Prevent paying more than the remaining balance
+                if (newPaid > remainingBalance) {
+                    newPaid = remainingBalance;
+                    e.target.value = newPaid.toFixed(2); // Fix input value to max remaining
+                    safeToastr('warning',
+                        `Payment cannot exceed the remaining balance of ${remainingBalance.toFixed(2)}.`
+                        );
+                }
+
+                e.target.value = newPaid.toFixed(2);
+                restoreRemaining.value = (remainingBalance - newPaid).toFixed(2);
+            });
+
+            // Restore modal launch
+            document.body.addEventListener('click', function(e) {
+                const btn = e.target.closest('.restore-btn');
+                if (!btn) return;
+
+                const id = btn.dataset.id;
+                const total = parseFloat(btn.dataset.total) || 0;
+                const paid = parseFloat(btn.dataset.paid) || 0;
+
+                const restoreModalEl = document.getElementById('restoreModal');
+                if (!restoreModalEl) return;
+
+                const restoreTransactionId = restoreModalEl.querySelector('#restoreTransactionId');
+                const restoreTotal = restoreModalEl.querySelector('#restoreTotal');
+                const restorePaidReadonly = restoreModalEl.querySelector('#restorePaidReadonly');
+                const restorePaid = restoreModalEl.querySelector('#restorePaid');
+                const restoreRemaining = restoreModalEl.querySelector('#restoreRemaining');
+
+                if (restoreTransactionId) restoreTransactionId.value = id;
+                if (restoreTotal) restoreTotal.value = total.toFixed(2);
+                if (restorePaidReadonly) restorePaidReadonly.value = paid.toFixed(2);
+                if (restorePaid) restorePaid.value = ''; // Input for new payment
+                if (restoreRemaining) restoreRemaining.value = (total - paid).toFixed(2);
+
+                const restoreModal = bootstrap.Modal.getOrCreateInstance(restoreModalEl);
+                restoreModal.show();
+            });
+
+            // Restore modal reset on close
+            document.addEventListener('hidden.bs.modal', function(e) {
+                if (e.target.id !== 'restoreModal') return;
+                const restoreForm = e.target.querySelector('#restoreForm');
+                if (restoreForm) restoreForm.reset();
+                const restoreRemaining = e.target.querySelector('#restoreRemaining');
+                if (restoreRemaining) restoreRemaining.value = '';
+                isSubmittingRestore = false;
+            });
+
+            // Restore form submission (AJAX update)
+            document.addEventListener('submit', function(e) {
+                if (e.target.id !== 'restoreForm') return;
+                e.preventDefault();
+                if (isSubmittingRestore) return;
+
+                isSubmittingRestore = true;
+                const submitForm = e.target;
+                const submitBtn = submitForm.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+
+                const transactionId = submitForm.querySelector('#restoreTransactionId').value;
+                const newPaidValue = parseFloat(submitForm.querySelector('#restorePaid').value) || 0;
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+                    'content') || '';
+
+                fetch(`/platform/transactions/${transactionId}/restore`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            new_paid: newPaidValue
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (submitBtn) submitBtn.disabled = false;
+                        isSubmittingRestore = false;
+                        const restoreModalEl = document.getElementById('restoreModal');
+                        const restoreModal = bootstrap.Modal.getInstance(restoreModalEl);
+
+                        if (res.status === 'success') {
+                            safeToastr('success', res.message || 'Transaction updated successfully');
+                            if (restoreModal) restoreModal.hide();
+
+                            if (res.data) {
+                                const updated = res.data;
+                                const newRemainingAmount = (parseFloat(updated.total) - parseFloat(
+                                    updated.paid_amount)).toFixed(2);
+                                const row = document.querySelector(`#transaction-row-${transactionId}`);
+                                const currencyName = updated.selected_currency_name ?? updated.currency
+                                    ?.name ?? '';
+                                const currencyText = currencyName ? ` ${currencyName}` : '';
+
+                                if (row) {
+                                    const paidCell = row.querySelector('.paid-amount');
+                                    const remainingCell = row.querySelector('.remaining-amount');
+                                    const restoreBtn = row.querySelector('.restore-btn');
+
+                                    if (paidCell) paidCell.textContent =
+                                        `${parseFloat(updated.paid_amount).toFixed(2)}${currencyText}`;
+                                    if (remainingCell) remainingCell.textContent =
+                                        `${newRemainingAmount}${currencyText}`;
+                                    if (restoreBtn) restoreBtn.dataset.paid = updated.paid_amount;
+                                }
+                            }
+                        } else {
+                            safeToastr('error', res.message || 'Failed to update transaction');
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Fetch Error:", err);
+                        if (submitBtn) submitBtn.disabled = false;
+                        isSubmittingRestore = false;
+                        const restoreModalEl = document.getElementById('restoreModal');
+                        const restoreModal = bootstrap.Modal.getInstance(restoreModalEl);
+                        if (restoreModal) restoreModal.hide();
+                        safeToastr('error', 'Network error or unhandled exception. Please try again.');
+                    });
+            });
+
+            // ===================== DELETE TRANSACTION LOGIC =====================
+            document.body.addEventListener('click', function(e) {
+                const btn = e.target.closest('.delete-btn');
+                if (!btn) return;
+
+                const transactionId = btn.dataset.id;
+                if (!transactionId) return;
+
+                if (!confirm(
+                        `Are you sure you want to delete Transaction #${transactionId}? This action cannot be undone.`
+                        )) {
+                    return;
+                }
+
+                const rowElement = document.getElementById(`transaction-row-${transactionId}`);
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+                    'content') || '';
+
+                // NOTE: The route below is an assumed Laravel delete route format
+                fetch(`/platform/transactions/${transactionId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.status === 'success') {
+                            safeToastr('success', res.message ||
+                                `Transaction #${transactionId} deleted successfully.`);
+                            // Remove the row from the table
+                            if (rowElement) rowElement.remove();
+                        } else {
+                            safeToastr('error', res.message || 'Failed to delete transaction.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Delete Error:", err);
+                        safeToastr('error', 'Network error during deletion. Please try again.');
+                    });
+            });
+
+            // ===================== INITIAL LOAD =====================
+            // Trigger the click event for the default tab
+            if (subRecent) subRecent.click();
+            else if (window.loadPlatformTransactions) window.loadPlatformTransactions();
         });
+    </script>
 
-        // ===================== INITIAL LOAD =====================
-        // Trigger the 'Recent' sub-tab to load the table on page load
-        if (subRecent) {
-             subRecent.click();
-        } else if (window.loadPlatformTransactions) {
-             // Fallback if tabs don't exist
-             window.loadPlatformTransactions();
-        }
+    <script>
+        // ===================== JQUERY CURRENCY UPDATE (DEFAULT) =====================
+        $(document).ready(function() {
+            $('#currencySelect').on('change', function() {
+                const selectedCurrencyId = $(this).val();
+                const selectedCurrencyName = $('#currencySelect option:selected').text().trim();
+                const csrfToken = $('meta[name="csrf-token"]').attr('content');
 
-    });
-</script>
+                $.ajax({
+                    url: "{{ route('platform_currency.update') }}",
+                    type: 'POST',
+                    data: {
+                        default_currency: selectedCurrencyId,
+                        _token: csrfToken
+                    },
+                    beforeSend: function() {
+                        toastr.clear();
+                    },
+                    success: function(res) {
+                        if (res.success) {
+                            // Update hidden fields for transaction form
+                            $('#current_currency').val(selectedCurrencyId);
+                            $('#current_currency_name').val(selectedCurrencyName);
+
+                            toastr.clear();
+                            setTimeout(() => {
+                                toastr.success(
+                                    '✅ Currency updated successfully! Reloading transactions...'
+                                    );
+                                // Reload transactions to reflect new currency symbol/name
+                                if (window.loadPlatformTransactions) {
+                                    window.loadPlatformTransactions();
+                                }
+                            }, 200);
+                        } else {
+                            toastr.clear();
+                            setTimeout(() => {
+                                toastr.error('❌ Something went wrong.');
+                            }, 200);
+                        }
+                    },
+                    error: function() {
+                        toastr.clear();
+                        setTimeout(() => {
+                            toastr.error('❌ Server error. Please try again.');
+                        }, 200);
+                    }
+                });
+            });
+        });
+    </script>
+
+    <!-- ===================== CURRENCY UPDATE (AJAX) ===================== -->
+    <script>
+        $(document).ready(function() {
+            $('#currencySelect').on('change', function() {
+                const selectedCurrencyId = $(this).val();
+                const selectedCurrencyName = $('#currencySelect option:selected').text().trim();
+                const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+                $.ajax({
+                    url: "{{ route('platform_currency.update') }}",
+                    type: 'POST',
+                    data: {
+                        default_currency: selectedCurrencyId,
+                        _token: csrfToken
+                    },
+                    beforeSend: function() {
+                        toastr.clear();
+                    },
+                    success: function(res) {
+                        if (res.success) {
+                            $('#current_currency').val(selectedCurrencyId);
+                            $('#current_currency_name').val(selectedCurrencyName);
+
+                            toastr.clear();
+                            setTimeout(() => {
+                                toastr.success('✅ Currency updated successfully!');
+                            }, 200);
+                        } else {
+                            toastr.clear();
+                            setTimeout(() => {
+                                toastr.error('❌ Something went wrong.');
+                            }, 200);
+                        }
+                    },
+                    error: function() {
+                        toastr.clear();
+                        setTimeout(() => {
+                            toastr.error('❌ Server error. Please try again.');
+                        }, 200);
+                    }
+                });
+            });
+        });
+    </script>
+
+
+
+    {{-- This is the script of restore modal --}}
+
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-
-            // This flag is fine here, as this whole script only runs once.
             let isSubmitting = false;
 
-            // ===================== Helper Toasts =====================
             function safeToastr(type, msg) {
                 if (typeof toastr !== 'undefined') {
-                    // 🚨 FIX 1: Removed setTimeout.
-                    // Clear toasts immediately before showing the new one
-                    // to prevent stacking or race conditions.
                     toastr.clear();
-                    if (type === 'success') {
-                        toastr.success(msg);
-                    } else if (type === 'error') {
-                        toastr.error(msg);
-                    }
+                    if (type === 'success') toastr.success(msg);
+                    else if (type === 'error') toastr.error(msg);
                 } else {
                     console.log(`TOAST ${type.toUpperCase()}:`, msg);
                 }
             }
 
             // ===================== Remaining Calculation =====================
-            // 🚨 FIX 2 (Part A): Use event delegation for the 'input' event
             document.body.addEventListener('input', function(e) {
-                // Only act if the event came from our specific input
-                if (e.target.id !== 'restorePaid') {
-                    return;
-                }
+                if (e.target.id !== 'restorePaid') return;
 
-                // Find related elements from the input's form
                 const form = e.target.closest('form');
                 if (!form) return;
 
                 const restoreTotal = form.querySelector('#restoreTotal');
                 const restorePaidReadonly = form.querySelector('#restorePaidReadonly');
-                const restorePaid = e.target; // This is '#restorePaid'
+                const restorePaid = e.target;
                 const restoreRemaining = form.querySelector('#restoreRemaining');
 
-                if (!restoreTotal || !restorePaidReadonly || !restoreRemaining) {
-                    return;
-                }
-
-                // --- Your calculation logic (unchanged) ---
                 const total = parseFloat(restoreTotal.value) || 0;
                 const paidReadonly = parseFloat(restorePaidReadonly.value) || 0;
                 let newPaid = parseFloat(restorePaid.value) || 0;
@@ -1028,8 +1103,6 @@
             });
 
             // ===================== Open Modal =====================
-            // Your click listener already used delegation, which is great.
-            // We just need to make sure we get the current modal instance.
             document.body.addEventListener('click', function(e) {
                 const btn = e.target.closest('.restore-btn');
                 if (!btn) return;
@@ -1038,85 +1111,57 @@
                 const total = parseFloat(btn.dataset.total) || 0;
                 const paid = parseFloat(btn.dataset.paid) || 0;
 
-                // Get the modal element now
                 const restoreModalEl = document.getElementById('restoreModal');
                 if (!restoreModalEl) return;
 
-                // Find inputs inside this modal
                 const restoreTransactionId = restoreModalEl.querySelector('#restoreTransactionId');
                 const restoreTotal = restoreModalEl.querySelector('#restoreTotal');
                 const restorePaidReadonly = restoreModalEl.querySelector('#restorePaidReadonly');
                 const restorePaid = restoreModalEl.querySelector('#restorePaid');
                 const restoreRemaining = restoreModalEl.querySelector('#restoreRemaining');
 
-                // Populate the inputs
                 restoreTransactionId.value = id;
                 restoreTotal.value = total;
                 restorePaidReadonly.value = paid.toFixed(2);
-
-                // ✅ ONLY THIS LINE CHANGED (was restorePaid.value = 0.00;)
-                restorePaid.value = ''; // input now starts empty for user entry
-
+                restorePaid.value = '';
                 restoreRemaining.value = (total - paid).toFixed(2);
 
                 isSubmitting = false;
 
-                // Get or create the modal instance now
                 const restoreModal = bootstrap.Modal.getOrCreateInstance(restoreModalEl);
                 restoreModal.show();
             });
 
             // ===================== Reset Modal on Close =====================
-            // 🚨 FIX 2 (Part B): Delegate the modal close event
             document.addEventListener('hidden.bs.modal', function(e) {
-                // Only act on the modal we care about
-                if (e.target.id !== 'restoreModal') {
-                    return;
-                }
+                if (e.target.id !== 'restoreModal') return;
 
                 const restoreForm = e.target.querySelector('#restoreForm');
-                if (restoreForm) {
-                    restoreForm.reset();
-                }
+                if (restoreForm) restoreForm.reset();
 
                 const restoreRemaining = e.target.querySelector('#restoreRemaining');
-                if (restoreRemaining) {
-                    restoreRemaining.value = '';
-                }
+                if (restoreRemaining) restoreRemaining.value = '';
                 isSubmitting = false;
-
-                // Removed the manual backdrop/overflow cleanup.
-                // Bootstrap handles this automatically and manually
-                // removing it can cause bugs.
             });
 
             // ===================== Submit Form =====================
-            // 🚨 FIX 2 (Part C): Use event delegation for the 'submit' event
             document.addEventListener('submit', function(e) {
-                    // Only act if the event came from our specific form
-                    if (e.target.id !== 'restoreForm') {
-                        return;
-                    }
+                if (e.target.id !== 'restoreForm') return;
 
-                    // This will now reliably prevent the page refresh
-                    e.preventDefault();
-                    if (isSubmitting) return;
+                e.preventDefault();
+                if (isSubmitting) return;
 
-                    isSubmitting = true;
-                    const submitForm = e.target; // The form that was submitted
-                    const submitBtn = submitForm.querySelector('button[type="submit"]');
-                    submitBtn.disabled = true;
+                isSubmitting = true;
+                const submitForm = e.target;
+                const submitBtn = submitForm.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
 
-                    // Get values from the form that was just submitted
-                    const transactionId = submitForm.querySelector('#restoreTransactionId').value;
-                    const newPaidValue = parseFloat(submitForm.querySelector('#restorePaid').value) || 0;
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute(
-                        'content') || '';
+                const transactionId = submitForm.querySelector('#restoreTransactionId').value;
+                const newPaidValue = parseFloat(submitForm.querySelector('#restorePaid').value) || 0;
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+                    'content') || '';
 
-                    fetch(/platform/transactions / $ {
-                            transactionId
-                        }
-                        /restore, {
+                fetch(`/platform/transactions/${transactionId}/restore`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1127,57 +1172,49 @@
                             new_paid: newPaidValue
                         })
                     })
-                .then(res => res.json())
-                .then(res => {
-                    submitBtn.disabled = false;
-                    isSubmitting = false;
+                    .then(res => res.json())
+                    .then(res => {
+                        submitBtn.disabled = false;
+                        isSubmitting = false;
 
-                    // Get the modal instance to hide it
-                    const restoreModalEl = document.getElementById('restoreModal');
-                    const restoreModal = bootstrap.Modal.getInstance(restoreModalEl);
+                        const restoreModalEl = document.getElementById('restoreModal');
+                        const restoreModal = bootstrap.Modal.getInstance(restoreModalEl);
 
-                    if (res.status === 'success') {
-                        safeToastr('success', res.message || 'Transaction updated successfully');
-                        if (restoreModal) {
-                            restoreModal.hide();
-                        }
+                        if (res.status === 'success') {
+                            safeToastr('success', res.message || 'Transaction updated successfully');
+                            if (restoreModal) restoreModal.hide();
 
-                        // --- Your row-update logic (unchanged) ---
-                        if (res.data) {
-                            const updated = res.data;
-                            const newRemainingAmount = (parseFloat(updated.total) - parseFloat(updated
-                                .paid_amount)).toFixed(2);
-                            const row = document.querySelector(#transaction - row - $ {
-                                transactionId
-                            });
+                            if (res.data) {
+                                const updated = res.data;
+                                const newRemainingAmount = (parseFloat(updated.total) - parseFloat(
+                                    updated.paid_amount)).toFixed(2);
+                                const row = document.querySelector(`#transaction-row-${transactionId}`);
 
-                            if (row) {
-                                const paidCell = row.querySelector('.paid-amount');
-                                const remainingCell = row.querySelector('.remaining-amount');
-                                const restoreBtn = row.querySelector('.restore-btn');
+                                if (row) {
+                                    const paidCell = row.querySelector('.paid-amount');
+                                    const remainingCell = row.querySelector('.remaining-amount');
+                                    const restoreBtn = row.querySelector('.restore-btn');
 
-                                if (paidCell) paidCell.textContent = parseFloat(updated.paid_amount)
-                                    .toFixed(2);
-                                if (remainingCell) remainingCell.textContent = newRemainingAmount;
-                                if (restoreBtn) restoreBtn.dataset.paid = updated.paid_amount;
+                                    if (paidCell) paidCell.textContent = parseFloat(updated.paid_amount)
+                                        .toFixed(2);
+                                    if (remainingCell) remainingCell.textContent = newRemainingAmount;
+                                    if (restoreBtn) restoreBtn.dataset.paid = updated.paid_amount;
+                                }
                             }
+                        } else {
+                            safeToastr('error', res.message || 'Failed to update transaction');
                         }
-                    } else {
-                        safeToastr('error', res.message || 'Failed to update transaction');
-                    }
-                })
-                .catch(err => {
-                    console.error("Fetch Error:", err);
-                    submitBtn.disabled = false;
-                    isSubmitting = false;
+                    })
+                    .catch(err => {
+                        console.error("Fetch Error:", err);
+                        submitBtn.disabled = false;
+                        isSubmitting = false;
 
-                    const restoreModalEl = document.getElementById('restoreModal');
-                    const restoreModal = bootstrap.Modal.getInstance(restoreModalEl);
-                    if (restoreModal) {
-                        restoreModal.hide(); // Hide on catastrophic network failure
-                    }
-                    safeToastr('error', 'Network error or unhandled exception. Please try again.');
-                });
+                        const restoreModalEl = document.getElementById('restoreModal');
+                        const restoreModal = bootstrap.Modal.getInstance(restoreModalEl);
+                        if (restoreModal) restoreModal.hide();
+                        safeToastr('error', 'Network error or unhandled exception. Please try again.');
+                    });
             });
         });
     </script>
@@ -1197,8 +1234,6 @@
 
 
     <!-- ✅ Store Transaction Modal Form -->
-
-
 
 
 

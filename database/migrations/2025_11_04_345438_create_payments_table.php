@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('transaction_id'); // must match transactions.id type
             $table->decimal('paid_amount', 10, 2);
+            $table->string('type', 255);
 
-            // foreign key
-            $table->foreign('transaction_id')
-                ->references('id')
-                ->on('transactions')
-                ->onDelete('cascade');
+           
+            $table->foreign('transaction_id') ->references('id')->on('transactions')->onDelete('cascade');
+            $table->unsignedBigInteger('teacher_id');
+            $table->foreign('teacher_id') ->references('id')->on('teachers')->onDelete('cascade');
 
             $table->timestamps();
         });
