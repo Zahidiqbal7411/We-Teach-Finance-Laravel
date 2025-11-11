@@ -35,9 +35,6 @@
 
 
 
-
-
-
             </div>
         </div>
 
@@ -430,18 +427,19 @@
 @section('scripts')
     {{-- This is the teacher showing  --}}
 
+
+
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Elements
             const teacherSelect = document.getElementById('teacherSelect');
+            const sessionSelect = document.getElementById('SelectYear'); // Session dropdown
             const noTeacherSelected = document.getElementById('noTeacherSelected');
             const teacherData = document.getElementById('teacherData');
 
             const teacherNameTag = document.getElementById('teacher_name');
             const teacherModalNameTag = document.getElementById('transaction_teacher');
-
-
-
             const teacherEmailTag = document.getElementById('teacher_email');
 
             const mainTabContainer = document.getElementById('mainTabContainer');
@@ -471,19 +469,9 @@
             <th>Total Remaining</th>
             <th>Actions</th>
         </tr>`;
-            const perCourseBody = `
-        <tr>
-            <td>IB Chemistry HL</td>
-            <td>May/June 2026</td>
-            <td>1</td>
-            <td>LE 150.00</td>
-            <td>LE 75.00</td>
-            <td>LE 75.00</td>
-            <td><button class="btn btn-sm btn-dark viewCourseDetails">View</button></td>
-        </tr>`;
 
             // Utility functions
-            function showSection(target) {
+            function showSection(target, subTab = null) {
                 sections.forEach(id => {
                     const el = document.getElementById(id);
                     if (!el) return;
@@ -492,7 +480,8 @@
 
                 if (target === 'transactionsDiv') {
                     subTabContainer.style.display = 'flex';
-                    activateSub('recent');
+                    if (subTab === 'percourse') activateSub('percourse');
+                    else activateSub('recent');
                 } else {
                     subTabContainer.style.display = 'none';
                     subRecent.classList.remove('active');
@@ -516,7 +505,6 @@
                 } else if (which === 'percourse') {
                     subPerCourse.classList.add('active');
                     subRecent.classList.remove('active');
-                    switchToPerCourse();
                 }
             }
 
@@ -526,19 +514,8 @@
                 attachDeleteHandlers();
             }
 
-            function switchToPerCourse() {
-                thead.innerHTML = perCourseHead;
-                tbody.innerHTML = perCourseBody;
-
-                const viewBtn = tbody.querySelector('.viewCourseDetails');
-                if (viewBtn) {
-                    viewBtn.addEventListener('click', function() {
-                        showCourseDetails();
-                    });
-                }
-            }
-
-            function showCourseDetails() {
+            // Show course detail card
+            function showCourseDetails(course = null) {
                 let detailCard = transactionsDiv.querySelector('.detail-card-custom');
                 if (!detailCard) {
                     detailCard = document.createElement('div');
@@ -547,7 +524,9 @@
                 <div class="detail-content">
                     <h6 class="fw-semibold mb-2">Transaction Details</h6>
                     <div class="detail-body"></div>
-                    <button class="btn btn-sm btn-outline-dark mt-3 closeDetail">Close</button>
+                    <div class="text-end mt-2">
+                        <button class="btn btn-sm btn-outline-dark closeDetail">Close</button>
+                    </div>
                 </div>`;
                     transactionsDiv.querySelector('.card-body').appendChild(detailCard);
 
@@ -555,6 +534,23 @@
                         detailCard.style.display = 'none';
                     });
                 }
+
+                if (!course) course = {
+                    transactions_details: []
+                };
+
+                let rows = '';
+                (course.transactions_details || []).forEach(tx => {
+                    rows += `
+                <tr>
+                    <td>${tx.id}</td>
+                    <td>${tx.date}</td>
+                    <td>${tx.student}</td>
+                    <td>${tx.total} (${tx.currency})</td>
+                    <td>${tx.paid} (${tx.currency})</td>
+                    <td>${tx.remaining} (${tx.currency})</td>
+                </tr>`;
+                });
 
                 detailCard.querySelector('.detail-body').innerHTML = `
             <table class="table table-hover table-bordered mb-0">
@@ -569,14 +565,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>2</td>
-                        <td>10/7/2024, 4:45:00 PM</td>
-                        <td>Emma Wilson</td>
-                        <td>LE 150.00</td>
-                        <td>LE 75.00</td>
-                        <td>LE 75.00</td>
-                    </tr>
+                    ${rows || '<tr><td colspan="6" class="text-center">No transactions found</td></tr>'}
                 </tbody>
             </table>`;
                 detailCard.style.display = 'block';
@@ -595,15 +584,148 @@
                 });
             }
 
-            // Main & Sub tabs
+            // Fetch transactions for teacher
+            function fetchTransactions(teacherId, sessionId = null, currencyId = null) {
+                if (!teacherId) return;
+
+                let url = `/teachers/${teacherId}`;
+                const params = [];
+                if (sessionId) params.push(`session_id=${sessionId}`);
+                if (currencyId) params.push(`currency_id=${currencyId}`);
+                if (params.length) url += `?${params.join('&')}`;
+
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Data not found');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (teacherNameTag) teacherNameTag.textContent = data.teacher?.name || 'N/A';
+                        if (teacherEmailTag) teacherEmailTag.textContent = data.teacher?.email || 'N/A';
+                        if (teacherModalNameTag) teacherModalNameTag.value = data.teacher?.name || '';
+
+                        const teacherIdInput = document.getElementById('transaction_teacher_id');
+                        if (teacherIdInput) teacherIdInput.value = teacherId;
+
+                        tbody.innerHTML = '';
+                        const transactions = data.transactions || [];
+                        transactions.forEach(tx => {
+                            tbody.innerHTML += `
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>${tx.id}</td>
+                            <td>${tx.date}</td>
+                            <td>${tx.course}</td>
+                            <td>${tx.session}</td>
+                            <td>${tx.student}</td>
+                            <td>${tx.parent}</td>
+                            <td>${tx.total} (${tx.currency})</td>
+                            <td>${tx.paid} (${tx.currency})</td>
+                            <td>${tx.remaining} (${tx.currency})</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-danger">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                        });
+
+                        attachDeleteHandlers();
+
+                        const totalsSection = document.getElementById('teacherTotals');
+                        if (totalsSection && data.totals) {
+                            const t = data.totals;
+                            totalsSection.innerHTML = `
+                        <div class="card border-0 shadow-sm mt-3 p-3">
+                            <h6 class="fw-semibold mb-2">Totals (${t.currency})</h6>
+                            <div class="row text-center">
+                                <div class="col-md-4">
+                                    <span class="fw-bold text-dark">Total:</span>
+                                    <span>${t.total}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="fw-bold text-success">Paid:</span>
+                                    <span>${t.paid}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="fw-bold text-danger">Remaining:</span>
+                                    <span>${t.remaining}</span>
+                                </div>
+                            </div>
+                        </div>`;
+                        }
+                    })
+                    .catch(err => console.error('Error fetching teacher data:', err));
+            }
+
+            // Per Course sub-tab
+            subPerCourse.addEventListener('click', () => {
+                const teacherIdInput = document.getElementById('transaction_teacher_id');
+                const teacherId = teacherIdInput ? teacherIdInput.value : null;
+                const sessionId = sessionSelect ? sessionSelect.value : null;
+
+                if (!teacherId) return alert('Please select a teacher first');
+
+                activateSub('percourse');
+                thead.innerHTML = perCourseHead;
+                tbody.innerHTML = '';
+
+                let url = `/teachers/${teacherId}/percourse`;
+                if (sessionId) url += `?session_id=${sessionId}`;
+
+                fetch(url)
+                    .then(resp => resp.json())
+                    .then(data => {
+                        const courses = data.courses || [];
+                        console.log(courses);
+                        if (courses.length === 0) {
+                            tbody.innerHTML =
+                                `<tr><td colspan="7" class="text-center">No courses found</td></tr>`;
+                            return;
+                        }
+
+                        courses.forEach((course, idx) => {
+                            tbody.innerHTML += `
+                        <tr class="course-row" data-idx="${idx}">
+                            <td>${course.name}</td>
+                            <td>${course.session}</td>
+                            <td>${course.transactions}</td>
+                            <td>${course.total_amount}</td>
+                            <td>${course.total_paid}</td>
+                            <td>${course.total_remaining}</td>
+                            <td>
+                                <button class="btn btn-sm btn-dark viewCourseDetails" data-idx="${idx}">View</button>
+                            </td>
+                        </tr>`;
+                        });
+
+                        // View buttons
+                        tbody.querySelectorAll('.viewCourseDetails').forEach(btn => {
+                            btn.addEventListener('click', e => {
+                                e.stopPropagation();
+                                const idx = btn.dataset.idx;
+                                showCourseDetails(courses[idx]);
+                            });
+                        });
+
+                        // Row click
+                        tbody.querySelectorAll('.course-row').forEach(row => {
+                            row.addEventListener('click', () => {
+                                const idx = row.dataset.idx;
+                                showCourseDetails(courses[idx]);
+                            });
+                        });
+                    })
+                    .catch(err => console.error('Error fetching per-course data:', err));
+            });
+
+            // Main tab & Recent tab
             mainTabBtns.forEach(btn => btn.addEventListener('click', () => activateMainTab(btn)));
             subRecent.addEventListener('click', () => activateSub('recent'));
-            subPerCourse.addEventListener('click', () => activateSub('percourse'));
 
-            // Teacher selection change: fetch JSON
+            // Teacher selection
             teacherSelect.addEventListener('change', function() {
                 const teacherId = this.value;
-
                 if (!teacherId) {
                     noTeacherSelected.style.display = 'block';
                     teacherData.style.display = 'none';
@@ -614,83 +736,74 @@
                 noTeacherSelected.style.display = 'none';
                 teacherData.style.display = 'block';
 
-                // Activate Transactions tab
                 const transBtn = Array.from(mainTabBtns).find(b => b.dataset.target === 'transactionsDiv');
                 activateMainTab(transBtn || mainTabBtns[0]);
 
-                // Fetch teacher data via JSON
-                fetch(`/teachers/${teacherId}`)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Teacher not found');
-                        return response.json();
-                    })
-
-                    .then(data => {
-                        // Update profile
-                        if (teacherNameTag) teacherNameTag.textContent = data.name;
-                        if (teacherEmailTag) teacherEmailTag.textContent = data.email;
-
-                        // Update modal teacher name (transaction_teacher select)
-
-                        if (teacherModalNameTag) {
-                            teacherModalNameTag.value = data.name;
-                        }
-                        // Set hidden teacher ID
-                        const teacherIdInput = document.getElementById('transaction_teacher_id');
-                        if (teacherIdInput) {
-                            teacherIdInput.value = data.id;
-                        }
-                        const sessionIdInput = document.getElementById('transaction_session_id');
-                        if (sessionrIdInput) {
-                            sessionIdInput.value = data.id;
-                        }
-
-
-
-
-                        // Update stats
-                        const stats = teacherData.querySelectorAll('.row .card-body');
-                        if (stats[0]) stats[0].querySelector('h5').textContent = data.current_balance;
-                        if (stats[1]) stats[1].querySelector('h5').textContent = data.total_paid;
-                        if (stats[2]) stats[2].querySelector('h5').textContent = data.total_earned;
-
-                        // Update transactions
-                        tbody.innerHTML = '';
-                        data.transactions.forEach(tx => {
-                            tbody.innerHTML += `
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>${tx.id}</td>
-                            <td>${tx.date}</td>
-                            <td>${tx.course}</td>
-                            <td>${tx.session}</td>
-                            <td>${tx.student}</td>
-                            <td>${tx.parent}</td>
-                            <td>${tx.total}</td>
-                            <td>${tx.paid}</td>
-                            <td>${tx.remaining}</td>
-                            <td class="text-end">
-                                <button class="btn btn-sm btn-outline-danger">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>`;
-                        });
-
-                        attachDeleteHandlers();
-                    })
-                    .catch(err => console.error('Error fetching teacher data:', err));
+                const sessionId = sessionSelect ? sessionSelect.value : null;
+                const currencyId = document.getElementById('currencySelect')?.value || null;
+                fetchTransactions(teacherId, sessionId, currencyId);
             });
+
+            // Session selection
+            if (sessionSelect) {
+                sessionSelect.addEventListener('change', function() {
+                    const sessionId = this.value;
+                    const teacherIdInput = document.getElementById('transaction_teacher_id');
+                    const teacherId = teacherIdInput ? teacherIdInput.value : null;
+                    const currencyId = document.getElementById('currencySelect')?.value || null;
+                    fetchTransactions(teacherId, sessionId, currencyId);
+                });
+            }
+
+            // Currency selection
+            const currencySelect = document.getElementById('currencySelect');
+            if (currencySelect) {
+                currencySelect.addEventListener('change', function() {
+                    const teacherIdInput = document.getElementById('transaction_teacher_id');
+                    const teacherId = teacherIdInput ? teacherIdInput.value : null;
+                    const sessionId = sessionSelect ? sessionSelect.value : null;
+                    const currencyId = this.value;
+
+                    if (!teacherId) return alert('Please select a teacher first');
+
+                    fetchTransactions(teacherId, sessionId, currencyId);
+                });
+            }
 
             // Initial state
             subTabContainer.style.display = 'none';
             attachDeleteHandlers();
+
+            // Auto-fetch if teacher pre-selected
+            if (teacherSelect && teacherSelect.value) {
+                const teacherId = teacherSelect.value;
+                const sessionId = sessionSelect ? sessionSelect.value : null;
+                const currencyId = document.getElementById('currencySelect')?.value || null;
+                fetchTransactions(teacherId, sessionId, currencyId);
+            }
+
+            // Fetch for Transactions tab & Recent sub-tab
+            const transactionTab = document.querySelector(
+                '#mainTabContainer .tab-btn[data-target="transactionsDiv"]');
+
+            function fetchForSelectedTeacher() {
+                const teacherIdInput = document.getElementById('transaction_teacher_id');
+                const teacherId = teacherIdInput ? teacherIdInput.value : null;
+                const sessionId = sessionSelect ? sessionSelect.value : null;
+                const currencyId = document.getElementById('currencySelect')?.value || null;
+                if (!teacherId) return;
+                fetchTransactions(teacherId, sessionId, currencyId);
+            }
+
+            if (transactionTab) transactionTab.addEventListener('click', fetchForSelectedTeacher);
+            if (subRecent) subRecent.addEventListener('click', fetchForSelectedTeacher);
         });
     </script>
 
 
-    {{-- This is the script for currency update --}}
 
+
+    {{-- This is the script for currency update --}}
 
     <script>
         $(document).ready(function() {
@@ -718,9 +831,6 @@
                         default_currency: selectedCurrencyId,
                         _token: csrfToken
                     },
-                    beforeSend: function() {
-                        toastr.clear();
-                    },
                     success: function(res) {
                         if (res.success) {
                             // Update hidden inputs in modal
@@ -732,23 +842,11 @@
 
                             // Keep select updated
                             $('#currencySelect').val(selectedCurrencyId);
-
-                            toastr.clear();
-                            setTimeout(() => {
-                                toastr.success('✅ Currency updated successfully!');
-                            }, 200);
-                        } else {
-                            toastr.clear();
-                            setTimeout(() => {
-                                toastr.error('❌ Something went wrong.');
-                            }, 200);
                         }
                     },
                     error: function() {
-                        toastr.clear();
-                        setTimeout(() => {
-                            toastr.error('❌ Server error. Please try again.');
-                        }, 200);
+                        // Optional: handle server error silently or with console
+                        console.error('Server error. Please try again.');
                     }
                 });
             });
@@ -759,6 +857,7 @@
             });
         });
     </script>
+
 
 
     {{-- This is the script of teacher  modal --}}
@@ -857,6 +956,4 @@
             });
         });
     </script>
-
-   
 @endsection

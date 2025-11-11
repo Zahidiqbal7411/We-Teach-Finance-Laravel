@@ -11,7 +11,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\Taxonomies_settingController;
 use App\Http\Controllers\Teacher_settingController;
 use Illuminate\Support\Facades\Route;
-use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
+
 
 Route::get('/', function () {
     return view('dashboard.index');
@@ -31,10 +31,10 @@ Route::middleware('auth')->group(function () {
 // Route::post('/form/delete/{id}',[FormdataController::class ,'delete'])->name('form.delete');
 
 
-Route::resource('teacher', TeacherController::class);
-Route::resource('platform', PlatformController::class);
-Route::resource('report', ReportController::class);
-Route::resource('setting', SettingController::class);
+
+Route::get('/platform/create',[ PlatformController::class , 'create'])->name('platform.create');
+Route::get('/report/create', [ReportController::class ,'create' ])->name('report.create');
+Route::get('/setting/create',[ SettingController::class , 'create'])->name('setting.create');
 
 Route::get('teacher_setting/create', [SettingController::class , 'create'])->name('teacher_setting.create');
 Route::get('taxonomies_setting/create', [SettingController::class , 'create'])->name('taxonomies_setting.create');
@@ -71,10 +71,13 @@ Route::get('taxonomies/sessions/index' ,[Taxonomies_settingController::class , '
 Route::delete('taxonomies/sessions/delete/{id}' ,[Taxonomies_settingController::class , 'delete_sessions'])->name('taxonomies_sessions.delete');
 
 // this is the routes  for teacher section
+Route::get('/teacher/create', [TeacherController::class , 'create' ])->name('teacher.create');
 Route::post('taxonomies/teacher/store' ,[Teacher_settingController::class , 'store_teacher'])->name('teacher_setting.store');
 Route::get('taxonomies/teacher/index', [Teacher_settingController::class, 'index_teacher']) ->name('teacher_setting.index');
 Route::get('/teachers/{id}', [TeacherController::class, 'getTeacherData']);
 Route::post('/transactions/store', [TeacherController::class, 'store'])->name('transactions.store');
+Route::get('/teachers/{teacher}/percourse', [TeacherController::class, 'getPerCourseTransactions'])->name('teachers.percourse');
+
 
 
 // This is the route for course 

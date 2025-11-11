@@ -11,4 +11,8 @@ class Taxonomies_sessions extends Model
    public function transaction(){
       return $this->belongsTo(Transaction::class,'session_id');
    }
+   public function transactions() {
+    return $this->hasMany(Transaction::class, 'session_id');
+}
+
 }

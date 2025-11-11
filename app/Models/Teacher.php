@@ -8,13 +8,16 @@ class Teacher extends Model
 {
     protected $fillable = ['teacher_name', 'teacher_contact', 'teacher_email', 'teacher_other_info'];
 
+    public function courses()
+    {
+        return $this->belongsToMany(
+            Course::class,
+            'teacher_courses', // pivot table
+            'teacher_id',      // foreign key on pivot table
+            'course_id'        // related key
+        )->withPivot('teacher_percentage');
+    }
 
-    public function courses() {
-    return $this->hasMany(TeacherCourse::class, 'teacher_id');
-}
- public function transaction (){
-    return $this->belongsTo(Transaction::class,'teacher_id');
- }
 
  public function transactions()
 {
