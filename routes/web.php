@@ -77,6 +77,11 @@ Route::get('taxonomies/teacher/index', [Teacher_settingController::class, 'index
 Route::get('/teachers/{id}', [TeacherController::class, 'getTeacherData']);
 Route::post('/transactions/store', [TeacherController::class, 'store'])->name('transactions.store');
 Route::get('/teachers/{teacher}/percourse', [TeacherController::class, 'getPerCourseTransactions'])->name('teachers.percourse');
+// routes/web.php
+  Route::post('/transactions/restore', [TeacherController::class, 'restore'])->name('transactions.restore');
+Route::post('/transactions/restore-percourse', [TeacherController::class, 'restorePerCourse'])->name('transactions.restore-percourse');
+  
+
 
 
 

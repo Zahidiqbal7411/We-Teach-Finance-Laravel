@@ -170,66 +170,76 @@ class TeacherController extends Controller
 
 
 
+
+
+
+
     public function getPerCourseTransactions($teacherId, Request $request)
     {
         $sessionId = $request->query('session_id');
         $currencyId = $request->query('currency_id');
 
-        // ✅ Find teacher
+        // Default currency
+        $defaultCurrencyId = Setting::find(6)?->value;
+        $defaultCurrency = Currency::find($defaultCurrencyId);
+        if (!$currencyId) $currencyId = $defaultCurrencyId;
+
         $teacher = Teacher::find($teacherId);
         if (!$teacher) {
             return response()->json(['error' => 'Teacher not found'], 404);
         }
 
-        // ✅ Get teacher courses with filtered transactions
-        $courses = $teacher->courses()
-            ->with(['transactions' => function ($query) use ($sessionId, $currencyId) {
-                $query->with(['session', 'currency'])
-                    ->whereHas('payments', function ($q) {
-                        $q->where('type', 'teacher'); // Only include transactions where teacher is paid
-                    });
+        // Get teacher courses that have transactions for the selected session
+        // Use a database-level query (whereHas) rather than filtering an in-memory
+        // collection. This is more reliable and efficient for large datasets.
+        $courses = Course::whereHas('transactions', function ($q) use ($teacherId, $sessionId, $currencyId) {
+            $q->where('teacher_id', $teacherId)
+                ->when($sessionId, fn($q2) => $q2->where('session_id', $sessionId))
+                ->when($currencyId, fn($q2) => $q2->where('selected_currency', $currencyId))
+                ->whereHas('payments', fn($q3) => $q3->where('type', 'teacher'));
+        })->get();
 
-                if ($sessionId) {
-                    $query->where('session_id', $sessionId);
-                }
-
-                if ($currencyId) {
-                    $query->where('selected_currency', $currencyId);
-                }
-            }])
-            ->get();
-
-        // ✅ Compute totals per course
-        $coursesData = $courses->map(function ($course) {
-            $transactions = $course->transactions;
+        // Map courses to compute totals
+        $coursesData = $courses->map(function ($course) use ($sessionId, $currencyId, $defaultCurrency) {
+            $transactions = $course->transactions()
+                ->with(['session', 'currency', 'payments'])
+                ->whereHas('payments', function ($q) {
+                    $q->where('type', 'teacher');
+                })
+                ->when($sessionId, fn($q) => $q->where('session_id', $sessionId))
+                ->when($currencyId, fn($q) => $q->where('selected_currency', $currencyId))
+                ->get();
 
             $total = $transactions->sum('total');
-            $paid = $transactions->sum('paid_amount');
-            $remaining = $transactions->sum(fn($tx) => $tx->total - $tx->paid_amount);
+            $paid = $transactions->sum(fn($tx) => $tx->payments->sum('paid_amount'));
+            $remaining = $total - $paid;
+
+            $displayCurrency = $transactions->first()?->currency?->currency_name ?? $defaultCurrency?->currency_name ?? 'N/A';
 
             return [
                 'id' => $course->id,
                 'name' => $course->course_title ?? 'N/A',
                 'session' => $transactions->first()?->session?->session_title ?? 'N/A',
                 'transactions' => $transactions->count(),
-                'total_amount' => number_format($total, 2),
-                'total_paid' => number_format($paid, 2),
-                'total_remaining' => number_format($remaining, 2),
-                'transactions_details' => $transactions->map(function ($tx) {
+                'total_amount' => number_format($total, 2) . ' ' . $displayCurrency,
+                'total_paid' => number_format($paid, 2) . ' ' . $displayCurrency,
+                'total_remaining' => number_format($remaining, 2) . ' ' . $displayCurrency,
+                'transactions_details' => $transactions->map(function ($tx) use ($defaultCurrency) {
+                    $txPaid = $tx->payments->sum('paid_amount');
+                    $displayCurrency = $tx->currency?->currency_name ?? $defaultCurrency?->currency_name ?? 'N/A';
                     return [
                         'id' => $tx->id,
                         'date' => $tx->created_at?->format('d/m/Y, g:i:s A') ?? 'N/A',
                         'student' => $tx->student_name ?? 'N/A',
-                        'currency' => $tx->currency?->currency_name ?? 'N/A',
-                        'total' => number_format($tx->total ?? 0, 2),
-                        'paid' => number_format($tx->paid_amount ?? 0, 2),
-                        'remaining' => number_format(($tx->total - $tx->paid_amount) ?? 0, 2),
+                        'currency' => $displayCurrency,
+                        'total' => number_format($tx->total ?? 0, 2) . ' ' . $displayCurrency,
+                        'paid' => number_format($txPaid, 2) . ' ' . $displayCurrency,
+                        'remaining' => number_format(($tx->total - $txPaid) ?? 0, 2) . ' ' . $displayCurrency,
                     ];
                 }),
             ];
         });
 
-        // ✅ Return clean JSON
         return response()->json([
             'teacher' => [
                 'id' => $teacher->id,
@@ -242,5 +252,271 @@ class TeacherController extends Controller
             ],
             'courses' => $coursesData,
         ]);
+    }
+
+    // Restore recent transaction
+    // Restore recent transaction
+
+
+
+    // public function restore(Request $request)
+    // {
+
+       
+    //     $request->validate([
+    //         'transaction_id' => 'required|integer|exists:transactions,id',
+    //         'new_paid' => 'required|numeric|min:0',
+    //     ]);
+
+    //     $transaction = Transaction::findOrFail($request->transaction_id);
+
+    //     // Check if this transaction is for a teacher
+    //     $payment = Payment::where('transaction_id', $transaction->id)
+    //         ->where('type', 'teacher')
+    //         ->first();
+
+    //     if (!$payment) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'This transaction is not for a teacher.'
+    //         ]);
+    //     }
+
+    //     // Prevent fully paid
+    //     // if ($transaction->paid_amount = $transaction->total) {
+    //     //     return response()->json([
+    //     //         'success' => false,
+    //     //         'message' => 'Transaction already fully paid!'
+    //     //     ]);
+    //     // }
+
+    //     $payable = $transaction->total - $transaction->paid_amount;
+    //     $toPay = min($request->new_paid, $payable);
+     
+    //     $transaction->paid_amount += $toPay;
+    //     $transaction->save();
+
+    //     $remaining = $transaction->total - $transaction->paid_amount;
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'paid' => $transaction->paid_amount,
+    //         'remaining' => $remaining
+    //     ]);
+    // }
+
+    // public function restorePerCourse(Request $request)
+    // {
+    
+    //     $request->validate([
+    //         'transaction_id' => 'required|integer|exists:transactions,id',
+    //         'new_paid' => 'required|numeric|min:0',
+    //     ]);
+
+    //     $transaction = Transaction::findOrFail($request->transaction_id);
+
+    //     $payment = Payment::where('transaction_id', $transaction->id)
+    //         ->where('type', 'teacher')
+    //         ->first();
+
+    //     if (!$payment) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'This transaction is not for a teacher.'
+    //         ]);
+    //     }
+
+    //     // if ($transaction->paid_amount = $transaction->total) {
+    //     //     return response()->json([
+    //     //         'success' => false,
+    //     //         'message' => 'Transaction already fully paid!'
+    //     //     ]);
+    //     // }
+
+    //     $payable = $transaction->total - $transaction->paid_amount;
+    //     $toPay = min($request->new_paid, $payable);
+
+    //     $transaction->paid_amount += $toPay;
+    //     $transaction->save();
+
+    //     $remaining = $transaction->total - $transaction->paid_amount;
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'paid' => $transaction->paid_amount,
+    //         'remaining' => $remaining
+    //     ]);
+    // }
+ public function restore(Request $request)
+    {
+        \Log::info('Restore called', $request->all());
+
+        // Validate input
+        $validated = $request->validate([
+            'transaction_id' => 'required|integer|exists:transactions,id',
+            'new_paid' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            // Find transaction
+            $transaction = Transaction::findOrFail($validated['transaction_id']);
+
+            // Verify this is a teacher transaction
+            $payment = Payment::where('transaction_id', $transaction->id)
+                ->where('type', 'teacher')
+                ->first();
+
+            if (!$payment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This transaction is not for a teacher.'
+                ], 400);
+            }
+
+            // Get payable amount
+            $payable = $transaction->total - $transaction->paid_amount;
+
+            if ($payable <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transaction already fully paid!'
+                ], 400);
+            }
+
+            // Calculate amount to pay (cannot exceed remaining balance)
+            $toPay = min($validated['new_paid'], $payable);
+
+            // IMPORTANT: Update the database
+            $transaction->paid_amount = $transaction->paid_amount + $toPay;
+            $transaction->save();
+
+            // Persist the payment so totals computed from payments remain correct
+            Payment::create([
+                'teacher_id' => $transaction->teacher_id,
+                'transaction_id' => $transaction->id,
+                'type' => 'teacher',
+                'paid_amount' => $toPay,
+            ]);
+
+            // Refresh from database to ensure we have latest values
+            $transaction->refresh();
+
+            $remaining = $transaction->total - $transaction->paid_amount;
+
+            \Log::info('Transaction updated', [
+                'id' => $transaction->id,
+                'paid_amount' => $transaction->paid_amount,
+                'remaining' => $remaining
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Transaction updated successfully',
+                'paid' => $transaction->paid_amount,
+                'remaining' => $remaining,
+                'transaction' => [
+                    'id' => $transaction->id,
+                    'total' => $transaction->total,
+                    'paid' => $transaction->paid_amount,
+                    'remaining' => $remaining
+                ]
+            ], 200);
+
+        } catch (\Exception $err) {
+            \Log::error('Restore error: ' . $err->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $err->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Restore per-course transaction payment
+     */
+    public function restorePerCourse(Request $request)
+    {
+        \Log::info('RestorePerCourse called', $request->all());
+
+        // Validate input
+        $validated = $request->validate([
+            'transaction_id' => 'required|integer|exists:transactions,id',
+            'new_paid' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            // Find transaction
+            $transaction = Transaction::findOrFail($validated['transaction_id']);
+
+            // Verify this is a teacher transaction
+            $payment = Payment::where('transaction_id', $transaction->id)
+                ->where('type', 'teacher')
+                ->first();
+
+            if (!$payment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This transaction is not for a teacher.'
+                ], 400);
+            }
+
+            // Get payable amount
+            $payable = $transaction->total - $transaction->paid_amount;
+
+            if ($payable <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transaction already fully paid!'
+                ], 400);
+            }
+
+            // Calculate amount to pay (cannot exceed remaining balance)
+            $toPay = min($validated['new_paid'], $payable);
+
+            // IMPORTANT: Update the database
+            $transaction->paid_amount = $transaction->paid_amount + $toPay;
+            $transaction->save();
+
+            // Persist the payment for per-course restores as well
+            Payment::create([
+                'teacher_id' => $transaction->teacher_id,
+                'transaction_id' => $transaction->id,
+                'type' => 'teacher',
+                'paid_amount' => $toPay,
+            ]);
+
+            // Refresh from database to ensure we have latest values
+            $transaction->refresh();
+
+            $remaining = $transaction->total - $transaction->paid_amount;
+
+            \Log::info('Per-course transaction updated', [
+                'id' => $transaction->id,
+                'paid_amount' => $transaction->paid_amount,
+                'remaining' => $remaining
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Per-course transaction updated successfully',
+                'paid' => $transaction->paid_amount,
+                'remaining' => $remaining,
+                'transaction' => [
+                    'id' => $transaction->id,
+                    'total' => $transaction->total,
+                    'paid' => $transaction->paid_amount,
+                    'remaining' => $remaining
+                ]
+            ], 200);
+
+        } catch (\Exception $err) {
+            \Log::error('RestorePerCourse error: ' . $err->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $err->getMessage()
+            ], 500);
+        }
     }
 }
