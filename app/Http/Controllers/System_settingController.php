@@ -42,35 +42,19 @@ class System_settingController extends Controller
 
     public function currency_update(Request $request)
     {
-        $currencyId = $request->input('default_currency');
+        $id = $request->input('default_currency'); // Get the selected currency ID
 
-        if (!$currencyId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No currency selected.'
-            ]);
-        }
+        // Reset all currencies
+        Currency::query()->update(['selected_currency' => 0]);
 
-        // ✅ Find ID=6 row directly
-        $setting = Setting::find(6);
-
-        if (!$setting) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Setting record not found (id=6).'
-            ]);
-        }
-
-        // ✅ Update the value column only
-        $setting->value = $currencyId;
-        $setting->save();
+        // Set the selected currency
+        Currency::where('id', $id)->update(['selected_currency' => 1]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Default currency updated successfully!'
+            'message' => 'Default currency updated successfully!',
         ]);
     }
-
 
 
 

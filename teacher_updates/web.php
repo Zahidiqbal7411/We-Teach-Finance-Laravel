@@ -14,13 +14,8 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', function () {
-    return redirect()->route('dashboard');
-});
-
-
-Route::get('/dashboard', [DashboardController::class, 'create'])->name('dashboard');
-
-
+    return view('dashboard.index');
+})->name('dashboard');
 
 
 
@@ -28,8 +23,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
 });
+
 // Route::post('/form/store' ,[FormdataController::class ,'store'])->name('form.submit');
 // Route::post('/form' ,[FormdataController::class ,'index']);
 // Route::get('/form/{id}/edit',[FormdataController::class ,'edit'])->name('form.edit');

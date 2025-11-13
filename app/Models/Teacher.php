@@ -18,6 +18,13 @@ class Teacher extends Model
         )->withPivot('teacher_percentage');
     }
 
+    // Pivot entries (teacher_courses) as a relation so controllers can eager-load
+    // pivot rows (with their ID and teacher_percentage) and the related course.
+    public function teacherCourses()
+    {
+        return $this->hasMany(TeacherCourse::class, 'teacher_id');
+    }
+
 
  public function transactions()
 {

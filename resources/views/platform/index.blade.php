@@ -554,6 +554,7 @@
                 } else {
                     console.log(`TOAST ${type.toUpperCase()}: ${msg}`);
                 }
+
             }
 
             // ===================== FORM REMAINING CALC =====================
@@ -792,7 +793,7 @@
                     e.target.value = newPaid.toFixed(2); // Fix input value to max remaining
                     safeToastr('warning',
                         `Payment cannot exceed the remaining balance of ${remainingBalance.toFixed(2)}.`
-                        );
+                    );
                 }
 
                 e.target.value = newPaid.toFixed(2);
@@ -921,7 +922,7 @@
 
                 if (!confirm(
                         `Are you sure you want to delete Transaction #${transactionId}? This action cannot be undone.`
-                        )) {
+                    )) {
                     return;
                 }
 
@@ -989,7 +990,7 @@
                             setTimeout(() => {
                                 toastr.success(
                                     '✅ Currency updated successfully! Reloading transactions...'
-                                    );
+                                );
                                 // Reload transactions to reflect new currency symbol/name
                                 if (window.loadPlatformTransactions) {
                                     window.loadPlatformTransactions();

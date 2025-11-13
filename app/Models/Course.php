@@ -40,4 +40,7 @@ class Course extends Model
     {
         return $this->belongsTo(Taxonomies_examination_boards::class, 'exam_board_id');
     }
+       public function teacherCourses() {
+    return $this->hasMany(TeacherCourse::class, 'course_id');
+}
 }

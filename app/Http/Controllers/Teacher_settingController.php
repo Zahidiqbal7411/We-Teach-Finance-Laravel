@@ -45,12 +45,36 @@ class Teacher_settingController extends Controller
 
     public function index_teacher(Request $request)
 {
-    $teachers = Teacher::with(['courses.course.subject'])->get();
+        // Eager-load the pivot entries (teacher_courses) and the related course + nested relations
+        $teachers = Teacher::with([
+            'teacherCourses.course.subject',
+            'teacherCourses.course.eduSystem',
+            'teacherCourses.course.examBoard'
+        ])->get();
 
-    return response()->json([
-        'success' => true,
-        'data' => $teachers
-    ]);
+        // Transform so frontend gets `courses` array (matching existing client-side code)
+        $payload = $teachers->map(function ($t) {
+            return [
+                'id' => $t->id,
+                'teacher_name' => $t->teacher_name,
+                'teacher_email' => $t->teacher_email,
+                'teacher_contact' => $t->teacher_contact,
+                'teacher_other_info' => $t->teacher_other_info,
+                // expose pivot rows as `courses` (each has id, teacher_percentage and `course` relation)
+                'courses' => $t->teacherCourses->map(function ($pc) {
+                    return [
+                        'id' => $pc->id,
+                        'teacher_percentage' => $pc->teacher_percentage,
+                        'course' => $pc->course,
+                    ];
+                })->values(),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $payload
+        ]);
 }
 
 

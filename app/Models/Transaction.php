@@ -11,7 +11,9 @@ class Transaction extends Model
 {
     protected $fillable = [
         'teacher_id', 'course_id', 'session_id',
-        'student_name', 'parent_name', 'total', 'paid_amount' ,'selected_currency'
+        'student_name', 'parent_name', 'total', 'paid_amount' ,'selected_currency',
+        // amounts (these columns exist in your DB)
+        'teacher_amount', 'platform_amount'
     ];
 
     public function teacher() {
