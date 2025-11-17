@@ -16,11 +16,8 @@ class PlatformController extends Controller
 {
     public function create()
     {
-        // Fetch default currency
-        $currency_data = Setting::find(6);
-        $selected_currency_id = $currency_data ? intval($currency_data->value) : null;
-
-        // Fetch related data
+        // Fetch currency
+        $currency_data = Setting::find(3);
         $subject_datas = Course::all();
         $teacher_datas = Teacher::all();
         $session_datas = Taxonomies_sessions::all();

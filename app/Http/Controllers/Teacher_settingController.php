@@ -44,14 +44,14 @@ class Teacher_settingController extends Controller
 
 
     public function index_teacher(Request $request)
-    {
-        $teachers = Teacher::with(['courses.course.subject'])->get();
+{
+    $teachers = Teacher::with(['courses.course.subject'])->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $teachers
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'data' => $teachers
+    ]);
+}
 
 
 
