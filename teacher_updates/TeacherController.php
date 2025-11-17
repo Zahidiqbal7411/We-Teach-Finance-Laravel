@@ -14,18 +14,6 @@ use App\Models\TeacherCourse;
 
 class TeacherController extends Controller
 {
-    public function index()
-    {
-        $session_datas = Taxonomies_sessions::all();
-        $currency_datas = Currency::all();
-        $teacher_datas = Teacher::all();
-        $subject_datas = Course::all();
-        $currencyId = Setting::find(6)?->value;
-        $currentCurrency = $currencyId ? Currency::find($currencyId) : null;
-
-        return view('teacher.index', get_defined_vars());
-    }
-
     public function create()
     {
         $session_datas = Taxonomies_sessions::all();
@@ -34,8 +22,7 @@ class TeacherController extends Controller
 
         $subject_datas = Course::all();
         $teacher_datas = Teacher::all();
-        $currencyId = Setting::find(6)?->value;
-        $currentCurrency = $currencyId ? Currency::find($currencyId) : null;
+        $currentCurrency = Currency::find(Setting::find(6)?->value);
 
         return view('teacher.index', get_defined_vars());
     }
@@ -57,13 +44,13 @@ class TeacherController extends Controller
         ]);
 
         $teacherPercentage = Course::find($request->course)
-            ->teacherCourses()
-            ->where('teacher_id', $request->teacher_id)
-            ->first()?->teacher_percentage ?? 0;
-
-        // Calculate amounts
-        $teacherAmount = $request->total * ($teacherPercentage / 100);
-        $platformAmount = $request->total - $teacherAmount;
+                ->teacherCourses()
+                ->where('teacher_id', $request->teacher_id)
+                ->first()?->teacher_percentage ?? 0;
+              
+            // Calculate amounts
+            $teacherAmount = $request->total * ($teacherPercentage / 100);
+            $platformAmount = $request->total - $teacherAmount;
 
 
         $currentCurrency = Currency::find(Setting::find(6)?->value);
@@ -72,7 +59,7 @@ class TeacherController extends Controller
             'course_id' => $request->course,
             'student_name' => $request->student_name,
             'parent_name' => $request->parent_name,
-            'selected_currency'  => $currentCurrency?->id,
+            'selected_currency'  => $currentCurrency->id,
             'total' => $request->total,
             'paid_amount' => $request->paid_amount,
             'remaining' => $request->remaining,
@@ -139,12 +126,12 @@ class TeacherController extends Controller
             if ($tx->teacher_amount && $tx->teacher_amount > 0) {
                 return $tx->teacher_amount;
             }
-
+            
             // Fallback: Calculate from course teacher percentage
             $teacherPercentage = $tx->course->teacherCourses()
                 ->where('teacher_id', $tx->teacher_id)
                 ->first()?->teacher_percentage ?? 0;
-
+            
             return $tx->total * ($teacherPercentage / 100);
         });
 
@@ -256,15 +243,15 @@ class TeacherController extends Controller
             if ($tx->teacher_amount && $tx->teacher_amount > 0) {
                 return $tx->teacher_amount;
             }
-
+            
             // Fallback: Calculate from course teacher percentage
             $teacherPercentage = $tx->course->teacherCourses()
                 ->where('teacher_id', $tx->teacher_id)
                 ->first()?->teacher_percentage ?? 0;
-
+            
             return $tx->total * ($teacherPercentage / 100);
         });
-
+        
         $paidBefore = $allTransactions->sum(function ($tx) {
             return $tx->payments->where('type', 'teacher')->sum('paid_amount');
         });
@@ -344,8 +331,100 @@ class TeacherController extends Controller
         ]);
     }
 
+    // Restore recent transaction
+    // Restore recent transaction
 
-    public function restore(Request $request)
+
+
+    // public function restore(Request $request)
+    // {
+
+       
+    //     $request->validate([
+    //         'transaction_id' => 'required|integer|exists:transactions,id',
+    //         'new_paid' => 'required|numeric|min:0',
+    //     ]);
+
+    //     $transaction = Transaction::findOrFail($request->transaction_id);
+
+    //     // Check if this transaction is for a teacher
+    //     $payment = Payment::where('transaction_id', $transaction->id)
+    //         ->where('type', 'teacher')
+    //         ->first();
+
+    //     if (!$payment) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'This transaction is not for a teacher.'
+    //         ]);
+    //     }
+
+    //     // Prevent fully paid
+    //     // if ($transaction->paid_amount = $transaction->total) {
+    //     //     return response()->json([
+    //     //         'success' => false,
+    //     //         'message' => 'Transaction already fully paid!'
+    //     //     ]);
+    //     // }
+
+    //     $payable = $transaction->total - $transaction->paid_amount;
+    //     $toPay = min($request->new_paid, $payable);
+     
+    //     $transaction->paid_amount += $toPay;
+    //     $transaction->save();
+
+    //     $remaining = $transaction->total - $transaction->paid_amount;
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'paid' => $transaction->paid_amount,
+    //         'remaining' => $remaining
+    //     ]);
+    // }
+
+    // public function restorePerCourse(Request $request)
+    // {
+    
+    //     $request->validate([
+    //         'transaction_id' => 'required|integer|exists:transactions,id',
+    //         'new_paid' => 'required|numeric|min:0',
+    //     ]);
+
+    //     $transaction = Transaction::findOrFail($request->transaction_id);
+
+    //     $payment = Payment::where('transaction_id', $transaction->id)
+    //         ->where('type', 'teacher')
+    //         ->first();
+
+    //     if (!$payment) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'This transaction is not for a teacher.'
+    //         ]);
+    //     }
+
+    //     // if ($transaction->paid_amount = $transaction->total) {
+    //     //     return response()->json([
+    //     //         'success' => false,
+    //     //         'message' => 'Transaction already fully paid!'
+    //     //     ]);
+    //     // }
+
+    //     $payable = $transaction->total - $transaction->paid_amount;
+    //     $toPay = min($request->new_paid, $payable);
+
+    //     $transaction->paid_amount += $toPay;
+    //     $transaction->save();
+
+    //     $remaining = $transaction->total - $transaction->paid_amount;
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'paid' => $transaction->paid_amount,
+    //         'remaining' => $remaining
+    //     ]);
+    // }
+ public function restore(Request $request)
     {
         \Log::info('Restore called', $request->all());
 
@@ -421,6 +500,7 @@ class TeacherController extends Controller
                     'remaining' => $remaining
                 ]
             ], 200);
+
         } catch (\Exception $err) {
             \Log::error('Restore error: ' . $err->getMessage());
 
@@ -465,12 +545,12 @@ class TeacherController extends Controller
             if ($tx->teacher_amount && $tx->teacher_amount > 0) {
                 return $tx->teacher_amount;
             }
-
+            
             // Fallback: Calculate from course teacher percentage
             $teacherPercentage = $tx->course->teacherCourses()
                 ->where('teacher_id', $tx->teacher_id)
                 ->first()?->teacher_percentage ?? 0;
-
+            
             return $tx->total * ($teacherPercentage / 100);
         });
 
@@ -572,6 +652,7 @@ class TeacherController extends Controller
                     'remaining' => $remaining
                 ]
             ], 200);
+
         } catch (\Exception $err) {
             \Log::error('RestorePerCourse error: ' . $err->getMessage());
 
@@ -645,10 +726,10 @@ class TeacherController extends Controller
     {
         try {
             $transaction = Transaction::findOrFail($id);
-
+            
             // Delete associated payments first
             Payment::where('transaction_id', $id)->delete();
-
+            
             // Delete the transaction
             $transaction->delete();
 
@@ -671,16 +752,16 @@ class TeacherController extends Controller
     {
         try {
             $payment = Payment::findOrFail($id);
-
+            
             // Get the transaction to update paid_amount
             $transaction = Transaction::find($payment->transaction_id);
-
+            
             if ($transaction) {
                 // Reduce the paid_amount in transaction
                 $transaction->paid_amount = max(0, $transaction->paid_amount - $payment->paid_amount);
                 $transaction->save();
             }
-
+            
             // Delete the payment
             $payment->delete();
 

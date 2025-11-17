@@ -362,19 +362,6 @@
                                           @csrf
 
                                           {{-- Default Currency Select --}}
-                                          {{-- <div class="mb-3">
-                                              <label class="form-label">Default Currency</label>
-                                              <select class="form-select form-select-sm" name="default_currency"
-                                                  id="defaultCurrencySelect" required>
-                                                  @foreach ($currency_datas as $currency)
-                                                      <option value="{{ $currency->id }}"
-                                                          {{ $currency->selected_currency ? 'selected' : '' }}>
-                                                          {{ $currency->currency_name }}
-                                                      </option>
-                                                  @endforeach
-                                              </select>
-                                          </div> --}}
-
                                           <div class="mb-3">
                                               <label class="form-label">Default Currency</label>
                                               <select class="form-select form-select-sm" name="default_currency"
@@ -691,23 +678,18 @@
 
 
 
-
-
-{{-- 
-      <script>
+      {{-- <script>
           $(document).ready(function() {
               let lastSelectedCurrency = $('#defaultCurrencySelect').val();
 
               $('#currencySettingForm').on('submit', function(e) {
                   e.preventDefault();
 
-                  const url = "{{ url('currency/update') }}";
                   const selectedCurrency = $('#defaultCurrencySelect').val();
                   const btn = $('#currencyUpdateBtn');
                   const responseMsg = $('#currencyResponseMsg');
-                  const originalText = btn.html();
 
-                  // Stop if value not changed
+                  // If no change
                   if (selectedCurrency === lastSelectedCurrency) {
                       responseMsg
                           .removeClass()
@@ -719,8 +701,94 @@
                       return;
                   }
 
-                  // Disable button and show loading
-                  btn.prop('disabled', true).html('Updating...');
+                  // Hide button and show loading message in green
+                  btn.hide();
+                  responseMsg
+                      .removeClass()
+                      .addClass('alert alert-success text-center')
+                      .html('⏳ Updating currency, please wait...')
+                      .fadeIn();
+
+                  $.ajax({
+                      type: 'POST',
+                      url: "{{ url('currency/update') }}",
+                      data: {
+                          default_currency: selectedCurrency,
+                          _token: $('meta[name="csrf-token"]').attr('content')
+                      },
+                      success: function(res) {
+                          if (res.success) {
+                              lastSelectedCurrency = selectedCurrency;
+                              responseMsg
+                                  .removeClass()
+                                  .addClass('alert alert-success text-center')
+                                  .html('✅ Currency updated successfully!')
+                                  .fadeIn()
+                                  .delay(2000)
+                                  .fadeOut(function() {
+                                      btn.show(); // Show the button again
+                                  });
+                          } else {
+                              responseMsg
+                                  .removeClass()
+                                  .addClass('alert alert-danger text-center')
+                                  .html(res.message || '❌ Something went wrong.')
+                                  .fadeIn()
+                                  .delay(2500)
+                                  .fadeOut(function() {
+                                      btn.show(); // Show button again
+                                  });
+                          }
+                      },
+                      error: function(xhr) {
+                          console.log(xhr.responseText);
+                          responseMsg
+                              .removeClass()
+                              .addClass('alert alert-danger text-center')
+                              .html('❌ Something went wrong. Please try again.')
+                              .fadeIn()
+                              .delay(2500)
+                              .fadeOut(function() {
+                                  btn.show(); // Show button again
+                              });
+                      }
+                  });
+              });
+          });
+      </script> --}}
+
+      <script>
+          $(document).ready(function() {
+              // ✅ Store initial selected currency
+              let lastSelectedCurrency = $('#defaultCurrencySelect').val();
+
+              // ✅ Handle form submit
+              $('#currencySettingForm').on('submit', function(e) {
+                  e.preventDefault();
+
+                  const form = $(this);
+                  const url = "{{ url('currency/update') }}"; // Use URL instead of route
+                  const btn = $('#currencyUpdateBtn');
+                  const responseMsg = $('#currencyResponseMsg');
+                  const originalText = btn.html();
+                  const selectedCurrency = $('#defaultCurrencySelect').val();
+
+                  // ✅ Stop if nothing changed
+                  if (selectedCurrency === lastSelectedCurrency) {
+                      responseMsg
+                          .removeClass()
+                          .addClass('alert alert-info text-center')
+                          .html('ℹ️ No changes to update.')
+                          .fadeIn()
+                          .delay(2000)
+                          .fadeOut();
+                      return;
+                  }
+
+                  // ✅ Show loading message on button
+                  btn.prop('disabled', true).html(`
+            Please wait, updating settings...
+        `);
 
                   $.ajax({
                       type: 'POST',
@@ -735,34 +803,39 @@
 
                               responseMsg
                                   .removeClass()
-                                  .addClass('alert alert-success text-center')
-                                  .html('✅ ' + res.message)
-                                  .fadeIn()
-                                  .delay(2000)
-                                  .fadeOut();
 
-                              btn.html('✅ Updated Successfully');
+
+                              // ✅ Show success on button
+                              btn.html('✅ Updated Successfully')
+                                  .removeClass('btn-dark')
+                                  .addClass('btn-success');
+
+                              // ✅ Reset button after 3 seconds
                               setTimeout(() => {
-                                  btn.prop('disabled', false).html(originalText);
-                              }, 2000);
+                                  btn.prop('disabled', false)
+                                      .removeClass('btn-success')
+                                      .addClass('btn-dark')
+                                      .html(originalText);
+                                  responseMsg.fadeOut();
+                              }, 3000);
                           } else {
                               responseMsg
                                   .removeClass()
                                   .addClass('alert alert-danger text-center')
-                                  .html(res.message)
+                                  .html(res.message || '❌ Something went wrong.')
                                   .fadeIn()
-                                  .delay(2000)
+                                  .delay(2500)
                                   .fadeOut();
 
                               btn.prop('disabled', false).html(originalText);
                           }
                       },
                       error: function(xhr) {
-                          console.error(xhr.responseText);
+                          console.log(xhr.responseText); // Debug server response
                           responseMsg
                               .removeClass()
                               .addClass('alert alert-danger text-center')
-                              .html('❌ Server error. Please try again.')
+                              .html('❌ Something went wrong. Please try again.')
                               .fadeIn()
                               .delay(2500)
                               .fadeOut();
@@ -772,69 +845,7 @@
                   });
               });
           });
-      </script> --}}
-
-      <script>
-$(document).ready(function() {
-    let lastSelectedCurrency = $('#defaultCurrencySelect').val();
-
-    $('#currencySettingForm').on('submit', function(e) {
-        e.preventDefault();
-
-        const url = "{{ url('currency/update') }}";
-        const selectedCurrency = $('#defaultCurrencySelect').val();
-        const btn = $('#currencyUpdateBtn');
-        const originalText = btn.html();
-
-        // ✅ Stop if value not changed
-        if (selectedCurrency === lastSelectedCurrency) {
-            return;
-        }
-
-        // ✅ Show loading spinner on button
-        btn.prop('disabled', true).html(`
-            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-            Updating currency...
-        `);
-
-        $.ajax({
-            type: 'POST',
-            url: url,
-            data: {
-                default_currency: selectedCurrency,
-                _token: $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(res) {
-                if (res.success) {
-                    // ✅ Update reference value
-                    lastSelectedCurrency = selectedCurrency;
-
-                    // ✅ Show success inside the button
-                    btn.html('<i class="bi bi-check-circle me-2"></i> Updated Successfully')
-                        .removeClass('btn-dark')
-                        .addClass('btn-success');
-
-                    // ✅ Revert after delay
-                    setTimeout(() => {
-                        btn.prop('disabled', false)
-                            .removeClass('btn-success')
-                            .addClass('btn-dark')
-                            .html(originalText);
-                    }, 2500);
-                } else {
-                    btn.prop('disabled', false).html(originalText);
-                    toastr.error(res.message || '❌ Something went wrong.');
-                }
-            },
-            error: function() {
-                btn.prop('disabled', false).html(originalText);
-                toastr.error('❌ Server error. Please try again.');
-            }
-        });
-    });
-});
-</script>
-
+      </script>
 
       {{-- this is the script of notification --}}
 

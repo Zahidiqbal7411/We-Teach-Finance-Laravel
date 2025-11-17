@@ -1,0 +1,25 @@
+ public function update_currency(Request $request)
+    {
+        $currencyId = $request->input('currency_id');
+
+        // Validate the currency ID
+        $currency = Currency::find($currencyId);
+        if (!$currency) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid currency ID'], 400);
+        }
+
+        // ✅ Update the correct row in settings
+        $setting = Setting::where('type', 'default_currency')->first();
+        if ($setting) {
+            $setting->value = $currencyId;
+            $setting->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Currency updated successfully',
+                'currency' => $currency->currency_name
+            ]);
+        } else {
+            return response()->json(['status' => 'error', 'message' => 'Setting not found'], 404);
+        }
+    }

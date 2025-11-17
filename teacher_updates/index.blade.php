@@ -1,505 +1,509 @@
 @extends('layouts.app')
 
 @section('contents')
-<div class="main-content p-4" style="margin-left: 260px; min-height: 100vh; background: #f8f9fa;">
+    <div class="main-content p-4" style="margin-left: 260px; min-height: 100vh; background: #f8f9fa;">
 
-    <!-- ✅ Top Bar -->
-    <div class="teacher-topbar d-flex justify-content-between align-items-center mb-4 p-3"
-        style="background: #ffffff; border-radius: 10px;">
-        <div>
-            <h4 class="fw-semibold mb-0">Teachers</h4>
-        </div>
-        <div class="d-flex align-items-center gap-3">
+        <!-- ✅ Top Bar -->
+        <div class="teacher-topbar d-flex justify-content-between align-items-center mb-4 p-3"
+            style="background: #ffffff; border-radius: 10px;">
+            <div>
+                <h4 class="fw-semibold mb-0">Teachers</h4>
+            </div>
+            <div class="d-flex align-items-center gap-3">
 
-            <select id="SelectYear" class="form-select form-select-md" name="session_id">
-                @foreach ($session_datas as $session_data)
-                <option value="{{ $session_data->id }}">{{ $session_data->session_title }}</option>
-                @endforeach
-            </select>
-
-
-
-            <select class="form-select form-select-md w-50" name="default_currency" id="currencySelect">
-                @foreach ($currency_datas as $currency)
-                <option value="{{ $currency->id }}" @if ($currentCurrency && $currency->id == $currentCurrency->id)
-                    selected @endif>
-                    {{ $currency->currency_name }}
-                </option>
-                @endforeach
-            </select>
-
-
-            <!-- Hidden inputs to store current selection -->
-            <input type="hidden" id="current_currency" name="current_currency" value="{{ $currentCurrency?->id }}">
-            <input type="hidden" id="current_currency_name" name="current_currency_name"
-                value="{{ $currentCurrency?->currency_name }}">
-
-
-
-        </div>
-    </div>
-
-    <!-- Header -->
-    <div class="mb-4">
-        <h4 class="fw-semibold mb-1">Teachers</h4>
-        <p class="text-muted mb-0">Manage teacher transactions, payouts, and reports</p>
-    </div>
-
-    <!-- Select Teacher -->
-    <div class="card border-0 shadow-sm mb-3">
-        <div class="card-body d-flex justify-content-center">
-            <div style="width: 30%; margin-right: 1050px; padding-left: 0;">
-                <label for="teacherSelect" class="form-label fw-semibold">Select Teacher</label>
-
-                <select id="teacherSelect" class="form-select" name="teacher_id">
-                    <option value="" selected disabled>Select a teacher</option>
-                    @foreach ($teacher_datas as $teacher)
-                    <option value="{{ $teacher->id }}">
-                        {{ $teacher->teacher_name }}
-                    </option>
+                <select id="SelectYear" class="form-select form-select-md" name="session_id">
+                    @foreach ($session_datas as $session_data)
+                        <option value="{{ $session_data->id }}">{{ $session_data->session_title }}</option>
                     @endforeach
                 </select>
+
+
+
+                <select class="form-select form-select-md w-50" name="default_currency" id="currencySelect">
+                    @foreach ($currency_datas as $currency)
+                        <option value="{{ $currency->id }}" @if ($currentCurrency && $currency->id == $currentCurrency->id) selected @endif>
+                            {{ $currency->currency_name }}
+                        </option>
+                    @endforeach
+                </select>
+
+
+                <!-- Hidden inputs to store current selection -->
+                <input type="hidden" id="current_currency" name="current_currency" value="{{ $currentCurrency?->id }}">
+                <input type="hidden" id="current_currency_name" name="current_currency_name"
+                    value="{{ $currentCurrency?->currency_name }}">
+
+
+
             </div>
         </div>
-    </div>
 
-    <!-- 🧾 No Teacher Selected -->
-    <div id="noTeacherSelected" class="card border-0 shadow-sm text-center p-5" style="display: block;">
-        <h5 class="fw-semibold mb-2">No Teacher Selected</h5>
-        <p class="text-muted mb-0">Please select a teacher from the dropdown above to view their data.</p>
-    </div>
+        <!-- Header -->
+        <div class="mb-4">
+            <h4 class="fw-semibold mb-1">Teachers</h4>
+            <p class="text-muted mb-0">Manage teacher transactions, payouts, and reports</p>
+        </div>
 
-    <!-- ✅ Teacher Full Data -->
-    <div id="teacherData" style="display: none;">
-
-        <!-- Profile -->
+        <!-- Select Teacher -->
         <div class="card border-0 shadow-sm mb-3">
-            <div class="card-body d-flex align-items-center">
-                <div class="me-3">
-                    <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center"
-                        style="width:48px;height:48px;">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
-                </div>
-                <div>
-                    <h6 class="fw-semibold mb-0" id="teacher_name">Prof. Sarah J</h6>
-                    <small class="text-muted" id="teacher_email">sarah.johnson@weteach.com</small>
-                </div>
-            </div>
-        </div>
+            <div class="card-body d-flex justify-content-center">
+                <div style="width: 30%; margin-right: 1050px; padding-left: 0;">
+                    <label for="teacherSelect" class="form-label fw-semibold">Select Teacher</label>
 
-
-        <div class="modal fade" id="transactionsModal" tabindex="-1" aria-labelledby="transactionsModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content border-0 shadow-lg rounded-4">
-                    <div class="modal-header bg-dark text-white rounded-top-4">
-                        <h5 class="modal-title" id="transactionsModalLabel">Transaction Details</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <form id="transactionsForm">
-                            @csrf
-
-                            <!-- Hidden inputs for IDs -->
-                            <input type="hidden" name="teacher_id" id="transaction_teacher_id">
-                            <input type="hidden" name="session_id" id="transaction_session_id">
-
-                            <!-- Teacher -->
-                            <div class="mb-3">
-                                <label class="form-label">Teacher</label>
-                                <input type="text" id="transaction_teacher" class="form-control" readonly>
-                            </div>
-
-                            <!-- Course -->
-                            <div class="mb-3">
-                                <label class="form-label">Course</label>
-                                <select class="form-select" id="transaction_course" name="course">
-                                    <option selected disabled>Select Course</option>
-                                    @foreach ($subject_datas as $course)
-                                    <option value="{{ $course->id }}">{{ $course->course_title }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <!-- Session -->
-                            <div class="mb-3">
-                                <label class="form-label">Session</label>
-                                <input type="text" id="transaction_session" class="form-control" readonly>
-                            </div>
-
-                            <!-- Student -->
-                            <div class="mb-3">
-                                <label class="form-label">Student</label>
-                                <input type="text" class="form-control" name="student_name" id="transaction_student">
-                            </div>
-
-                            <!-- Parent -->
-                            <div class="mb-3">
-                                <label class="form-label">Parent</label>
-                                <input type="text" class="form-control" name="parent_name" id="transaction_parent">
-                            </div>
-
-                            <!-- Currency -->
-                            <div class="mb-3">
-                                <label class="form-label">Current Currency</label>
-                                <input type="text" class="form-control"
-                                    value="{{ $currentCurrency?->currency_name ?? 'No currency selected' }}" readonly>
-                                <input type="hidden" name="current_currency" id="current_currency"
-                                    value="{{ $currentCurrency?->id ?? '' }}">
-                            </div>
-
-                            <!-- Total, Paid, Remaining -->
-                            <div class="mb-3">
-                                <label class="form-label">Total</label>
-                                <input type="number" class="form-control" name="total" id="transaction_total">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Paid</label>
-                                <input type="number" class="form-control" name="paid_amount" id="transaction_paid">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Remaining</label>
-                                <input type="number" class="form-control" name="remaining" id="transaction_remaining"
-                                    step="0.01" readonly>
-                            </div>
-
-                            <div class="modal-footer border-0">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-dark">Save</button>
-                            </div>
-                        </form>
-                    </div>
+                    <select id="teacherSelect" class="form-select" name="teacher_id">
+                        <option value="" selected disabled>Select a teacher</option>
+                        @foreach ($teacher_datas as $teacher)
+                            <option value="{{ $teacher->id }}">
+                                {{ $teacher->teacher_name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
         </div>
 
-        <!-- Stats -->
-        <div class="row g-3 mb-4">
-            <!-- Total Earned - First Position -->
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-wrapper me-3">
-                            <i class="fa-solid fa-file fa-lg text-primary"></i>
+        <!-- 🧾 No Teacher Selected -->
+        <div id="noTeacherSelected" class="card border-0 shadow-sm text-center p-5" style="display: block;">
+            <h5 class="fw-semibold mb-2">No Teacher Selected</h5>
+            <p class="text-muted mb-0">Please select a teacher from the dropdown above to view their data.</p>
+        </div>
+
+        <!-- ✅ Teacher Full Data -->
+        <div id="teacherData" style="display: none;">
+
+            <!-- Profile -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body d-flex align-items-center">
+                    <div class="me-3">
+                        <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center"
+                            style="width:48px;height:48px;">
+                            <i class="fa-solid fa-user"></i>
                         </div>
-                        <div>
-                            <p class="text-muted small mb-1">Total Revenue</p>
-                            <h5 class="fw-bold text-primary mb-0 total-earned-value">LE 0.00</h5>
-                            <small class="text-muted">Lifetime earnings</small>
-                        </div>
+                    </div>
+                    <div>
+                        <h6 class="fw-semibold mb-0" id="teacher_name">Prof. Sarah J</h6>
+                        <small class="text-muted" id="teacher_email">sarah.johnson@weteach.com</small>
                     </div>
                 </div>
             </div>
 
-            <!-- Current Balance - Second Position -->
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-wrapper me-3">
-                            <i class="fa-solid fa-dollar-sign fa-lg text-danger"></i>
+
+            <div class="modal fade" id="transactionsModal" tabindex="-1" aria-labelledby="transactionsModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg rounded-4">
+                        <div class="modal-header bg-dark text-white rounded-top-4">
+                            <h5 class="modal-title" id="transactionsModalLabel">Transaction Details</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
                         </div>
-                        <div>
-                            <p class="text-muted small mb-1">Current Balance</p>
-                            <h5 class="fw-bold text-danger mb-0 current-balance-value">-LE 6,725.30</h5>
-                            <small class="text-muted">Available for payout</small>
+
+                        <div class="modal-body">
+                            <form id="transactionsForm">
+                                @csrf
+
+                                <!-- Hidden inputs for IDs -->
+                                <input type="hidden" name="teacher_id" id="transaction_teacher_id">
+                                <input type="hidden" name="session_id" id="transaction_session_id">
+
+                                <!-- Teacher -->
+                                <div class="mb-3">
+                                    <label class="form-label">Teacher</label>
+                                    <input type="text" id="transaction_teacher" class="form-control" readonly>
+                                </div>
+
+                                <!-- Course -->
+                                <div class="mb-3">
+                                    <label class="form-label">Course</label>
+                                    <select class="form-select" id="transaction_course" name="course">
+                                        <option selected disabled>Select Course</option>
+                                        @foreach ($subject_datas as $course)
+                                            <option value="{{ $course->id }}">{{ $course->course_title }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- Session -->
+                                <div class="mb-3">
+                                    <label class="form-label">Session</label>
+                                    <input type="text" id="transaction_session" class="form-control" readonly>
+                                </div>
+
+                                <!-- Student -->
+                                <div class="mb-3">
+                                    <label class="form-label">Student</label>
+                                    <input type="text" class="form-control" name="student_name" id="transaction_student">
+                                </div>
+
+                                <!-- Parent -->
+                                <div class="mb-3">
+                                    <label class="form-label">Parent</label>
+                                    <input type="text" class="form-control" name="parent_name" id="transaction_parent">
+                                </div>
+
+                                <!-- Currency -->
+                                <div class="mb-3">
+                                    <label class="form-label">Current Currency</label>
+                                    <input type="text" class="form-control"
+                                        value="{{ $currentCurrency?->currency_name ?? 'No currency selected' }}" readonly>
+                                    <input type="hidden" name="current_currency" id="current_currency"
+                                        value="{{ $currentCurrency?->id ?? '' }}">
+                                </div>
+
+                                <!-- Total, Paid, Remaining -->
+                                <div class="mb-3">
+                                    <label class="form-label">Total</label>
+                                    <input type="number" class="form-control" name="total" id="transaction_total">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Paid</label>
+                                    <input type="number" class="form-control" name="paid_amount" id="transaction_paid">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Remaining</label>
+                                    <input type="number" class="form-control" name="remaining"
+                                        id="transaction_remaining" step="0.01" readonly>
+                                </div>
+
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-dark">Save</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Paid Before - Third Position -->
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-wrapper me-3">
-                            <i class="fa-solid fa-arrow-trend-up fa-lg text-success"></i>
+            <!-- Stats -->
+            <div class="row g-3 mb-4">
+                <!-- Total Earned - First Position -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="icon-wrapper me-3">
+                                <i class="fa-solid fa-file fa-lg text-primary"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">Total Revenue</p>
+                                <h5 class="fw-bold text-primary mb-0 total-earned-value">LE 0.00</h5>
+                                <small class="text-muted">Lifetime earnings</small>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-muted small mb-1">Paid Before</p>
-                            <h5 class="fw-bold text-success mb-0 paid-before-value">LE 0.00</h5>
-                            <small class="text-muted">Total payouts received</small>
+                    </div>
+                </div>
+
+                <!-- Current Balance - Second Position -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="icon-wrapper me-3">
+                                <i class="fa-solid fa-dollar-sign fa-lg text-danger"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">Current Balance</p>
+                                <h5 class="fw-bold text-danger mb-0 current-balance-value">-LE 6,725.30</h5>
+                                <small class="text-muted">Available for payout</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paid Before - Third Position -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="icon-wrapper me-3">
+                                <i class="fa-solid fa-arrow-trend-up fa-lg text-success"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">Paid Before</p>
+                                <h5 class="fw-bold text-success mb-0 paid-before-value">LE 0.00</h5>
+                                <small class="text-muted">Total payouts received</small>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Tabs -->
-        <div class="d-flex gap-2 mb-3 flex-wrap" id="mainTabContainer">
-            <button class="tab-btn active" data-target="transactionsDiv">Transactions</button>
-            <button class="tab-btn" data-target="payoutsDiv">Payouts</button>
-            <button class="tab-btn" data-target="balancesDiv">Balances</button>
-            <button class="tab-btn" data-target="reportsDiv">Reports</button>
-        </div>
+            <!-- Tabs -->
+            <div class="d-flex gap-2 mb-3 flex-wrap" id="mainTabContainer">
+                <button class="tab-btn active" data-target="transactionsDiv">Transactions</button>
+                <button class="tab-btn" data-target="payoutsDiv">Payouts</button>
+                <button class="tab-btn" data-target="balancesDiv">Balances</button>
+                <button class="tab-btn" data-target="reportsDiv">Reports</button>
+            </div>
 
-        <!-- Sub Tabs (Transactions only) -->
-        <div class="d-flex gap-2 mb-3 flex-wrap" id="subTabContainer" style="display: none;">
-            <button class="tab-btn active" id="sub-recent">Recent</button>
-            <button class="tab-btn" id="sub-percourse">Per Course</button>
-        </div>
+            <!-- Sub Tabs (Transactions only) -->
+            <div class="d-flex gap-2 mb-3 flex-wrap" id="subTabContainer" style="display: none;">
+                <button class="tab-btn active" id="sub-recent">Recent</button>
+                <button class="tab-btn" id="sub-percourse">Per Course</button>
+            </div>
 
-        <!-- Transactions -->
-        <div id="transactionsDiv" class="card shadow-sm border-0 rounded-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
-                    <h5 class="fw-semibold mb-2 mb-md-0">Recent Transactions</h5>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button type="button" class="btn btn-dark btn-sm" data-bs-toggle="modal"
-                            data-bs-target="#transactionsModal">
-                            <i class="fa-solid fa-plus me-1"></i> Add
-                        </button>
+            <!-- Transactions -->
+            <div id="transactionsDiv" class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                        <h5 class="fw-semibold mb-2 mb-md-0">Recent Transactions</h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-dark btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#transactionsModal">
+                                <i class="fa-solid fa-plus me-1"></i> Add
+                            </button>
 
-                        <button class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-filter me-1"></i>
-                            Filter</button>
+                            <button class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-filter me-1"></i>
+                                Filter</button>
+                            <button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-file-export me-1"></i>
+                                Export</button>
+                            <button class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-table-columns me-1"></i>
+                                Columns</button>
+                        </div>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
+                        <input type="text" class="form-control border-start-0" id="searchInput"
+                            placeholder="Search...">
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table align-middle table-hover">
+                            <thead class="table-light" id="transactionsThead">
+                                <tr>
+                                    <th><input type="checkbox"></th>
+                                    <th>ID</th>
+                                    <th>Date/Time</th>
+                                    <th>Course</th>
+                                    <th>Session</th>
+                                    <th>Student</th>
+                                    <th>Parent</th>
+                                    <th>Total</th>
+                                    <th>Paid</th>
+                                    <th>Remaining</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionsTableBody">
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td>2</td>
+                                    <td>10/7/2024, 4:45:00 PM</td>
+                                    <td>A-Level Physics</td>
+                                    <td>May/June 2026</td>
+                                    <td>Emma Wilson</td>
+                                    <td>David Wilson</td>
+                                    <td>$ 120.00 USD</td>
+                                    <td>$ 60.00 USD</td>
+                                    <td>$ 60.00 USD</td>
+                                    <td class="text-end"><button class="btn btn-sm btn-outline-danger"><i
+                                                class="fa-solid fa-trash"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payouts -->
+            <div id="payoutsDiv" class="card shadow-sm border-0 rounded-3" style="display: none;">
+                <div class="card-body">
+                    <h5 class="fw-semibold mb-3">Payouts</h5>
+                    <div class="d-flex justify-content-end gap-2 mb-3">
                         <button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-file-export me-1"></i>
                             Export</button>
                         <button class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-table-columns me-1"></i>
                             Columns</button>
                     </div>
-                </div>
-
-                <div class="input-group mb-3">
-                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
-                    <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search...">
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table align-middle table-hover">
-                        <thead class="table-light" id="transactionsThead">
-                            <tr>
-                                <th><input type="checkbox"></th>
-                                <th>ID</th>
-                                <th>Date/Time</th>
-                                <th>Course</th>
-                                <th>Session</th>
-                                <th>Student</th>
-                                <th>Parent</th>
-                                <th>Total</th>
-                                <th>Paid</th>
-                                <th>Remaining</th>
-                                <th class="text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="transactionsTableBody">
-                            <tr>
-                                <td><input type="checkbox"></td>
-                                <td>2</td>
-                                <td>10/7/2024, 4:45:00 PM</td>
-                                <td>A-Level Physics</td>
-                                <td>May/June 2026</td>
-                                <td>Emma Wilson</td>
-                                <td>David Wilson</td>
-                                <td>$ 120.00 USD</td>
-                                <td>$ 60.00 USD</td>
-                                <td>$ 60.00 USD</td>
-                                <td class="text-end"><button class="btn btn-sm btn-outline-danger"><i
-                                            class="fa-solid fa-trash"></i></button></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
+                        <input type="text" class="form-control border-start-0" placeholder="Search...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date/Time</th>
+                                    <th>Teacher Name</th>
+                                    <th>Course Name</th>
+                                    <th>Session Name</th>
+                                    <th>Student Name</th>
+                                    <th>Parent Name</th>
+                                    <th>Paid Amount</th>
+                                    <th>Remarks</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payoutsTableBody">
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted">Select a teacher to view payouts</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Payouts -->
-        <div id="payoutsDiv" class="card shadow-sm border-0 rounded-3" style="display: none;">
-            <div class="card-body">
-                <h5 class="fw-semibold mb-3">Payouts</h5>
-                <div class="d-flex justify-content-end gap-2 mb-3">
-                    <button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-file-export me-1"></i>
-                        Export</button>
-                    <button class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-table-columns me-1"></i>
-                        Columns</button>
+            <!-- Balances -->
+            <div id="balancesDiv" class="card shadow-sm border-0 rounded-3" style="display: none;">
+                <div class="card-body">
+                    <h5 class="fw-semibold mb-3">Balance Details</h5>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="icon-wrapper me-3">
+                                        <i class="fa-solid fa-dollar-sign fa-lg text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted small mb-1">Current Balance</p>
+                                        <h5 class="fw-bold text-danger mb-0 current-balance-value">-LE 6,725.30</h5>
+                                        <small class="text-muted">Available for payout</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="icon-wrapper me-3">
+                                        <i class="fa-solid fa-arrow-trend-up fa-lg text-success"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted small mb-1">Total Paid Out</p>
+                                        <h5 class="fw-bold text-success mb-0 total-paid-out-value">LE 12,340.00</h5>
+                                        <small class="text-muted">Total payouts received</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-muted small mb-0">
+                        Balance is calculated based on 70% teacher share of paid transactions minus total payouts.
+                    </p>
                 </div>
-                <div class="input-group mb-3">
-                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
-                    <input type="text" class="form-control border-start-0" placeholder="Search...">
-                </div>
-                <div class="table-responsive">
+            </div>
+
+            <!-- Reports -->
+            <div id="reportsDiv" class="card shadow-sm border-0 rounded-3" style="display: none;">
+                <div class="card-body">
+                    <h5 class="fw-semibold mb-3">Generated Reports</h5>
+                    <div class="d-flex justify-content-end gap-2 mb-3">
+                        <button class="btn btn-dark btn-sm"><i class="fa-solid fa-plus me-1"></i> Add</button>
+                        <button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-file-export me-1"></i>
+                            Export</button>
+                        <button class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-table-columns me-1"></i>
+                            Columns</button>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
+                        <input type="text" class="form-control border-start-0" placeholder="Search...">
+                    </div>
                     <table class="table align-middle table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th>Date/Time</th>
-                                <th>Teacher Name</th>
-                                <th>Course Name</th>
-                                <th>Session Name</th>
-                                <th>Student Name</th>
-                                <th>Parent Name</th>
-                                <th>Paid Amount</th>
-                                <th>Remarks</th>
-                                <th class="text-end">Actions</th>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>From Date</th>
+                                <th>To Date</th>
+                                <th>Created</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="payoutsTableBody">
+                        <tbody>
                             <tr>
-                                <td colspan="9" class="text-center text-muted">Select a teacher to view payouts
-                                </td>
+                                <td colspan="7" class="text-center text-muted">No data available</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
-
-        <!-- Balances -->
-        <div id="balancesDiv" class="card shadow-sm border-0 rounded-3" style="display: none;">
-            <div class="card-body">
-                <h5 class="fw-semibold mb-3">Balance Details</h5>
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-body d-flex align-items-center">
-                                <div class="icon-wrapper me-3">
-                                    <i class="fa-solid fa-dollar-sign fa-lg text-danger"></i>
-                                </div>
-                                <div>
-                                    <p class="text-muted small mb-1">Current Balance</p>
-                                    <h5 class="fw-bold text-danger mb-0 current-balance-value">-LE 6,725.30</h5>
-                                    <small class="text-muted">Available for payout</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-body d-flex align-items-center">
-                                <div class="icon-wrapper me-3">
-                                    <i class="fa-solid fa-arrow-trend-up fa-lg text-success"></i>
-                                </div>
-                                <div>
-                                    <p class="text-muted small mb-1">Total Paid Out</p>
-                                    <h5 class="fw-bold text-success mb-0 total-paid-out-value">LE 12,340.00</h5>
-                                    <small class="text-muted">Total payouts received</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <p class="text-muted small mb-0">
-                    Balance is calculated based on 70% teacher share of paid transactions minus total payouts.
-                </p>
-            </div>
-        </div>
-
-        <!-- Reports -->
-        <div id="reportsDiv" class="card shadow-sm border-0 rounded-3" style="display: none;">
-            <div class="card-body">
-                <h5 class="fw-semibold mb-3">Generated Reports</h5>
-                <div class="d-flex justify-content-end gap-2 mb-3">
-                    <button class="btn btn-dark btn-sm"><i class="fa-solid fa-plus me-1"></i> Add</button>
-                    <button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-file-export me-1"></i>
-                        Export</button>
-                    <button class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-table-columns me-1"></i>
-                        Columns</button>
-                </div>
-                <div class="input-group mb-3">
-                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
-                    <input type="text" class="form-control border-start-0" placeholder="Search...">
-                </div>
-                <table class="table align-middle table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>Type</th>
-                            <th>From Date</th>
-                            <th>To Date</th>
-                            <th>Created</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="7" class="text-center text-muted">No data available</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
-</div>
-<div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-
-            <div class="modal-header border-0">
-                <h5 class="modal-title" id="restoreModalLabel">
-                    <i class="bi bi-arrow-counterclockwise me-2"></i> Restore Transaction
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <form id="restoreForm">
-                <div class="modal-body">
-                    <input type="hidden" id="restoreTransactionId">
-
-                    <div class="row">
-                        <div class="mb-3 col-md-6">
-                            <label class="form-label">Total</label>
-                            <input type="number" id="restoreTotal" class="form-control" readonly>
-                        </div>
-
-                        <div class="mb-3 col-md-6">
-                            <label class="form-label">Paid amount</label>
-                            <input type="number" id="restorePaidReadonly" class="form-control" readonly>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Pay new amount</label>
-                        <input type="number" id="restorePaid" class="form-control" min="0">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Remaining</label>
-                        <input type="number" id="restoreRemaining" class="form-control" readonly>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Remarks</label>
-                        <textarea id="restoreRemarks" class="form-control" rows="3"
-                            placeholder="Enter remarks/description"></textarea>
-                    </div>
-                </div>
-
-                <div class="modal-footer border-0 justify-content-center">
-                    <button type="button" class="btn btn-dark btn-sm" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle"></i> Cancel
-                    </button>
-                    <button type="submit" class="btn btn-dark btn-sm">
-                        <i class="bi bi-check-circle"></i> Recover amounts
-                    </button>
-                </div>
-            </form>
 
         </div>
     </div>
-</div>
+    <div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="restoreModalLabel">
+                        <i class="bi bi-arrow-counterclockwise me-2"></i> Restore Transaction
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form id="restoreForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="restoreTransactionId">
+
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Total</label>
+                                <input type="number" id="restoreTotal" class="form-control" readonly>
+                            </div>
+
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Paid amount</label>
+                                <input type="number" id="restorePaidReadonly" class="form-control" readonly>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Pay new amount</label>
+                            <input type="number" id="restorePaid" class="form-control" min="0">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Remaining</label>
+                            <input type="number" id="restoreRemaining" class="form-control" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Remarks</label>
+                            <textarea id="restoreRemarks" class="form-control" rows="3" placeholder="Enter remarks/description"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-0 justify-content-center">
+                        <button type="button" class="btn btn-dark btn-sm" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-dark btn-sm">
+                            <i class="bi bi-check-circle"></i> Recover amounts
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
-{{-- This is the script for teacher index --}}
-<script>
-    // ================== CALCULATE CURRENT BALANCE ==================
+    {{-- This is the teacher showing script --}}
+
+    <script>
+        // ================== CALCULATE CURRENT BALANCE ==================
+        // Current balance = sum of teacher_amount from transactions where:
+        // - session_id matches selected session
+        // - selected_currency matches transaction currency
+        // - payment type is 'teacher'
         window.updateCurrentBalance = function updateCurrentBalance(teacherId, sessionId, currencyId) {
             if (!teacherId || !sessionId || !currencyId) return;
-            const balanceUrl = "{{ route('teachers.balance', ['teacherId' => ':teacherId']) }}"
-            .replace(':teacherId', teacherId) + `?session_id=${sessionId}&currency_id=${currencyId}`;
-            fetch(balanceUrl)
+            
+            fetch(`/teachers/${teacherId}/balance?session_id=${sessionId}&currency_id=${currencyId}`)
                 .then(resp => resp.json())
                 .then(data => {
                     if (data.success) {
                         const balanceValue = data.current_balance || 0;
                         const currencyName = data.currency_name || '';
-                        const balanceText =
-                            `${balanceValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currencyName}`;
-
+                        // Format balance with currency: e.g., "1,234.50 USD" or "-6,725.30 LE"
+                        const balanceText = `${balanceValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currencyName}`;
+                        
+                        // Update all current balance cards
                         const balanceCards = document.querySelectorAll('.current-balance-value');
                         balanceCards.forEach(card => {
                             card.textContent = balanceText;
@@ -510,7 +514,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // ================== ELEMENTS ==================
+            // ================== Original Elements ==================
             const teacherSelect = document.getElementById('teacherSelect');
             const sessionSelect = document.getElementById('SelectYear');
             const noTeacherSelected = document.getElementById('noTeacherSelected');
@@ -537,17 +541,17 @@
             const originalBody = tbody.innerHTML;
 
             const perCourseHead = `
-        <tr>
-            <th>Course Name</th>
-            <th>Session</th>
-            <th>Transactions</th>
-            <th>Total Amount</th>
-            <th>Total Paid</th>
-            <th>Total Remaining</th>
-            <th>Actions</th>
-        </tr>`;
+            <tr>
+                <th>Course Name</th>
+                <th>Session</th>
+                <th>Transactions</th>
+                <th>Total Amount</th>
+                <th>Total Paid</th>
+                <th>Total Remaining</th>
+                <th>Actions</th>
+            </tr>`;
 
-            // ================== UTILITY FUNCTIONS ==================
+            // ================== Utility Functions ==================
             function showSection(target, subTab = null) {
                 sections.forEach(id => {
                     const el = document.getElementById(id);
@@ -564,14 +568,15 @@
                     subRecent.classList.remove('active');
                     subPerCourse.classList.remove('active');
                     restoreOriginalTransactions();
+                    // If the Balances tab is shown and a teacher is selected,
+                    // refresh totals so the balances panel displays current values.
                     if (target === 'balancesDiv') {
-                        const teacherIdForBalance = document.getElementById('transaction_teacher_id')?.value ||
-                            document.getElementById('teacherSelect')?.value;
+                        const teacherIdForBalance = document.getElementById('transaction_teacher_id')?.value || document.getElementById('teacherSelect')?.value;
                         if (teacherIdForBalance) {
-                            fetchTransactions(teacherIdForBalance, sessionSelect?.value, document.getElementById(
-                                'currencySelect')?.value);
+                            fetchTransactions(teacherIdForBalance, sessionSelect?.value, document.getElementById('currencySelect')?.value);
                         }
                     }
+                    // If the Payouts tab is shown, fetch payouts data
                     if (target === 'payoutsDiv') {
                         const sessionId = sessionSelect?.value;
                         if (sessionId) {
@@ -589,26 +594,31 @@
             }
 
             function activateSub(which) {
-                const teacherIdCurrent = document.getElementById('transaction_teacher_id')?.value || document
-                    .getElementById('teacherSelect')?.value;
+                const teacherIdCurrent = document.getElementById('transaction_teacher_id')?.value || document.getElementById('teacherSelect')?.value;
 
                 if (which === 'recent') {
                     subRecent.classList.add('active');
                     subPerCourse.classList.remove('active');
+                    
+                    // Restore table structure to original (Recent view)
                     thead.innerHTML = originalHead;
+
+                    // If a teacher is selected, fetch the latest recent transactions
+                    // (covers programmatic activation where the click handler is not fired)
                     if (teacherIdCurrent) {
                         tbody.innerHTML = '<tr><td colspan="11" class="text-center">Loading...</td></tr>';
-                        fetchTransactions(teacherIdCurrent, sessionSelect?.value, document.getElementById(
-                            'currencySelect')?.value);
+                        fetchTransactions(teacherIdCurrent, sessionSelect?.value, document.getElementById('currencySelect')?.value);
                     } else {
+                        // No teacher selected, show original body
                         tbody.innerHTML = originalBody;
                     }
                 } else if (which === 'percourse') {
                     subPerCourse.classList.add('active');
                     subRecent.classList.remove('active');
+
+                    // If a teacher is selected, fetch per-course data when activating the tab
                     if (teacherIdCurrent) {
-                        fetchPerCourse(teacherIdCurrent, sessionSelect?.value, document.getElementById(
-                            'currencySelect')?.value);
+                        fetchPerCourse(teacherIdCurrent, sessionSelect?.value, document.getElementById('currencySelect')?.value);
                     }
                 }
             }
@@ -625,13 +635,13 @@
                     detailCard = document.createElement('div');
                     detailCard.className = 'card border-0 shadow-sm mt-3 p-3 detail-card-custom';
                     detailCard.innerHTML = `
-                <div class="detail-content">
-                    <h6 class="fw-semibold mb-2">Transaction Details</h6>
-                    <div class="detail-body"></div>
-                    <div class="text-end mt-2">
-                        <button class="btn btn-sm btn-outline-dark closeDetail">Close</button>
-                    </div>
-                </div>`;
+            <div class="detail-content">
+                <h6 class="fw-semibold mb-2">Transaction Details</h6>
+                <div class="detail-body"></div>
+                <div class="text-end mt-2">
+                    <button class="btn btn-sm btn-outline-dark closeDetail">Close</button>
+                </div>
+            </div>`;
                     transactionsDiv.querySelector('.card-body').appendChild(detailCard);
 
                     detailCard.querySelector('.closeDetail').addEventListener('click', () => {
@@ -646,30 +656,30 @@
                 let rows = '';
                 (course.transactions_details || []).forEach(tx => {
                     rows += `
-                <tr>
-                    <td>${tx.id}</td>
-                    <td>${tx.date}</td>
-                    <td>${tx.student}</td>
-                    <td>${tx.total} (${tx.currency})</td>
-                    <td>${tx.paid} (${tx.currency})</td>
-                    <td>${tx.remaining} (${tx.currency})</td>
-                </tr>`;
+            <tr>
+                <td>${tx.id}</td>
+                <td>${tx.date}</td>
+                <td>${tx.student}</td>
+                <td>${tx.total} (${tx.currency})</td>
+                <td>${tx.paid} (${tx.currency})</td>
+                <td>${tx.remaining} (${tx.currency})</td>
+            </tr>`;
                 });
 
                 detailCard.querySelector('.detail-body').innerHTML = `
-            <table class="table table-hover table-bordered mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Date/Time</th>
-                        <th>Student</th>
-                        <th>Total</th>
-                        <th>Paid</th>
-                        <th>Remaining</th>
-                    </tr>
-                </thead>
-                <tbody>${rows}</tbody>
-            </table>`;
+        <table class="table table-hover table-bordered mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Date/Time</th>
+                    <th>Student</th>
+                    <th>Total</th>
+                    <th>Paid</th>
+                    <th>Remaining</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>`;
                 detailCard.style.display = 'block';
             }
 
@@ -680,86 +690,83 @@
                         btn.addEventListener('click', function(e) {
                             e.preventDefault();
                             const transactionId = this.dataset.id;
-
+                            
                             if (!confirm('Are you sure you want to delete this transaction?')) {
                                 return;
                             }
-
-                        const deleteTransactionUrl = "{{ route('transactions.delete', ['id' => ':transactionId']) }}"
-                            .replace(':transactionId', transactionId);
-
-                        fetch(deleteTransactionUrl, {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'X-CSRF-TOKEN': document.querySelector(
-                                            'meta[name="csrf-token"]').content,
-                                        'Accept': 'application/json',
-                                    }
-                                })
-                                .then(resp => resp.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        alert('Transaction deleted successfully!');
-                                        const teacherId = document.getElementById(
-                                            'transaction_teacher_id')?.value;
-                                        const sessionId = document.getElementById('SelectYear')
-                                            ?.value;
-                                        const currencyId = document.getElementById(
-                                            'currencySelect')?.value;
-
-                                        if (teacherId) {
-                                            if (subPerCourse.classList.contains('active')) {
-                                                fetchPerCourse(teacherId, sessionId,
-                                                currencyId);
-                                            } else {
-                                                fetchTransactions(teacherId, sessionId,
-                                                    currencyId);
-                                            }
+                            
+                            // Delete the transaction
+                            fetch(`/transactions/delete/${transactionId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                    'Accept': 'application/json',
+                                }
+                            })
+                            .then(resp => resp.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert('Transaction deleted successfully!');
+                                    
+                                    // Refresh the table
+                                    const teacherId = document.getElementById('transaction_teacher_id')?.value;
+                                    const sessionId = document.getElementById('SelectYear')?.value;
+                                    const currencyId = document.getElementById('currencySelect')?.value;
+                                    
+                                    if (teacherId) {
+                                        if (subPerCourse.classList.contains('active')) {
+                                            fetchPerCourse(teacherId, sessionId, currencyId);
+                                        } else {
+                                            fetchTransactions(teacherId, sessionId, currencyId);
                                         }
-                                    } else {
-                                        alert('Failed to delete transaction: ' + (data
-                                            .message || 'Unknown error'));
                                     }
-                                })
-                                .catch(err => {
-                                    console.error('Error deleting transaction:', err);
-                                    alert('Error deleting transaction. Please check console.');
-                                });
+                                } else {
+                                    alert('Failed to delete transaction: ' + (data.message || 'Unknown error'));
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Error deleting transaction:', err);
+                                alert('Error deleting transaction. Please check console.');
+                            });
                         });
                         btn.dataset.handlerAttached = '1';
                     }
                 });
             }
 
-            // ================== FETCH RECENT TRANSACTIONS ==================
+            // ================== Fetch Recent Transactions ==================
             window.fetchTransactions = function fetchTransactions(teacherId, sessionId = null, currencyId = null) {
-                console.log('Fetching transactions for:', {
-                    teacherId,
-                    sessionId,
-                    currencyId
-                });
+                console.log('🔵 fetchTransactions called with:', { teacherId, sessionId, currencyId });
                 if (!teacherId) return;
-
-               let teacherDataUrl = "{{ route('teachers.data', ['teacher' => ':id']) }}".replace(':id', teacherId);
-
+                let url = `/teachers/${teacherId}`;
                 const params = [];
                 if (sessionId) params.push(`session_id=${sessionId}`);
                 if (currencyId) params.push(`currency_id=${currencyId}`);
-                if (params.length) teacherDataUrl += `?${params.join('&')}`;
+                if (params.length) url += `?${params.join('&')}`;
 
-                fetch(teacherDataUrl)
+                fetch(url)
                     .then(resp => resp.json())
                     .then(data => {
-                        console.log('Teacher data received:', data);
-
+                        console.log('✅ Teacher data received:', data);
+                        console.log('🔍 Raw totals from API:', {
+                            total_earned: data.totals?.total_earned,
+                            paid_before: data.totals?.paid_before,
+                            current_balance: data.totals?.current_balance,
+                            currency: data.totals?.currency
+                        });
+                        console.log('🔍 Updating elements:', { teacherNameTag, teacherEmailTag, teacherModalNameTag });
+                        
                         if (teacherNameTag) {
                             teacherNameTag.textContent = data.teacher?.name || 'N/A';
+                            console.log('✓ Updated teacher name to:', teacherNameTag.textContent);
                         }
                         if (teacherEmailTag) {
                             teacherEmailTag.textContent = data.teacher?.email || 'N/A';
+                            console.log('✓ Updated teacher email to:', teacherEmailTag.textContent);
                         }
                         if (teacherModalNameTag) {
                             teacherModalNameTag.value = data.teacher?.name || '';
+                            console.log('✓ Updated modal teacher to:', teacherModalNameTag.value);
                         }
 
                         const teacherIdInput = document.getElementById('transaction_teacher_id');
@@ -768,33 +775,43 @@
                         const transactions = data.transactions || [];
                         tbody.innerHTML = '';
 
+                        // Update stats from API totals
                         try {
                             const totals = data.totals || {};
-                            const totalEarnedText = totals.total_earned || (
-                            `0.00 ${totals.currency || ''}`);
-                            const currentBalanceText = totals.current_balance || totals.remaining || (
-                                `0.00 ${totals.currency || ''}`);
-                            const paidBeforeText = totals.paid_before || totals.paid || (
-                                `0.00 ${totals.currency || ''}`);
-
+                            console.log('💰 Updating stats with totals:', totals);
+                            
+                            // Total Earned - sum of all transaction totals
+                            const totalEarnedText = totals.total_earned || (`0.00 ${totals.currency || ''}`);
+                            console.log('Total Earned:', totalEarnedText);
                             document.querySelectorAll('.total-earned-value').forEach(el => {
                                 el.textContent = totalEarnedText;
+                                console.log('✓ Updated element:', el);
                             });
-
+                            
+                            // Current Balance - remaining unpaid amount
+                            const currentBalanceText = totals.current_balance || totals.remaining || (`0.00 ${totals.currency || ''}`);
+                            console.log('Current Balance:', currentBalanceText);
                             document.querySelectorAll('.current-balance-value').forEach(el => {
                                 el.textContent = currentBalanceText;
+                                console.log('✓ Updated element:', el);
                             });
-
+                            
+                            // Paid Before - sum of all payments
+                            const paidBeforeText = totals.paid_before || totals.paid || (`0.00 ${totals.currency || ''}`);
+                            console.log('Paid Before:', paidBeforeText);
                             document.querySelectorAll('.paid-before-value').forEach(el => {
                                 el.textContent = paidBeforeText;
+                                console.log('✓ Updated element:', el);
                             });
-
-                            document.querySelectorAll('.total-paid-out-value').forEach(el => {
-                                el.textContent = paidBeforeText;
-                            });
+                            
+                            // Update Balances tab Total Paid Out if present
+                            document.querySelectorAll('.total-paid-out-value').forEach(el => el.textContent = paidBeforeText);
+                            
+                            console.log('✅ Stats updated successfully');
                         } catch (e) {
-                            console.error('Error updating stats:', e);
+                            console.error('❌ Error updating stats:', e);
                         }
+                        
 
                         if (transactions.length === 0) {
                             tbody.innerHTML =
@@ -804,75 +821,75 @@
 
                         transactions.forEach(tx => {
                             tbody.innerHTML += `
-                        <tr data-id="${tx.id}">
-                            <td><input type="checkbox"></td>
-                            <td>${tx.id}</td>
-                            <td>${tx.date}</td>
-                            <td>${tx.course}</td>
-                            <td>${tx.session}</td>
-                            <td>${tx.student}</td>
-                            <td>${tx.parent}</td>
-                            <td>${tx.total} (${tx.currency})</td>
-                            <td class="paid-cell">${tx.paid} (${tx.currency})</td>
-                            <td class="remaining-cell">${tx.remaining} (${tx.currency})</td>
-                            <td class="text-center">
-                                <button class="btn btn-sm icon-btn restore-btn"
-                                    data-id="${tx.id}"
-                                    data-total="${tx.total}"
-                                    data-paid="${tx.paid}">
-                                    <i class="bi bi-arrow-counterclockwise"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger delete-transaction-btn" data-id="${tx.id}">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>`;
+                    <tr data-id="${tx.id}">
+                        <td><input type="checkbox"></td>
+                        <td>${tx.id}</td>
+                        <td>${tx.date}</td>
+                        <td>${tx.course}</td>
+                        <td>${tx.session}</td>
+                        <td>${tx.student}</td>
+                        <td>${tx.parent}</td>
+                        <td>${tx.total} (${tx.currency})</td>
+                        <td class="paid-cell">${tx.paid} (${tx.currency})</td>
+                        <td class="remaining-cell">${tx.remaining} (${tx.currency})</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm icon-btn restore-btn" 
+                                data-id="${tx.id}" 
+                                data-total="${tx.total}" 
+                                data-paid="${tx.paid}">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-transaction-btn" data-id="${tx.id}">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
                         });
                         attachDeleteHandlers();
                     })
                     .catch(err => {
-                        console.error('Error fetching teacher data:', err);
+                        console.error('❌ Error fetching teacher data:', err);
                         alert('Error loading teacher data. Please check console for details.');
                     });
             }
 
-            // ================== FETCH PER COURSE ==================
+            // ================== Fetch Per Course ==================
             window.fetchPerCourse = function fetchPerCourse(teacherId, sessionId = null, currencyId = null) {
                 if (!teacherId) return;
 
-                const perCourseUrl = "{{ route('teachers.percourse', ['teacher' => ':teacherId']) }}".replace(':teacherId', teacherId);
-
+                let url = `/teachers/${teacherId}/percourse`;
                 const params = [];
                 if (sessionId) params.push(`session_id=${sessionId}`);
                 if (currencyId) params.push(`currency_id=${currencyId}`);
-                if (params.length) perCourseUrl += `?${params.join('&')}`;
+                if (params.length) url += `?${params.join('&')}`;
 
-                fetch(perCourseUrl)
+                fetch(url)
                     .then(resp => resp.json())
                     .then(data => {
                         const courses = data.courses || [];
+
                         thead.innerHTML = perCourseHead;
                         tbody.innerHTML = '';
 
                         courses.forEach((course, idx) => {
                             tbody.innerHTML += `
-                        <tr class="course-row" data-idx="${idx}" data-id="${course.transactions_details[0]?.id || ''}">
-                            <td>${course.name}</td>
-                            <td>${course.session}</td>
-                            <td>${course.transactions}</td>
-                            <td>${course.total_amount}</td>
-                            <td class="paid-cell">${course.total_paid}</td>
-                            <td class="remaining-cell">${course.total_remaining}</td>
-                            <td class="text-center">
-                                <button class="btn btn-sm icon-btn restore-btn"
-                                    data-id="${course.transactions_details[0]?.id || ''}"
-                                    data-total="${course.total_amount}"
-                                    data-paid="${course.total_paid}">
-                                    <i class="bi bi-arrow-counterclockwise"></i>
-                                </button>
-                                <button class="btn btn-sm btn-dark viewCourseDetails" data-idx="${idx}">View</button>
-                            </td>
-                        </tr>`;
+                    <tr class="course-row" data-idx="${idx}" data-id="${course.transactions_details[0]?.id || ''}">
+                        <td>${course.name}</td>
+                        <td>${course.session}</td>
+                        <td>${course.transactions}</td>
+                        <td>${course.total_amount}</td>
+                        <td class="paid-cell">${course.total_paid}</td>
+                        <td class="remaining-cell">${course.total_remaining}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm icon-btn restore-btn" 
+                                data-id="${course.transactions_details[0]?.id || ''}" 
+                                data-total="${course.total_amount}" 
+                                data-paid="${course.total_paid}">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                            <button class="btn btn-sm btn-dark viewCourseDetails" data-idx="${idx}">View</button>
+                        </td>
+                    </tr>`;
                         });
 
                         tbody.querySelectorAll('.viewCourseDetails').forEach(btn => {
@@ -894,19 +911,19 @@
                     .catch(err => console.error('Error fetching per-course data:', err));
             }
 
-            // ================== FETCH PAYOUTS DATA ==================
+            // ================== Fetch Payouts Data ==================
             window.fetchPayoutsData = function fetchPayoutsData(sessionId) {
                 const payoutsTableBody = document.getElementById('payoutsTableBody');
 
                 if (!sessionId) {
-                    payoutsTableBody.innerHTML =
-                        '<tr><td colspan="9" class="text-center text-warning">Please select a session first</td></tr>';
+                    payoutsTableBody.innerHTML = '<tr><td colspan="8" class="text-center text-warning">Please select a session first</td></tr>';
                     return;
                 }
 
-                payoutsTableBody.innerHTML = '<tr><td colspan="9" class="text-center">Loading...</td></tr>';
-               const payoutsUrl = "{{ route('teacher.payouts.data', ['session_id' => ':sessionId']) }}".replace(':sessionId', sessionId);
+                // Show loading state
+                payoutsTableBody.innerHTML = '<tr><td colspan="8" class="text-center">Loading...</td></tr>';
 
+                const payoutsUrl = `/teacher/payouts/${sessionId}`;
 
                 fetch(payoutsUrl)
                     .then(response => {
@@ -919,26 +936,24 @@
                         if (data.success && data.data.length > 0) {
                             appendPayoutsData(data.data);
                         } else if (data.success && data.data.length === 0) {
-                            payoutsTableBody.innerHTML =
-                                '<tr><td colspan="9" class="text-center">No payouts found for this session</td></tr>';
+                            payoutsTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No payouts found for this session</td></tr>';
                         } else {
-                            payoutsTableBody.innerHTML =
-                                `<tr><td colspan="9" class="text-center text-danger">${data.message}</td></tr>`;
+                            payoutsTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">${data.message}</td></tr>`;
                         }
                     })
                     .catch(error => {
                         console.error('Error fetching payouts:', error);
-                        payoutsTableBody.innerHTML =
-                            '<tr><td colspan="9" class="text-center text-danger">Error loading data</td></tr>';
+                        payoutsTableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading data</td></tr>';
                     });
             }
 
-            // APPEND PAYOUTS TO TABLE
+            // Append payouts to table
             function appendPayoutsData(payouts) {
                 const payoutsTableBody = document.getElementById('payoutsTableBody');
 
                 payouts.forEach(payout => {
                     const row = document.createElement('tr');
+
                     const dateTime = new Date(payout.date_time).toLocaleString();
                     const teacherName = payout.teacher_name || '-';
                     const courseName = payout.course_name || '-';
@@ -950,23 +965,25 @@
                     const remarks = payout.remarks || '-';
 
                     row.innerHTML = `
-                    <td>${dateTime}</td>
-                    <td>${teacherName}</td>
-                    <td>${courseName}</td>
-                    <td>${sessionName}</td>
-                    <td>${studentName}</td>
-                    <td>${parentName}</td>
-                    <td>${paidAmount} (${currency})</td>
-                    <td>${remarks}</td>
-                    <td class="text-end">
-                        <button class="btn btn-sm btn-outline-danger delete-payout" data-id="${payout.id}">
-                            <i class="fa-solid fa-trash me-1"></i>Delete
-                        </button>
-                    </td>
-                `;
+                        <td>${dateTime}</td>
+                        <td>${teacherName}</td>
+                        <td>${courseName}</td>
+                        <td>${sessionName}</td>
+                        <td>${studentName}</td>
+                        <td>${parentName}</td>
+                        <td>${paidAmount} (${currency})</td>
+                        <td>${remarks}</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-danger delete-payout" data-id="${payout.id}">
+                                <i class="fa-solid fa-trash me-1"></i>Delete
+                            </button>
+                        </td>
+                    `;
+
                     payoutsTableBody.appendChild(row);
                 });
 
+                // Attach event listeners to Delete buttons
                 document.querySelectorAll('.delete-payout').forEach(button => {
                     button.addEventListener('click', function() {
                         const payoutId = this.dataset.id;
@@ -975,35 +992,35 @@
                 });
             }
 
-            // DELETE PAYOUT FUNCTION
+            // Delete payout function
             function deletePayout(payoutId) {
                 if (!confirm('Are you sure you want to delete this payout?')) return;
-                const deletePayoutUrl = "{{ route('teacher.payouts.delete', ['id' => ':payoutId']) }}".replace(':payoutId', payoutId);
-                fetch(deletePayoutUrl, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        },
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Payout deleted successfully.');
-                            const sessionId = document.getElementById('SelectYear')?.value;
-                            if (sessionId) {
-                                fetchPayoutsData(sessionId);
-                            }
-                        } else {
-                            alert('Failed to delete payout: ' + data.message);
+
+                fetch(`/teacher/payouts/delete/${payoutId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Payout deleted successfully.');
+                        const sessionId = document.getElementById('SelectYear')?.value;
+                        if (sessionId) {
+                            fetchPayoutsData(sessionId); // Refresh the table
                         }
-                    })
-                    .catch(error => {
-                        console.error('Error deleting payout:', error);
-                        alert('Something went wrong.');
-                    });
+                    } else {
+                        alert('Failed to delete payout: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting payout:', error);
+                    alert('Something went wrong.');
+                });
             }
 
-            // ================== RESTORE MODAL FUNCTIONALITY ==================
+            // ================== Restore Modal Functionality ==================
             function openRestoreModal(transaction = null) {
                 const restoreModal = new bootstrap.Modal(document.getElementById('restoreModal'));
                 const restoreTransactionId = document.getElementById('restoreTransactionId');
@@ -1027,10 +1044,16 @@
                     restoreRemaining.value = total - paid - newPaid;
                 });
 
+                // Show modal only. Submit handling is consolidated in the separate
+                // restore form script below to avoid duplicate requests/handlers.
                 restoreModal.show();
             }
 
-            // ================== EVENT LISTENERS ==================
+            // Note: opening the restore modal is handled by the consolidated
+            // click handler later in the file. Removed this earlier duplicate
+            // listener to avoid conflicting handlers.
+
+            // ================== Event Listeners ==================
             mainTabBtns.forEach(btn => btn.addEventListener('click', () => activateMainTab(btn)));
 
             subRecent.addEventListener('click', () => {
@@ -1049,47 +1072,34 @@
                     ?.value);
             });
 
-            // ================== TEACHER SELECTION - SHOW DATA FOR DIFFERENT TEACHERS ==================
             teacherSelect.addEventListener('change', function() {
                 const teacherId = this.value;
-                const sessionId = sessionSelect?.value;
-                const currencyId = document.getElementById('currencySelect')?.value;
-
-                console.log('Teacher selected, ID:', teacherId);
-
+                console.log('🎯 Teacher selected, ID:', teacherId, 'Type:', typeof teacherId);
+                
                 if (!teacherId || teacherId === '' || teacherId === 'Select a teacher') {
-                    console.log('Invalid teacher ID');
+                    console.log('❌ Invalid teacher ID');
                     noTeacherSelected.style.display = 'block';
                     teacherData.style.display = 'none';
                     subTabContainer.style.display = 'none';
-                    tbody.innerHTML = originalBody;
-                    thead.innerHTML = originalHead;
                     return;
                 }
 
-                console.log('Valid teacher ID, showing teacher data');
+                console.log('✅ Valid teacher ID, showing teacher data');
                 noTeacherSelected.style.display = 'none';
                 teacherData.style.display = 'block';
 
                 const transBtn = Array.from(mainTabBtns).find(b => b.dataset.target === 'transactionsDiv');
                 activateMainTab(transBtn || mainTabBtns[0]);
 
+                const sessionId = sessionSelect?.value;
+                const currencyId = document.getElementById('currencySelect')?.value;
+
+                // ✅ Clear table and show loading state
                 tbody.innerHTML = '<tr><td colspan="11" class="text-center">Loading...</td></tr>';
-
-                subRecent.classList.add('active');
-                subPerCourse.classList.remove('active');
-                subTabContainer.style.display = 'flex';
-
-                const detailCard = transactionsDiv.querySelector('.detail-card-custom');
-                if (detailCard) {
-                    detailCard.style.display = 'none';
-                }
-
-                console.log('Fetching transactions for teacher:', teacherId);
-                fetchTransactions(teacherId, sessionId, currencyId);
-
-                console.log('Updating balance for teacher:', teacherId);
-                updateCurrentBalance(teacherId, sessionId, currencyId);
+                
+                // ✅ Always fetch Recent transactions by default when teacher is selected
+                // Note: activateSub already calls fetchTransactions, so we don't need to call it again
+                activateSub('recent');
             });
 
             if (sessionSelect) {
@@ -1107,9 +1117,11 @@
                     } else {
                         fetchTransactions(teacherId, sessionId, currencyId);
                     }
-
+                    
+                    // ✅ Update balance on session change
                     updateCurrentBalance(teacherId, sessionId, currencyId);
-
+                    
+                    // ✅ Refresh payouts if payouts tab is active
                     const payoutsDiv = document.getElementById('payoutsDiv');
                     if (payoutsDiv && payoutsDiv.style.display !== 'none') {
                         fetchPayoutsData(sessionId);
@@ -1128,9 +1140,11 @@
                     } else {
                         fetchTransactions(teacherId, sessionSelect?.value, this.value);
                     }
-
+                    
+                    // ✅ Update balance on currency change
                     updateCurrentBalance(teacherId, sessionSelect?.value, this.value);
-
+                    
+                    // ✅ Refresh payouts if payouts tab is active
                     const payoutsDiv = document.getElementById('payoutsDiv');
                     if (payoutsDiv && payoutsDiv.style.display !== 'none') {
                         fetchPayoutsData(sessionSelect?.value);
@@ -1138,11 +1152,11 @@
                 });
             }
 
-            // ================== INITIAL STATE ==================
+            // ================== Initial State ==================
             subTabContainer.style.display = 'none';
             attachDeleteHandlers();
-
-            // ================== TRANSACTIONS SEARCH ==================
+            
+            // ================== Transactions Search Functionality ==================
             const transactionsSearchInput = document.getElementById('searchInput');
             if (transactionsSearchInput) {
                 transactionsSearchInput.addEventListener('input', function(e) {
@@ -1155,8 +1169,8 @@
                     });
                 });
             }
-
-            // ================== PAYOUTS SEARCH ==================
+            
+            // ================== Payouts Search Functionality ==================
             const payoutsSearchInput = document.querySelector('#payoutsDiv input[type="text"]');
             if (payoutsSearchInput) {
                 payoutsSearchInput.addEventListener('input', function(e) {
@@ -1170,35 +1184,37 @@
                 });
             }
 
-            // ================== LOAD INITIAL DATA ON PAGE REFRESH ==================
+            // ===== Fixed: Load latest server data on page refresh =====
             const initialTeacherId = teacherSelect?.value;
             if (initialTeacherId) {
                 noTeacherSelected.style.display = 'none';
                 teacherData.style.display = 'block';
                 subTabContainer.style.display = 'flex';
 
+                // Force Recent tab active
                 subRecent.classList.add('active');
                 subPerCourse.classList.remove('active');
 
                 const sessionId = sessionSelect?.value;
                 const currencyId = document.getElementById('currencySelect')?.value;
 
+                // Fetch recent transactions for selected teacher
                 fetchTransactions(initialTeacherId, sessionId, currencyId);
             } else {
+                // Ensure the "No Teacher Selected" panel is visible when nothing is selected
                 noTeacherSelected.style.display = 'block';
                 teacherData.style.display = 'none';
                 subTabContainer.style.display = 'none';
             }
         });
-
         window.fetchTransactions = fetchTransactions;
         window.fetchPerCourse = fetchPerCourse;
-</script>
+    </script>
 
-{{-- This is the script for currency update --}}
+    {{-- This is the script for currency update --}}
 
-<script>
-    $(document).ready(function() {
+    <script>
+        $(document).ready(function() {
             // Ensure select shows current currency on modal open
             const updateModalCurrency = () => {
                 const currentCurrencyId = $('#current_currency').val();
@@ -1248,15 +1264,15 @@
                 updateModalCurrency();
             });
         });
-</script>
+    </script>
 
 
 
-{{-- This is the script of teacher modal --}}
+    {{-- This is the script of teacher  modal --}}
 
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
             const transactionsForm = document.getElementById('transactionsForm');
             const transactionTeacher = document.getElementById('transaction_teacher');
             const transactionTeacherId = document.getElementById('transaction_teacher_id');
@@ -1337,12 +1353,12 @@
                         if (data.success) {
                             alert('Transaction saved successfully!');
                             bootstrap.Modal.getInstance(transactionsModal).hide();
-
+                            
                             // ✅ Refresh transactions immediately after adding new transaction
                             const teacherId = document.getElementById('transaction_teacher_id')?.value;
                             const sessionId = document.getElementById('SelectYear')?.value;
                             const currencyId = document.getElementById('currencySelect')?.value;
-
+                            
                             if (teacherId && window.fetchTransactions) {
                                 // Use setTimeout to ensure modal is fully closed before refresh
                                 setTimeout(() => {
@@ -1361,13 +1377,13 @@
                     });
             });
         });
-</script>
+    </script>
 
-{{-- this is the script for teacher transaction restore modal --}}
+    {{-- this is the script for teacher transaction restore modal --}}
 
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
             console.log('=== Restore Modal Script Started ===');
 
             // ========== PARSE AMOUNT FROM CELL ==========
@@ -1480,8 +1496,7 @@
 
                 const subPerCourse = document.getElementById('sub-percourse');
                 const isCourse = subPerCourse && subPerCourse.classList.contains('active');
-                const endpoint = isCourse ? "{{ route('transactions.restore-percourse') }}" : "{{ route('transactions.restore') }}";
-
+                const endpoint = isCourse ? '/transactions/restore-percourse' : '/transactions/restore';
 
                 try {
                     const response = await fetch(endpoint, {
@@ -1593,7 +1608,7 @@
                             }
                         }, 500);
                     }
-
+                    
                     // ✅ Refresh payouts if payouts tab is active
                     const payoutsDiv = document.getElementById('payoutsDiv');
                     if (payoutsDiv && payoutsDiv.style.display !== 'none' && sessionId) {
@@ -1610,5 +1625,6 @@
 
             console.log('=== Restore Modal Script Completed ===\n');
         });
-</script>
+    </script>
+    
 @endsection
