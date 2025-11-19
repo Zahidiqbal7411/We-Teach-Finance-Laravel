@@ -11,12 +11,13 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\Taxonomies_settingController;
 use App\Http\Controllers\Teacher_settingController;
 use App\Http\Controllers\Express_courseController;
+use App\Http\Controllers\ExportController;
 use Illuminate\Support\Facades\Route;
+use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 
-Route::get('/', function () {
-    return view('dashboard.index');
-})->name('dashboard');
+Route::get('/export-pdf', [ExportController::class, 'exportPDF'])->name('export.pdf');
+Route::get('/export-excel', [ExportController::class, 'exportExcel'])->name('export.excel');
 
 
 
@@ -24,22 +25,29 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-// Route::post('/form/store' ,[FormdataController::class ,'store'])->name('form.submit');
-// Route::post('/form' ,[FormdataController::class ,'index']);
-// Route::get('/form/{id}/edit',[FormdataController::class ,'edit'])->name('form.edit');
-// Route::post('/form/delete/{id}',[FormdataController::class ,'delete'])->name('form.delete');
 
 
-Route::resource('teacher', TeacherController::class);
-Route::resource('platform', PlatformController::class);
-Route::resource('report', ReportController::class);
-Route::resource('setting', SettingController::class);
+    // Route::post('/form/store' ,[FormdataController::class ,'store'])->name('form.submit');
+    // Route::post('/form' ,[FormdataController::class ,'index']);
+    // Route::get('/form/{id}/edit',[FormdataController::class ,'edit'])->name('form.edit');
+    // Route::post('/form/delete/{id}',[FormdataController::class ,'delete'])->name('form.delete');
 
-Route::get('teacher_setting/create', [SettingController::class , 'create'])->name('teacher_setting.create');
-Route::get('taxonomies_setting/create', [SettingController::class , 'create'])->name('taxonomies_setting.create');
-Route::get('system_setting/create', [SettingController::class , 'create'])->name('system_setting.create');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/update_currency', [DashboardController::class, 'update_currency'])->name('dashboard.update_currency');
+    Route::post('/update_session', [DashboardController::class, 'update_session'])->name('dashboard.update_session');
+
+
+Route::get('express_course/create', [Express_courseController::class , 'create'])->name('express_course.create');
+Route::get('express_course/index', [Express_courseController::class , 'index'])->name('express_courses.index');
+
+    Route::resource('teacher', TeacherController::class);
+    Route::resource('platform', PlatformController::class);
+    Route::resource('report', ReportController::class);
+    Route::resource('setting', SettingController::class);
+
+    Route::get('teacher_setting/create', [SettingController::class, 'create'])->name('teacher_setting.create');
+    Route::get('taxonomies_setting/create', [SettingController::class, 'create'])->name('taxonomies_setting.create');
+    Route::get('system_setting/create', [SettingController::class, 'create'])->name('system_setting.create');
 
 
 
@@ -71,9 +79,20 @@ Route::get('system_setting/create', [SettingController::class , 'create'])->name
     Route::get('taxonomies/sessions/index', [Taxonomies_settingController::class, 'index_sessions'])->name('taxonomies_sessions.index');
     Route::delete('taxonomies/sessions/delete/{id}', [Taxonomies_settingController::class, 'delete_sessions'])->name('taxonomies_sessions.delete');
 
-// this is the routes  for teacher section
-Route::post('taxonomies/teacher/store' ,[Teacher_settingController::class , 'store_teacher'])->name('teacher_setting.store');
-Route::get('taxonomies/teacher/index', [Teacher_settingController::class, 'index_teacher']) ->name('teacher_setting.index');
+    // this is the routes  for teacher section
+    Route::get('/teacher/create', [TeacherController::class, 'create'])->name('teacher.create');
+    Route::post('taxonomies/teacher/store', [Teacher_settingController::class, 'store_teacher'])->name('teacher_setting.store');
+    Route::get('taxonomies/teacher/index', [Teacher_settingController::class, 'index_teacher'])->name('teacher_setting.index');
+    Route::get('/teachers/{id}', [TeacherController::class, 'getTeacherData'])->name('teachers.data');
+    Route::get('/teachers/{teacherId}/balance', [TeacherController::class, 'getCurrentBalance'])->name('teachers.balance');
+    Route::post('/transactions/store', [TeacherController::class, 'store'])->name('transactions.store');
+    Route::delete('/transactions/delete/{id}', [TeacherController::class, 'deleteTransaction'])->name('transactions.delete');
+    Route::get('/teachers/{teacher}/percourse', [TeacherController::class, 'getPerCourseTransactions'])->name('teachers.percourse');
+    // routes/web.php
+    Route::post('/transactions/restore', [TeacherController::class, 'restore'])->name('transactions.restore');
+    Route::post('/transactions/restore-percourse', [TeacherController::class, 'restorePerCourse'])->name('transactions.restore-percourse');
+    Route::get('/teacher/payouts/{session_id}', [TeacherController::class, 'getPayouts'])->name('teacher.payouts.data');
+    Route::delete('/teacher/payouts/delete/{id}', [TeacherController::class, 'deletePayout'])->name('teacher.payouts.delete');
 
     // This is the route for course
 
@@ -90,12 +109,13 @@ Route::get('taxonomies/teacher/index', [Teacher_settingController::class, 'index
     //This is the route for platform modal
     Route::post('platform_transaction/store', [PlatformController::class, 'platform_transaction_store'])->name('platform_transaction.store');
 
-Route::get('platform/transactions/index', [PlatformController::class, 'platform_transaction_index'])->name('platform_transactions.index');
-Route::post('/platform/transactions/{transaction}/restore', [PlatformController::class, 'platform_transaction_modal_store'])
-    ->name('platform_transactions.restore');
+    Route::get('platform/transactions/index', [PlatformController::class, 'platform_transaction_index'])->name('platform_transactions.index');
+    Route::post('/platform/transactions/{transaction}/restore', [PlatformController::class, 'platform_transaction_modal_store'])
+        ->name('platform_transactions.restore');
 
 
-Route::post('/currency/update', [PlatformController::class, 'platform_currency_update'])->name('platform_currency.update');
+
+    Route::post('/currency/update', [PlatformController::class, 'platform_currency_update'])->name('platform_currency.update');
 
     // fetch per_cource
     Route::get('/platform/transactions/per-course', [PlatformController::class, 'perCourse'])

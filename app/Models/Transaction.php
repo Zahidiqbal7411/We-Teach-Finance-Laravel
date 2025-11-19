@@ -9,7 +9,7 @@ class Transaction extends Model
 {
     protected $fillable = [
         'teacher_id', 'course_id', 'session_id',
-        'student_name', 'parent_name', 'total', 'paid_amount' ,'selected_currency'
+        'student_name', 'parent_name', 'total', 'paid_amount' ,'selected_currency','platform_amount','teacher_amount'
     ];
 
     public function teacher()

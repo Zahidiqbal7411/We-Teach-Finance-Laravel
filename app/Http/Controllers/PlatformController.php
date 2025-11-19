@@ -9,14 +9,21 @@ use App\Models\Taxonomies_sessions; // Make sure class name matches file
 use App\Models\Teacher;
 use App\Models\Payment;
 use App\Models\TeacherCourse;
-use Illuminate\Http\Request;
 use App\Models\Transaction;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\TransactionsExport;
+use PDF;
+
+
 
 class PlatformController extends Controller
 {
     public function create()
     {
         // Fetch currency
+        $selected_currency_id = Setting::find(6)?->value ?? 0;
         $currency_data = Setting::find(3);
         $subject_datas = Course::all();
         $teacher_datas = Teacher::all();
@@ -212,6 +219,70 @@ class PlatformController extends Controller
     }
 
 
+    // public function platform_transaction_index(Request $request)
+    // {
+    //     $session_id = $request->session_id;
+    //     $selected_currency_id = Setting::find(6)?->value ?? 0;
+
+
+    //     // ✅ Fetch transactions with platform payments
+    //     $platform_transaction_datas = Transaction::with([
+    //         'teacher',
+    //         'course',
+    //         'session',
+    //         'currency',
+    //         'payments' => fn($q) => $q->where('type', 'platform') // only platform payments
+    //     ])
+    //         ->where('selected_currency', $selected_currency_id)
+    //         ->when($session_id, fn($q) => $q->where('session_id', $session_id))
+    //         ->whereHas('payments', fn($q) => $q->where('type', 'platform')) // only transactions with platform payments
+    //         ->latest()
+    //         ->get();
+
+    //     // ✅ Total revenue from all transactions
+    //     $total_revenue = $platform_transaction_datas->sum('total');
+
+    //     // ✅ Collect transaction IDs
+    //     $transaction_ids = $platform_transaction_datas->pluck('id');
+
+    //     // ✅ Withdrawn balance = sum of actual paid_amount from payments table
+    //     $withdrawn_balance = Payment::whereIn('transaction_id', $transaction_ids)
+    //         ->where('type', 'platform')
+    //         ->sum('paid_amount');
+
+    //     // ✅ Platform balance calculation per transaction
+    //     $platform_balance = 0;
+    //     foreach ($platform_transaction_datas as $transaction) {
+    //         $teacherCourse = TeacherCourse::where('teacher_id', $transaction->teacher_id)
+    //             ->where('course_id', $transaction->course_id)
+    //             ->first();
+
+    //         $teacher_percentage = $teacherCourse ? $teacherCourse->teacher_percentage : 0;
+    //         $teacher_share = $transaction->total * ($teacher_percentage / 100);
+    //         $platform_balance += ($transaction->total - $teacher_share);
+    //     }
+
+    //     // ✅ Convert local logo to Base64
+    //     $logoPath = public_path('logo_pic/vteach_logo.jpg');
+    //     if (file_exists($logoPath)) {
+    //         $type = pathinfo($logoPath, PATHINFO_EXTENSION);
+    //         $data = file_get_contents($logoPath);
+    //         $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+    //     } else {
+    //         $logoBase64 = ''; // fallback if image not found
+    //     }
+
+    //     // ✅ Return response including logo
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'Transactions fetched successfully',
+    //         'data' => $platform_transaction_datas,
+    //         'total_revenue' => $total_revenue,
+    //         'platform_balance' => $platform_balance,
+    //         'withdrawn_balance' => $withdrawn_balance,
+    //         'logo' => $logoBase64, // ✅ ready for PDF embedding
+    //     ]);
+    // }
 
 
 
@@ -482,6 +553,60 @@ class PlatformController extends Controller
 
 
 
+    // public function getPayouts($session_id)
+    // {
+    //     try {
+    //         $selected_currency_id = Setting::find(6)->value;
+    //         $default_currency = Currency::find($selected_currency_id);
+    //         $currency_name = $default_currency ? $default_currency->currency_name : '';
+
+    //         $payments = Payment::where('type', 'platform') // only platform payouts
+    //             ->whereHas('transaction', function ($query) use ($session_id, $selected_currency_id) {
+    //                 $query->where('session_id', $session_id)
+    //                     ->where('selected_currency', $selected_currency_id);
+    //             })
+    //             ->with([
+    //                 'transaction.teacher:id,teacher_name',
+    //                 'transaction.course:id,course_title',
+    //                 'transaction.session:id,session_title',
+    //             ])
+    //             ->select('id', 'transaction_id', 'teacher_id', 'paid_amount', 'remarks', 'created_at')
+    //             ->orderBy('created_at', 'desc')
+    //             ->get();
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $payments->map(function ($p) use ($currency_name) {
+    //                 $transaction = $p->transaction;
+    //                 $teacher = $transaction->teacher ?? null;
+    //                 $course = $transaction->course ?? null;
+    //                 $session = $transaction->session ?? null;
+
+    //                 return [
+
+    //                 'id'           => $p->id,  // <-- FIX
+    //                 'date_time'    => $p->created_at->format('Y-m-d H:i:s'),
+
+
+    //                     'teacher_name' => $teacher ? $teacher->teacher_name : '-',
+    //                     'course_name'  => $course ? $course->course_title : '-',
+    //                     'session_name' => $session ? $session->session_title : '-',
+    //                     'student_name' => $transaction ? $transaction->student_name : '-',
+    //                     'parent_name'  => $transaction ? $transaction->parent_name : '-',
+    //                     'remarks'      => $p->remarks ?? '-',
+    //                     'paid_amount'  => $p->paid_amount,
+    //                     'currency_name' => $currency_name,
+    //                 ];
+    //             }),
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Error fetching payouts: ' . $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
     public function getPayouts($session_id)
     {
         try {
@@ -489,7 +614,7 @@ class PlatformController extends Controller
             $default_currency = Currency::find($selected_currency_id);
             $currency_name = $default_currency ? $default_currency->currency_name : '';
 
-            $payments = Payment::where('type', 'platform') // only platform payouts
+            $payments = Payment::where('type', 'platform')
                 ->whereHas('transaction', function ($query) use ($session_id, $selected_currency_id) {
                     $query->where('session_id', $session_id)
                         ->where('selected_currency', $selected_currency_id);
@@ -506,18 +631,16 @@ class PlatformController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $payments->map(function ($p) use ($currency_name) {
-                    $transaction = $p->transaction;
-                    $teacher = $transaction->teacher ?? null;
-                    $course = $transaction->course ?? null;
-                    $session = $transaction->session ?? null;
+                    $t = $p->transaction;
 
                     return [
+                        'id'           => $p->id,  // <--- REQUIRED FOR PDF/EXCEL/COLUMNS
                         'date_time'    => $p->created_at->format('Y-m-d H:i:s'),
-                        'teacher_name' => $teacher ? $teacher->teacher_name : '-',
-                        'course_name'  => $course ? $course->course_title : '-',
-                        'session_name' => $session ? $session->session_title : '-',
-                        'student_name' => $transaction ? $transaction->student_name : '-',
-                        'parent_name'  => $transaction ? $transaction->parent_name : '-',
+                        'teacher_name' => $t->teacher->teacher_name ?? '-',
+                        'course_name'  => $t->course->course_title ?? '-',
+                        'session_name' => $t->session->session_title ?? '-',
+                        'student_name' => $t->student_name ?? '-',
+                        'parent_name'  => $t->parent_name ?? '-',
                         'remarks'      => $p->remarks ?? '-',
                         'paid_amount'  => $p->paid_amount,
                         'currency_name' => $currency_name,
@@ -527,11 +650,10 @@ class PlatformController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error fetching payouts: ' . $e->getMessage(),
+                'message' => 'Error: ' . $e->getMessage(),
             ], 500);
         }
     }
-
 
     public function deletePayout($id)
     {
