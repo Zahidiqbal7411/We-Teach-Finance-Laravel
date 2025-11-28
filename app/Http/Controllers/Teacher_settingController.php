@@ -42,50 +42,38 @@ class Teacher_settingController extends Controller
     }
 
 
-
-    public function index_teacher(Request $request)
+public function index_teacher(Request $request)
 {
-    $teachers = Teacher::with(['courses.course.subject'])->get();
+    try {
+        $teachers = Teacher::with([
+            'courses.course.subject',
+            'courses.course.examBoard',
+            'courses.course.eduSystem'
+        ])->get();
 
-    return response()->json([
-        'success' => true,
-        'data' => $teachers
-    ]);
+        // Filter out teacherCourses with missing courses
+        $teachers->each(function($teacher) {
+            $teacher->courses = $teacher->courses->filter(fn($tc) => $tc->course != null)->values();
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $teachers
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Failed to load teachers: '.$e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ], 500);
+    }
 }
 
 
-
-
-
-
-
-
-    // public function teacher_course_store(Request $request)
-    // {
-    //     try {
-    //         $validated = $request->validate([
-    //             'teacherId' => 'required|unique:teacher_courses,teacher_id,NULL,id,course_id,' . $request->courseId,
-    //             'courseId' => 'required|unique:teacher_courses,course_id,NULL,id,teacher_id,' . $request->teacherId,
-    //             'teacherPercentage' => 'required'
-    //         ]);
-    //     } catch (ValidationException $e) {
-    //         // Return JSON response on validation failure
-    //         return response()->json([
-    //             'success' => false,
-    //             'errors' => $e->errors()
-    //         ], 422);
-    //     }
-
-    //     TeacherCourse::create([
-    //         'teacher_id' => $validated['teacherId'],
-    //         'course_id' => $validated['courseId'],
-    //         'teacher_percentage' => $validated['teacherPercentage'],
-    //     ]);
-
-    //     return response()->json(['success' => true]);
-    // }
-
-    public function teacher_course_delete($id)
+     public function teacher_course_delete($id)
     {
         try {
             $teacherCourse = TeacherCourse::findOrFail($id); // find the pivot record by ID
@@ -108,12 +96,12 @@ class Teacher_settingController extends Controller
     {
         try {
             $validated = $request->validate([
-                'teacherId' => 'required', // no uniqueness here
+                'teacherId' => 'required',
                 'courseId' => 'required|unique:teacher_courses,course_id,NULL,id,teacher_id,' . $request->teacherId,
                 'teacherPercentage' => 'required'
             ]);
         } catch (ValidationException $e) {
-            // Customize the message for course duplication
+
             $errors = $e->errors();
 
             if (isset($errors['courseId'])) {
@@ -126,12 +114,30 @@ class Teacher_settingController extends Controller
             ], 422);
         }
 
-        TeacherCourse::create([
+        // Create new record
+        $teacherCourse = TeacherCourse::create([
             'teacher_id' => $validated['teacherId'],
             'course_id' => $validated['courseId'],
             'teacher_percentage' => $validated['teacherPercentage'],
         ]);
 
-        return response()->json(['success' => true]);
+        // Load relations (teacher + course + subject)
+        $teacherCourse->load([
+            'teacher:id,teacher_name',
+            'course:id,course_title,subject_id',
+            'course.subject:id,subject_title'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $teacherCourse->id,
+                'teacher_name' => $teacherCourse->teacher->teacher_name,
+                'course_title' => $teacherCourse->course->course_title,
+                'subject_title' => $teacherCourse->course->subject->subject_title ?? 'N/A',
+                'teacher_percentage' => $teacherCourse->teacher_percentage,
+                'platform_percentage' => 100 - $teacherCourse->teacher_percentage,
+            ]
+        ]);
     }
 }

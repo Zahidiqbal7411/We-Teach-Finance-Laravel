@@ -1,608 +1,904 @@
-  @extends('layouts.app')
-
-
-  @section('contents')
-      <div class="main-content">
-          <div class="topbar p-3">
-              <div class="d-flex justify-content-between align-items-center">
-                  <h4 class="fw-semibold mb-0">Dashboard</h4>
-                  <div class="d-flex  gap-3">
-                      <select class="form-select form-select-md">
-                          <option>May/June 2026</option>
-                          <option>May/June 2027</option>
-                      </select>
-                      <select class="form-select form-select-md">
-                          <option>EG/EGP</option>
-                          <option>US/USD</option>
-                          <option>EU/EUR</option>
-                      </select>
-                  </div>
-              </div>
-          </div>
-
-          <div class="content-area">
-              <div class="sub-topbar d-flex justify-content-between align-items-center mb-4">
-                  <div>
-                      <h4 class="fw-semibold mb-0">Settings</h4>
-                      <small class="text-muted">Configure system settings and manage data sources</small>
-                  </div>
-              </div>
-
-              <!-- Tabs -->
-              <div class="setting-tabNavigation">
-                  <ul class="nav nav-pills gap-2 flex-wrap" id="pills-tab" role="tablist">
-                      <li class="nav-item">
-                          <a href="{{ route('teacher_setting.create') }}" class="nav-link active" id="pills-teachers-tab"
-                              data-bs-toggle="pill" data-bs-target="#pills-teachers" role="tab"
-                              aria-controls="pills-teachers" aria-selected="true">
-                              Teachers
-                          </a>
-                      </li>
-                      <li class="nav-item">
-                          <a href="{{ route('taxonomies_setting.create') }}"
-                              class="nav-link {{ request()->routeIs('taxonomies_setting.*') ? 'active' : '' }}"
-                              id="pills-taxonomies-tab" data-bs-toggle="pill" data-bs-target="#pills-taxonomies"
-                              role="tab" aria-controls="pills-taxonomies"
-                              aria-selected="{{ request()->routeIs('taxonomies_setting.*') ? 'true' : 'false' }}">
-                              Taxonomies
-                          </a>
-                      </li>
-                      <li class="nav-item">
-                          <a href="{{ route('system_setting.create') }}"
-                              class="nav-link {{ request()->routeIs('system_setting.*') ? 'active' : '' }}"
-                              id="pills-system-tab" data-bs-toggle="pill" data-bs-target="#pills-system" role="tab"
-                              aria-controls="pills-system"
-                              aria-selected="{{ request()->routeIs('system_setting.*') ? 'true' : 'false' }}">
-                              System
-                          </a>
-                      </li>
-                  </ul>
-              </div>
-
-              <!-- Tab Content -->
-              <div class="tab-content" id="pills-tabContent">
-                  <!-- Teachers Tab -->
-                  <div class="tab-pane fade show active mt-4" id="pills-teachers" role="tabpanel"
-                      aria-labelledby="pills-teachers-tab">
-                      <div class="card p-3 shadow-sm">
-                          <h5 class="fw-semibold mb-1">Teacher Management</h5>
-                          <p class="text-muted small mb-4">Manage teachers and their course revenue percentages. Teachers
-                              are
-                              synchronized from WordPress users with the 'instructor' role.</p>
-
-                          <!-- Button -->
-                          <button id="addTeacher" class="btn btn-dark w-15 ms-auto d-block mb-5" data-bs-toggle="modal"
-                              data-bs-target="#teacherModal">
-                              Add New Teacher
-                          </button>
-
-                          <div class="modal fade" id="teacherModal" tabindex="-1" aria-labelledby="teacherModalLabel"
-                              aria-hidden="true">
-                              <div class="modal-dialog modal-dialog-centered modal-lg">
-                                  <div class="modal-content border-0 shadow-lg rounded-4">
-                                      <div class="modal-header bg-dark text-white rounded-top-4">
-                                          <h5 class="modal-title" id="teacherModalLabel">Add New Teacher</h5>
-                                          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                              aria-label="Close"></button>
-                                      </div>
-                                      <div class="modal-body">
-                                          <form id="teacherForm">
-                                              @csrf
-                                              <div class="mb-3">
-                                                  <label for="teacherName" class="form-label">Name</label>
-                                                  <input type="text" class="form-control" id="teacherName"
-                                                      name="teacherName" placeholder="Enter full name" required>
-                                              </div>
-                                              <div class="mb-3">
-                                                  <label for="teacherContact" class="form-label">Contact</label>
-                                                  <input type="text" class="form-control" id="teacherContact"
-                                                      name="teacherContact" placeholder="Enter contact number" required>
-                                              </div>
-                                              <div class="mb-3">
-                                                  <label for="teacherEmail" class="form-label">Email</label>
-                                                  <input type="email" class="form-control" id="teacherEmail"
-                                                      name="teacherEmail" placeholder="Enter email address" required>
-                                              </div>
-                                              <div class="mb-3">
-                                                  <label for="teacherOtherinfo" class="form-label">Other
-                                                      Information</label>
-                                                  <textarea class="form-control" id="teacherOtherinfo" name="teacherOtherinfo" rows="3"
-                                                      placeholder="Enter additional info"></textarea>
-                                              </div>
-                                              <div class="modal-footer border-0">
-                                                  <button type="button" class="btn btn-secondary"
-                                                      data-bs-dismiss="modal">Close</button>
-                                                  <button type="submit" id="teacherSubmitBtn" class="btn btn-dark">Save
-                                                      Teacher</button>
-                                              </div>
-                                          </form>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-
-                          <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
-                          <div class="accordion" id="teacherAccordion"></div>
-                      </div>
-                      <!-- End Accordion -->
-                  </div>
-
-                  <!-- Taxonomies Tab -->
-                  <div class="tab-pane fade" id="pills-taxonomies" role="tabpanel"
-                      aria-labelledby="pills-taxonomies-tab">
-                      <div class="card p-3 shadow-sm">
-                          <h5 class="fw-semibold mb-1">Taxonomies Management</h5>
-                          <p class="text-muted small">Manage subjects, categories, and levels here.</p>
-                          <div class="container-fluid">
-                              <div class="row g-3">
-
-                                  <!-- Educational Systems -->
-                                  <div class="col-md-6">
-                                      <div class="taxonomy-card">
-                                          <h6>Educational Systems</h6>
-                                          <div id="eduList" class="mt-2"></div>
-                                          <form id="eduForm"
-                                              action="{{ route('taxonomies_educational_systems.store') }}" method="POST"
-                                              autocomplete="off">
-                                              @csrf
-                                              <div class="add-input w-100 d-flex gap-2 mt-2">
-                                                  <input id="eduInput" type="text"
-                                                      class="form-control form-control-sm" name="eduInput"
-                                                      placeholder="Add new educational system">
-                                                  <button type="submit" class="btn btn-sm btn-secondary">
-                                                      <i class="fa fa-plus"></i>
-                                                  </button>
-                                              </div>
-                                          </form>
-                                      </div>
-                                  </div>
-
-                                  <!-- Subjects -->
-                                  <div class="col-md-6">
-                                      <div class="taxonomy-card">
-                                          <h6>Subjects</h6>
-                                          <div id="subjectList" class="mt-2"></div>
-                                          <form id="subjectForm" action="{{ route('taxonomies_subjects.store') }}"
-                                              method="POST" autocomplete="off">
-                                              @csrf
-                                              <div class="add-input w-100 d-flex gap-2 mt-2">
-                                                  <input id="subjectInput" type="text"
-                                                      class="form-control form-control-sm" name="subjectInput"
-                                                      placeholder="Add new subject">
-                                                  <button type="submit" class="btn btn-sm btn-secondary">
-                                                      <i class="fa fa-plus"></i>
-                                                  </button>
-                                              </div>
-                                          </form>
-                                      </div>
-                                  </div>
-
-                                  <!-- Examination Boards -->
-                                  <div class="col-md-6">
-                                      <div class="taxonomy-card">
-                                          <h6>Examination Boards</h6>
-                                          <div id="boardList" class="mt-2"></div>
-                                          <form id="boardForm" action="{{ route('taxonomies_examination_board.store') }}"
-                                              method="POST" autocomplete="off">
-                                              @csrf
-                                              <div class="add-input w-100 d-flex gap-2 mt-2">
-                                                  <input id="boardInput" type="text"
-                                                      class="form-control form-control-sm" name="boardInput"
-                                                      placeholder="Add new examination board">
-                                                  <button type="submit" class="btn btn-sm btn-secondary">
-                                                      <i class="fa fa-plus"></i>
-                                                  </button>
-                                              </div>
-                                          </form>
-                                      </div>
-                                  </div>
-
-                                  <!-- Sessions -->
-                                  <div class="col-md-6">
-                                      <div class="taxonomy-card">
-                                          <h6>Sessions</h6>
-                                          <div id="sessionList"></div>
-                                          <form id="sessionForm" action="{{ route('taxonomies_sessions.store') }}"
-                                              method="post" autocomplete="off">
-                                              <div class="add-input">
-                                                  @csrf
-                                                  <input id="sessionInput" type="text"
-                                                      class="form-control form-control-sm" name="sessionList"
-                                                      placeholder="Add new session">
-                                                  <button type="submit" class="btn btn-sm btn-secondary">
-                                                      <i class="fa fa-plus"></i>
-                                                  </button>
-                                              </div>
-                                          </form>
-                                      </div>
-                                  </div>
-
-                              </div>
-
-                              <div class="col-md-12 mt-2">
-                                  <div class="taxonomy-card p-3 shadow-sm rounded border">
-
-                                      <!-- Heading -->
-                                      <h6>Course</h6>
-
-                                      <!-- Column Headings -->
-                                      <div class="row fw-bold small border-bottom pb-2 mb-2 mt-2 text-center me-2">
-                                          <div class="col-5">Course Title</div>
-                                          <div class="col-2">Educational System</div>
-                                          <div class="col-2">Subject</div>
-                                          <div class="col-2">Examination Board</div>
-                                          <div class="col-1"></div>
-                                      </div>
-
-                                      <!-- Input Form -->
-                                      <div id="courseList" class="mt-3 mb-4"></div>
-                                      <form id="courseForm" class="mt-1"
-                                          action="{{ route('taxonomies_course.store') }}">
-                                          @csrf
-                                          <div class="row g-2 align-items-center">
-
-                                              <!-- Course Title -->
-                                              <div class="col-5">
-                                                  <input name="course_title" type="text"
-                                                      class="form-control form-control-sm" placeholder="Course Title">
-                                              </div>
-
-                                              <!-- Educational System -->
-                                              <div class="col-2">
-                                                  <select name="edu_system_id" id="edu_option"
-                                                      class="form-select form-select-sm">
-                                                      <option selected disabled>Select System</option>
-                                                      @foreach ($course_edu_system_datas as $course_edu_system_data)
-                                                          <option value="{{ $course_edu_system_data->id }}">
-                                                              {{ $course_edu_system_data->educational_title }}</option>
-                                                      @endforeach
-                                                  </select>
-                                              </div>
-
-                                              <!-- Subject -->
-                                              <div class="col-2">
-                                                  <select name="subject_id" id="sub_option"
-                                                      class="form-select form-select-sm">
-                                                      <option selected disabled>Select Subject</option>
-                                                      @foreach ($course_subject_datas as $course_subject_data)
-                                                          <option value="{{ $course_subject_data->id }}">
-                                                              {{ $course_subject_data->subject_title }}</option>
-                                                      @endforeach
-                                                  </select>
-                                              </div>
-
-                                              <!-- Exam Board -->
-                                              <div class="col-2">
-                                                  <select name="exam_board_id" id="board_option"
-                                                      class="form-select form-select-sm">
-                                                      <option selected disabled>Select Board</option>
-                                                      @foreach ($course_exam_board_datas as $course_exam_board_data)
-                                                          <option value="{{ $course_exam_board_data->id }}">
-                                                              {{ $course_exam_board_data->examination_board_title }}
-                                                          </option>
-                                                      @endforeach
-                                                  </select>
-                                              </div>
-
-                                              <!-- Add -->
-                                              <div class="col-1">
-                                                  <button type="submit" class="btn btn-sm btn-secondary">
-                                                      <i class="fa fa-plus"></i>
-                                                  </button>
-                                              </div>
-
-                                          </div>
-                                      </form>
-
-                                      <!-- ✅ Course List container BELOW the form -->
-
-
-                                  </div>
-                              </div>
-
-
-
-                          </div>
-                      </div>
-                  </div>
-
-                  <!-- System Tab -->
-                  <div class="tab-pane fade" id="pills-system" role="tabpanel" aria-labelledby="pills-system-tab">
-                      <div class="card p-3 shadow-sm">
-                          <h5 class="fw-semibold mb-1">System Settings</h5>
-                          <p class="text-muted small">Manage your platform’s configuration, integrations, and performance
-                              options here.</p>
-                          <div class="row g-3">
-                              <!-- Security Settings -->
-                              <div class="col-md-6">
-                                  <div class="settings-card">
-                                      @php
-                                          use App\Models\Setting;
-                                          use App\Models\Currency;
-                                          $admin = Setting::where('type', 'admin-pin')->first();
-                                          $session_timeout = Setting::where('type', 'session_timeout')->first();
-
-                                          $email_notification = Setting::where('type', 'email_notification')->first();
-                                          $payment_alert = Setting::where('type', 'payment_alert')->first();
-                                          $low_balance_warning = Setting::where('type', 'low_balance_warning')->first();
-                                      @endphp
-
-                                      <h6>Security Settings</h6>
-                                      <form id="securitySettingForm"
-                                          action="{{ route('security_setting.update', $admin->id) }}" method="POST"
-                                          data-route="{{ route('security_setting.update', $admin->id) }}">
-                                          @csrf
-                                          <input type="hidden" value="{{ $admin->id }}">
-
-                                          <div class="mb-3">
-                                              <label class="form-label">Admin PIN</label>
-                                              <input type="password" class="form-control form-control-sm" name="admin"
-                                                  value="{{ $admin->value }}" placeholder="Current PIN: 1234">
-                                              <div class="form-text">Used for confirming sensitive actions like deletions
-                                              </div>
-                                          </div>
-
-                                          <div class="mb-3">
-                                              <label class="form-label">Session Timeout (minutes)</label>
-                                              <input type="number" class="form-control form-control-sm"
-                                                  name="session_timeout" value="{{ $session_timeout->value }}">
-                                          </div>
-
-                                          <button type="submit" class="btn btn-dark btn-sm" id="updateBtn">
-                                              Update Security Settings
-                                          </button>
-                                      </form>
-                                  </div>
-                              </div>
-                              <div class="col-md-6">
-                                  <div class="settings-card">
-                                      <h6>Currency Settings</h6>
-
-                                      <form id="currencySettingForm" method="POST">
-                                          @csrf
-
-                                          {{-- Default Currency Select --}}
-                                          <div class="mb-3">
-                                              <label class="form-label">Default Currency</label>
-                                              <select class="form-select form-select-sm" name="default_currency"
-                                                  id="defaultCurrencySelect" required>
-                                                  @foreach ($currency_datas as $currency)
-                                                      <option value="{{ $currency->id }}"
-                                                          {{ $currency->selected_currency ? 'selected' : '' }}>
-                                                          {{ $currency->currency_name }}
-                                                      </option>
-                                                  @endforeach
-                                              </select>
-                                          </div>
-
-                                          {{-- Exchange Rates Info --}}
-                                          {{-- <div class="exchange-box mb-3">
-                                              <strong>Exchange Rates (Auto-update)</strong><br>
-                                              1 USD = {{$currency_datas->exchange_rate}} EGP<br>
-                                              1 EUR = 33.42 EGP<br>
-                                              <small class="text-muted">Last updated: 2 hours ago</small>
-                                          </div> --}}
-                                          {{-- <div class="exchange-box mb-3">
-                                              <strong>Exchange Rates (Auto-update)</strong><br>
-                                              @foreach ($currency_datas as $currency)
-                                                  1 {{ $currency->currency_name }} = {{ $currency->exchange_rate }}
-                                                  EGP<br>
-                                              @endforeach
-                                              <small class="text-muted">Last updated: 2 hours ago</small>
-                                          </div> --}}
-
-                                          <div class="exchange-box mb-3">
-                                              <strong>Exchange Rates (Auto-update)</strong><br>
-                                              @foreach ($currency_datas as $currency)
-                                                  @if ($currency->exchange_rate != 1)
-                                                      <!-- Skip EGP itself -->
-                                                      1 {{ $currency->currency_name }} = {{ $currency->exchange_rate }}
-                                                      EGP<br>
-                                                  @endif
-                                              @endforeach
-                                              <small class="text-muted">Last updated: 2 hours ago</small>
-                                          </div>
-
-                                          {{-- Submit Button --}}
-                                          <div class="text-start">
-                                              <button type="submit" id="currencyUpdateBtn"
-                                                  class="btn btn-dark btn-sm px-4">
-                                                  <i class="bi bi-arrow-repeat me-1"></i> Update Currency Setting
-                                              </button>
-                                          </div>
-
-                                          <div id="currencyResponseMsg" class="mt-3" style="display:none;"></div>
-                                      </form>
-                                  </div>
-                              </div>
-
-
-                              {{-- Toast Notification --}}
-                              <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-                                  <div id="currencyToast" class="toast align-items-center text-bg-success border-0"
-                                      role="alert" aria-live="assertive" aria-atomic="true">
-                                      <div class="d-flex">
-                                          <div class="toast-body" id="currencyToastBody"></div>
-                                          <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                                              data-bs-dismiss="toast" aria-label="Close"></button>
-                                      </div>
-                                  </div>
-                              </div>
-
-
-                              <div class="col-md-6">
-                                  <div class="settings-card">
-                                      <h6>Notification Settings</h6>
-                                      <form id="notificationSettingsForm" method="POST">
-                                          @csrf
-                                          <div class="form-check mb-2 d-flex justify-content-between me-0 ms-0">
-                                              <div style="margin-bottom: 10px;">
-                                                  <label class="form-check-label fw-semibold" for="emailNotif">Email
-                                                      Notifications</label>
-                                                  <div class="form-text">Send email alerts for important events</div>
-                                              </div>
-                                              <input class="form-check-input" type="checkbox" id="emailNotif"
-                                                  name="email_notification"
-                                                  {{ $email_notification->value == '1' ? 'checked' : '' }}
-                                                  data-id="{{ $email_notification->id }}">
-                                          </div>
-
-                                          <div class="form-check mb-2 d-flex justify-content-between me-0 ms-0">
-                                              <div class="m-0">
-                                                  <label class="form-check-label fw-semibold" for="paymentAlert">Payment
-                                                      Alerts</label>
-                                                  <div class="form-text">Notify when payments are received</div>
-                                              </div>
-                                              <input class="form-check-input" type="checkbox" id="paymentAlert"
-                                                  name="payment_alert" {{ $payment_alert->value == '1' ? 'checked' : '' }}
-                                                  data-id="{{ $payment_alert->id }}">
-                                          </div>
-
-                                          <div class="form-check mb-2 d-flex justify-content-between me-0 ms-0">
-                                              <div class="m-0">
-                                                  <label class="form-check-label fw-semibold" for="balanceWarning">Low
-                                                      Balance Warning</label>
-                                                  <div class="form-text">Alert when teacher balances are low</div>
-                                              </div>
-                                              <input class="form-check-input" type="checkbox" id="balanceWarning"
-                                                  name="low_balance_warning"
-                                                  {{ $low_balance_warning->value == '1' ? 'checked' : '' }}
-                                                  data-id="{{ $low_balance_warning->id }}">
-                                          </div>
-
-                                          <button type="button" id="notificationUpdateBtn"
-                                              class="btn btn-dark btn-sm w-20">
-                                              Update Notification Settings
-                                          </button>
-                                      </form>
-                                  </div>
-                              </div>
-
-                              <!-- Data Management -->
-                              <div class="col-md-6">
-                                  <div class="settings-card">
-                                      <h6>Data Management</h6>
-                                      <div class="mb-3">
-                                          <label class="form-label fw-semibold">Data Backup</label>
-                                          <div class="form-text mb-2">Last backup: 2 hours ago</div>
-                                          <button class="btn btn-outline-dark btn-sm w-100">Create Backup Now</button>
-                                      </div>
-                                      <div class="mb-3">
-                                          <label class="form-label fw-semibold">Data Export</label>
-                                          <div class="form-text mb-2">Export all system data</div>
-                                          <button class="btn btn-outline-dark btn-sm w-100">Export Data</button>
-                                      </div>
-                                      <div>
-                                          <label class="form-label fw-semibold">WordPress Sync</label>
-                                          <div class="form-text mb-2">Sync with WordPress users and taxonomies</div>
-                                          <button class="btn btn-outline-dark btn-sm w-100">Sync Now</button>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-
-                  <!-- Add Course Percentage Modal -->
-                  <div class="modal fade percentage-modal" id="addCourseModal" tabindex="-1"
-                      aria-labelledby="addCourseModalLabel" aria-hidden="true">
-                      <div class="modal-dialog modal-dialog-centered">
-                          <div class="modal-content p-2">
-
-                              <div class="modal-header border-0 pb-0">
-                                  <h5 class="modal-title fw-semibold d-flex align-items-center gap-2"
-                                      id="addCourseModalLabel">
-                                      <i class="fa-solid fa-book"></i>
-                                      Add Course Percentage
-                                  </h5>
-                                  <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                      aria-label="Close"></button>
-                              </div>
-
-                              <!-- ✅ FORM STARTS HERE -->
-                              @php
-                                  use App\Models\Course;
-                                  use App\Models\Teacher;
-                                  $teacher_data = Teacher::all();
-                                  $course_datas = Course::with('eduSystem', 'subject', 'examBoard')->get();
-                              @endphp
-                              <form action="{{ route('taxonomies_teacher_course.store') }}" method="post">
-                                  @csrf
-
-                                  <div class="modal-body">
-                                      <p class="text-muted small mb-3">
-                                          Set the revenue sharing percentage for
-                                          <strong id="teacherNameInModal"></strong>
-                                          on a specific course.
-                                      </p>
-
-
-
-
-                                      <!-- Hidden Teacher ID -->
-                                      <input type="hidden" id="teacherId" name="teacherId">
-
-                                      <!-- Course -->
-
-                                      <div class="mb-3">
-                                          <label class="form-label fw-semibold small">Course *</label>
-                                          <select class="form-select" id="courseSelect" name="courseId" required>
-                                              <option selected disabled value="">Select a course</option>
-                                              @foreach ($course_datas as $row)
-                                                  <option value="{{ $row->id }}">
-                                                      {{ $row->examBoard->examination_board_title }} -
-                                                      {{ $row->subject->subject_title }} |
-                                                      {{ $row->eduSystem->educational_title }} -
-                                                      {{ $row->subject->subject_title }}
-                                                  </option>
-                                              @endforeach
-                                          </select>
-                                      </div>
-
-
-                                      <!-- Teacher Percentage -->
-                                      <div class="mb-3">
-                                          <label class="form-label fw-semibold small">Teacher Percentage *</label>
-                                          <div class="input-group">
-                                              <input type="number" class="form-control" id="teacherPercentage"
-                                                  min="0" max="100" step="1" name="teacherPercentage"
-                                                  required>
-                                              <span class="input-group-text">%</span>
-                                          </div>
-                                          <div class="form-text">Percentage of course revenue that goes to the teacher
-                                          </div>
-                                      </div>
-
-
-                                  </div>
-
-                                  <div class="modal-footer border-0">
-                                      <button type="button" class="btn btn-dark modal-closeBtn"
-                                          data-bs-dismiss="modal">Cancel</button>
-
-                                      <!-- ✅ Submit button (fixed) -->
-                                      <button type="submit" class="btn btn-dark">
-                                          <i class="fa-solid fa-book me-2"></i>Add Course Percentage
-                                      </button>
-                                  </div>
-
-                              </form>
-                              <!-- ✅ FORM ENDS HERE -->
-
-                          </div>
-                      </div>
-                  </div>
-
-              </div>
-          </div>
-      </div>
-  @endsection
-
-
-
-  @section('scripts')
-      <script>
-          $(document).ready(function() {
+@extends('layouts.app')
+
+
+@section('contents')
+<div class="main-content">
+    <div class="topbar p-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="fw-semibold mb-0">Dashboard</h4>
+            <div class="d-flex  gap-3">
+                <select class="form-select form-select-md">
+                    <option>May/June 2026</option>
+                    <option>May/June 2027</option>
+                </select>
+                <select class="form-select form-select-md">
+                    <option>EG/EGP</option>
+                    <option>US/USD</option>
+                    <option>EU/EUR</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div class="sub-topbar d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-semibold mb-0">Settings</h4>
+                <small class="text-muted">Configure system settings and manage data sources</small>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="setting-tabNavigation">
+            <ul class="nav nav-pills gap-2 flex-wrap" id="pills-tab" role="tablist">
+                <li class="nav-item">
+                    <a href="{{ route('teacher_setting.create') }}" class="nav-link active" id="pills-teachers-tab"
+                        data-bs-toggle="pill" data-bs-target="#pills-teachers" role="tab" aria-controls="pills-teachers"
+                        aria-selected="true">
+                        Teachers
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('taxonomies_setting.create') }}"
+                        class="nav-link {{ request()->routeIs('taxonomies_setting.*') ? 'active' : '' }}"
+                        id="pills-taxonomies-tab" data-bs-toggle="pill" data-bs-target="#pills-taxonomies" role="tab"
+                        aria-controls="pills-taxonomies"
+                        aria-selected="{{ request()->routeIs('taxonomies_setting.*') ? 'true' : 'false' }}">
+                        Management
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('system_setting.create') }}"
+                        class="nav-link {{ request()->routeIs('system_setting.*') ? 'active' : '' }}"
+                        id="pills-system-tab" data-bs-toggle="pill" data-bs-target="#pills-system" role="tab"
+                        aria-controls="pills-system"
+                        aria-selected="{{ request()->routeIs('system_setting.*') ? 'true' : 'false' }}">
+                        System
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('currency_setting.create') }}"
+                        class="nav-link {{ request()->routeIs('currency_setting.*') ? 'active' : '' }}"
+                        id="pills-currency-tab" data-bs-toggle="pill" data-bs-target="#pills-currency" role="tab"
+                        aria-controls="pills-currency"
+                        aria-selected="{{ request()->routeIs('currency_setting.*') ? 'true' : 'false' }}">
+                        Currency
+                    </a>
+                </li>
+
+
+
+
+            </ul>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="pills-tabContent">
+            <!-- Teachers Tab -->
+            <div class="tab-pane fade show active mt-4" id="pills-teachers" role="tabpanel"
+                aria-labelledby="pills-teachers-tab">
+                <div class="card p-3 shadow-sm">
+                    <h5 class="fw-semibold mb-1">Teacher Management</h5>
+                    <p class="text-muted small mb-4">Manage teachers and their course revenue percentages. Teachers
+                        are
+                        synchronized from WordPress users with the 'instructor' role.</p>
+
+                    <!-- Button -->
+                    <button id="addTeacher" class="btn btn-dark w-15 ms-auto d-block mb-5" data-bs-toggle="modal"
+                        data-bs-target="#teacherModal">
+                        Add New Teacher
+                    </button>
+
+                    <div class="modal fade" id="teacherModal" tabindex="-1" aria-labelledby="teacherModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content border-0 shadow-lg rounded-4">
+                                <div class="modal-header bg-dark text-white rounded-top-4">
+                                    <h5 class="modal-title" id="teacherModalLabel">Add New Teacher</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="teacherForm">
+                                        @csrf
+                                        <div class="mb-3">
+                                            <label for="teacherName" class="form-label">Name</label>
+                                            <input type="text" class="form-control" id="teacherName" name="teacherName"
+                                                placeholder="Enter full name" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="teacherContact" class="form-label">Contact</label>
+                                            <input type="text" class="form-control" id="teacherContact"
+                                                name="teacherContact" placeholder="Enter contact number" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="teacherEmail" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="teacherEmail"
+                                                name="teacherEmail" placeholder="Enter email address" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="teacherOtherinfo" class="form-label">Other
+                                                Information</label>
+                                            <textarea class="form-control" id="teacherOtherinfo" name="teacherOtherinfo"
+                                                rows="3" placeholder="Enter additional info"></textarea>
+                                        </div>
+                                        <div class="modal-footer border-0">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" id="teacherSubmitBtn" class="btn btn-dark">Save
+                                                Teacher</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
+                    <div class="accordion" id="teacherAccordion"></div>
+                </div>
+                <!-- End Accordion -->
+            </div>
+
+            <!-- Taxonomies Tab -->
+            <div class="tab-pane fade" id="pills-taxonomies" role="tabpanel" aria-labelledby="pills-taxonomies-tab">
+                <div class="card p-3 shadow-sm">
+                    <h5 class="fw-semibold mb-1">Taxonomies Management</h5>
+                    <p class="text-muted small">Manage subjects, categories, and levels here.</p>
+                    <div class="container-fluid">
+                        <div class="row g-3">
+
+                            <!-- Educational Systems -->
+                            <div class="col-md-6">
+                                <div class="taxonomy-card">
+                                    <h6>Educational Systems</h6>
+                                    <div id="eduList" class="mt-2"></div>
+                                    <form id="eduForm" action="{{ route('taxonomies_educational_systems.store') }}"
+                                        method="POST" autocomplete="off">
+                                        @csrf
+                                        <div class="add-input w-100 d-flex gap-2 mt-2">
+                                            <input id="eduInput" type="text" class="form-control form-control-sm"
+                                                name="eduInput" placeholder="Add new educational system">
+                                            <button type="submit" class="btn btn-sm btn-secondary">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Subjects -->
+                            <div class="col-md-6">
+                                <div class="taxonomy-card">
+                                    <h6>Subjects</h6>
+                                    <div id="subjectList" class="mt-2"></div>
+                                    <form id="subjectForm" action="{{ route('taxonomies_subjects.store') }}"
+                                        method="POST" autocomplete="off">
+                                        @csrf
+                                        <div class="add-input w-100 d-flex gap-2 mt-2">
+                                            <input id="subjectInput" type="text" class="form-control form-control-sm"
+                                                name="subjectInput" placeholder="Add new subject">
+                                            <button type="submit" class="btn btn-sm btn-secondary">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Examination Boards -->
+                            <div class="col-md-6">
+                                <div class="taxonomy-card">
+                                    <h6>Examination Boards</h6>
+                                    <div id="boardList" class="mt-2"></div>
+                                    <form id="boardForm" action="{{ route('taxonomies_examination_board.store') }}"
+                                        method="POST" autocomplete="off">
+                                        @csrf
+                                        <div class="add-input w-100 d-flex gap-2 mt-2">
+                                            <input id="boardInput" type="text" class="form-control form-control-sm"
+                                                name="boardInput" placeholder="Add new examination board">
+                                            <button type="submit" class="btn btn-sm btn-secondary">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Sessions -->
+                            <div class="col-md-6">
+                                <div class="taxonomy-card">
+                                    <h6>Sessions</h6>
+                                    <div id="sessionList"></div>
+                                    <form id="sessionForm" action="{{ route('taxonomies_sessions.store') }}"
+                                        method="post" autocomplete="off">
+                                        <div class="add-input">
+                                            @csrf
+                                            <input id="sessionInput" type="text" class="form-control form-control-sm"
+                                                name="sessionList" placeholder="Add new session">
+                                            <button type="submit" class="btn btn-sm btn-secondary">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-12 mt-2">
+                            <div class="taxonomy-card p-3 shadow-sm rounded border">
+
+                                <!-- Heading -->
+                                <h6>Course</h6>
+
+                                <!-- Column Headings -->
+                                <div class="row fw-bold small border-bottom pb-2 mb-2 mt-2 text-center me-2">
+                                    <div class="col-5">Course Title</div>
+                                    <div class="col-2">Educational System</div>
+                                    <div class="col-2">Subject</div>
+                                    <div class="col-2">Examination Board</div>
+                                    <div class="col-1"></div>
+                                </div>
+
+                                <!-- Input Form -->
+                                <div id="courseList" class="mt-3 mb-4"></div>
+                                <form id="courseForm" class="mt-1" action="{{ route('taxonomies_course.store') }}">
+                                    @csrf
+                                    <div class="row g-2 align-items-center">
+
+                                        <!-- Course Title -->
+                                        <div class="col-5">
+                                            <input name="course_title" type="text" class="form-control form-control-sm"
+                                                placeholder="Course Title">
+                                        </div>
+
+                                        <!-- Educational System -->
+                                        <div class="col-2">
+                                            <select name="edu_system_id" id="edu_option"
+                                                class="form-select form-select-sm">
+                                                <option selected disabled>Select System</option>
+                                                @foreach ($course_edu_system_datas as $course_edu_system_data)
+                                                <option value="{{ $course_edu_system_data->id }}">
+                                                    {{ $course_edu_system_data->educational_title }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- Subject -->
+                                        <div class="col-2">
+                                            <select name="subject_id" id="sub_option"
+                                                class="form-select form-select-sm">
+                                                <option selected disabled>Select Subject</option>
+                                                @foreach ($course_subject_datas as $course_subject_data)
+                                                <option value="{{ $course_subject_data->id }}">
+                                                    {{ $course_subject_data->subject_title }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- Exam Board -->
+                                        <div class="col-2">
+                                            <select name="exam_board_id" id="board_option"
+                                                class="form-select form-select-sm">
+                                                <option selected disabled>Select Board</option>
+                                                @foreach ($course_exam_board_datas as $course_exam_board_data)
+                                                <option value="{{ $course_exam_board_data->id }}">
+                                                    {{ $course_exam_board_data->examination_board_title }}
+                                                </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- Add -->
+                                        <div class="col-1">
+                                            <button type="submit" class="btn btn-sm btn-secondary">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                </form>
+
+                                <!-- ✅ Course List container BELOW the form -->
+
+
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Tab -->
+            <div class="tab-pane fade" id="pills-system" role="tabpanel" aria-labelledby="pills-system-tab">
+                <div class="card p-3 shadow-sm">
+                    <h5 class="fw-semibold mb-1">System Settings</h5>
+                    <p class="text-muted small">Manage your platform’s configuration, integrations, and performance
+                        options here.</p>
+                    <div class="row g-3">
+                        <!-- Security Settings -->
+                        <div class="col-md-6">
+                            <div class="settings-card">
+                                @php
+                                use App\Models\Setting;
+                                use App\Models\Currency;
+                                $admin = Setting::where('type', 'admin-pin')->first();
+                                $session_timeout = Setting::where('type', 'session_timeout')->first();
+
+                                $email_notification = Setting::where('type', 'email_notification')->first();
+                                $payment_alert = Setting::where('type', 'payment_alert')->first();
+                                $low_balance_warning = Setting::where('type', 'low_balance_warning')->first();
+                                @endphp
+
+                                <h6>Security Settings</h6>
+                                <form id="securitySettingForm"
+                                    action="{{ route('security_setting.update', $admin->id) }}" method="POST"
+                                    data-route="{{ route('security_setting.update', $admin->id) }}">
+                                    @csrf
+                                    <input type="hidden" value="{{ $admin->id }}">
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Admin PIN</label>
+                                        <input type="password" class="form-control form-control-sm" name="admin"
+                                            value="{{ $admin->value }}" placeholder="Current PIN: 1234">
+                                        <div class="form-text">Used for confirming sensitive actions like deletions
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Session Timeout (minutes)</label>
+                                        <input type="number" class="form-control form-control-sm" name="session_timeout"
+                                            value="{{ $session_timeout->value }}">
+                                    </div>
+
+                                    <button type="submit" class="btn btn-dark btn-sm" id="updateBtn">
+                                        Update Security Settings
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="settings-card">
+                                <h6>Currency Settings</h6>
+
+                                <form id="currencySettingForm" method="POST">
+                                    @csrf
+
+                                    {{-- Default Currency Select --}}
+                                    <div class="mb-3">
+                                        <label class="form-label">Default Currency</label>
+                                        <select class="form-select form-select-sm" name="default_currency" id="defaultCurrencySelect" required>
+                                            @foreach ($currency_datas as $currency)
+                                                <option value="{{ $currency->id }}" 
+                                                    {{ $currency->id == $default_currency_id ? 'selected' : '' }}>
+                                                    {{ $currency->currency_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+
+                                    </div>
+
+                                   <div class="exchange-box mb-3">
+                                        <strong>Exchange Rates (Informational)</strong><br>
+                                        @foreach ($currency_datas as $currency)
+                                            @if ($currency->exchange_rate != 1)
+                                                1 {{ $currency->currency_name }} = {{ $currency->exchange_rate }} EGP<br>
+                                            @endif
+                                        @endforeach
+                                        <small class="text-muted">Last updated: 2 hours ago</small>
+                                    </div>
+
+
+                                    {{-- Submit Button --}}
+                                    <div class="text-start">
+                                        <button type="submit" id="currencyUpdateBtn" class="btn btn-dark btn-sm px-4">
+                                            <i class="bi bi-arrow-repeat me-1"></i> Update Currency Setting
+                                        </button>
+                                    </div>
+
+                                    <div id="currencyResponseMsg" class="mt-3" style="display:none;"></div>
+                                </form>
+                            </div>
+                        </div>
+
+
+                        {{-- Toast Notification --}}
+                        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+                            <div id="currencyToast" class="toast align-items-center text-bg-success border-0"
+                                role="alert" aria-live="assertive" aria-atomic="true">
+                                <div class="d-flex">
+                                    <div class="toast-body" id="currencyToastBody"></div>
+                                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                        data-bs-dismiss="toast" aria-label="Close"></button>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-md-6">
+                            <div class="settings-card">
+                                <h6>Notification Settings</h6>
+                                <form id="notificationSettingsForm" method="POST">
+                                    @csrf
+                                    <div class="form-check mb-2 d-flex justify-content-between me-0 ms-0">
+                                        <div style="margin-bottom: 10px;">
+                                            <label class="form-check-label fw-semibold" for="emailNotif">Email
+                                                Notifications</label>
+                                            <div class="form-text">Send email alerts for important events</div>
+                                        </div>
+                                        <input class="form-check-input" type="checkbox" id="emailNotif"
+                                            name="email_notification" {{ $email_notification->value == '1' ? 'checked' :
+                                        '' }}
+                                        data-id="{{ $email_notification->id }}">
+                                    </div>
+
+                                    <div class="form-check mb-2 d-flex justify-content-between me-0 ms-0">
+                                        <div class="m-0">
+                                            <label class="form-check-label fw-semibold" for="paymentAlert">Payment
+                                                Alerts</label>
+                                            <div class="form-text">Notify when payments are received</div>
+                                        </div>
+                                        <input class="form-check-input" type="checkbox" id="paymentAlert"
+                                            name="payment_alert" {{ $payment_alert->value == '1' ? 'checked' : '' }}
+                                        data-id="{{ $payment_alert->id }}">
+                                    </div>
+
+                                    <div class="form-check mb-2 d-flex justify-content-between me-0 ms-0">
+                                        <div class="m-0">
+                                            <label class="form-check-label fw-semibold" for="balanceWarning">Low
+                                                Balance Warning</label>
+                                            <div class="form-text">Alert when teacher balances are low</div>
+                                        </div>
+                                        <input class="form-check-input" type="checkbox" id="balanceWarning"
+                                            name="low_balance_warning" {{ $low_balance_warning->value == '1' ? 'checked'
+                                        : '' }}
+                                        data-id="{{ $low_balance_warning->id }}">
+                                    </div>
+
+                                    <button type="button" id="notificationUpdateBtn" class="btn btn-dark btn-sm w-20">
+                                        Update Notification Settings
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Data Management -->
+                        <div class="col-md-6">
+                            <div class="settings-card">
+                                <h6>Data Management</h6>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Data Backup</label>
+                                    <div class="form-text mb-2">Last backup: 2 hours ago</div>
+                                    <button class="btn btn-outline-dark btn-sm w-100">Create Backup Now</button>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Data Export</label>
+                                    <div class="form-text mb-2">Export all system data</div>
+                                    <button class="btn btn-outline-dark btn-sm w-100">Export Data</button>
+                                </div>
+                                <div>
+                                    <label class="form-label fw-semibold">WordPress Sync</label>
+                                    <div class="form-text mb-2">Sync with WordPress users and taxonomies</div>
+                                    <button class="btn btn-outline-dark btn-sm w-100">Sync Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Course Percentage Modal -->
+            <div class="modal fade percentage-modal" id="addCourseModal" tabindex="-1"
+                aria-labelledby="addCourseModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content p-2">
+
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title fw-semibold d-flex align-items-center gap-2"
+                                id="addCourseModalLabel">
+                                <i class="fa-solid fa-book"></i>
+                                Add Course Percentage
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <!-- ✅ FORM STARTS HERE -->
+                        @php
+                        use App\Models\Course;
+                        use App\Models\Teacher;
+                        $teacher_data = Teacher::all();
+                        $course_datas = Course::with('eduSystem', 'subject', 'examBoard')->get();
+                        @endphp
+                        <form>
+                            @csrf
+
+                            <div class="modal-body">
+                                <p class="text-muted small mb-3">
+                                    Set the revenue sharing percentage for
+                                    <strong id="teacherNameInModal"></strong>
+                                    on a specific course.
+                                </p>
+
+
+
+
+                                <!-- Hidden Teacher ID -->
+                                <input type="hidden" id="teacherId" name="teacherId">
+
+                                <!-- Course -->
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small">Course *</label>
+                                    <select class="form-select" id="courseSelect" name="courseId" required>
+                                        <option selected disabled value="">Select a course</option>
+                                        @foreach ($course_datas as $row)
+                                        <option value="{{ $row->id }}">
+                                            {{ $row->examBoard->examination_board_title }} -
+                                            {{ $row->subject->subject_title }} |
+                                            {{ $row->eduSystem->educational_title }} -
+                                            {{ $row->subject->subject_title }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+
+                                <!-- Teacher Percentage -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small">Teacher Percentage *</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="teacherPercentage" min="0"
+                                            max="100" step="1" name="teacherPercentage" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <div class="form-text">Percentage of course revenue that goes to the teacher
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-dark modal-closeBtn"
+                                    data-bs-dismiss="modal">Cancel</button>
+
+                                <!-- ✅ Submit button (fixed) -->
+                                <button type="submit" class="btn btn-dark">
+                                    <i class="fa-solid fa-book me-2"></i>Add Course Percentage
+                                </button>
+                            </div>
+
+                        </form>
+                        <!-- ✅ FORM ENDS HERE -->
+
+                    </div>
+                </div>
+            </div>
+
+            {{-- currency tab --}}
+            <!-- Hidden route names -->
+            <input type="hidden" id="currencyIndexRoute" value="{{ route('currencies.index') }}">
+            <input type="hidden" id="currencyStoreRoute" value="{{ route('currencies.store') }}">
+            <input type="hidden" id="currencyUpdateRoute" value="{{ route('currencies.update', ':id') }}">
+            <input type="hidden" id="currencyDeleteRoute" value="{{ route('currencies.destroy', ':id') }}">
+
+            <div class="tab-pane fade {{ request()->routeIs('currency_setting.*') ? 'show active' : '' }}"
+                id="pills-currency" role="tabpanel" aria-labelledby="pills-currency-tab">
+
+                <div class="card p-3 shadow-sm">
+                    <h5 class="fw-semibold mb-1">Currency Update</h5>
+                    <p class="text-muted small">Manage currencies here.</p>
+
+                    <div class="row">
+                        <!-- Left: Form -->
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <h6 class="mb-3">Add / Update Currency</h6>
+
+                                <form id="currencyForm">
+                                    @csrf
+                                    <input type="hidden" name="id" id="currencyId">
+
+                                    <div class="mb-2">
+                                        <label class="small fw-bold">Currency Name</label>
+                                        <input type="text" name="currency_name" class="form-control form-control-sm"
+                                            placeholder="USD, EUR, PKR" required>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label class="small fw-bold">Exchange Rate</label>
+                                        <input type="number" step="0.01" name="exchange_rate"
+                                            class="form-control form-control-sm" placeholder="1.00" required>
+                                    </div>
+
+                                    <button class="btn btn-sm btn-dark mt-2" id="currencySubmitBtn">
+                                        <i class="fa fa-plus"></i> Save Currency
+                                    </button>
+
+                                    <button type="button" class="btn btn-sm btn-secondary mt-2 d-none"
+                                        id="currencyCancelEditBtn">Cancel Edit</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Right: List -->
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <h6 class="mb-3">Currency List</h6>
+
+                                <div id="currencyList" class="list-group"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+
+
+
+        </div>
+    </div>
+</div>
+@endsection
+
+
+
+@section('scripts')
+<!--This is the script for teacher showing-->
+
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+    const teacherAccordion = document.getElementById("teacherAccordion");
+    const teacherForm = document.getElementById("teacherForm");
+    const submitBtn = document.getElementById("teacherSubmitBtn");
+    const csrf = document.getElementById("csrfToken").value;
+    const teacherModal = new bootstrap.Modal(document.getElementById('teacherModal'));
+    const addCourseModalEl = document.getElementById("addCourseModal");
+    const addCourseModal = new bootstrap.Modal(addCourseModalEl);
+
+    const courseSelect = document.getElementById("courseSelect");
+    const percentageInput = document.getElementById("teacherPercentage");
+
+    let currentTeacherId = null;
+    let currentTeacherName = null;
+
+    /* ---------------------------
+       FIXED ROUTES (CORRECT)
+    ----------------------------*/
+    const routes = {
+        loadTeachers: "{{ route('teacher.index_teacher') }}", // MUST RETURN JSON
+        storeTeacher: "{{ route('teacher_setting.store') }}",
+        storeTeacherCourse: "{{ route('taxonomies_teacher_course.store') }}",
+        deleteTeacherCourse: (pivotId) => `/taxonomies/teacher_course/delete/${pivotId}`
+    };
+
+    /* --------------------------- */
+    function showToast(message, type = "success") {
+        const toast = document.createElement("div");
+        toast.textContent = message;
+        toast.className = `position-fixed top-0 end-0 m-3 p-2 rounded shadow text-white`;
+        toast.style.zIndex = 9999;
+        toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    function showModalToast(container, message, type = "error", duration = 3000) {
+        const previous = container.querySelectorAll('.modal-toast');
+        previous.forEach(t => t.remove());
+
+        const toast = document.createElement("div");
+        toast.className = "modal-toast p-2 rounded shadow text-white";
+        toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
+        toast.style.marginBottom = "10px";
+        toast.textContent = message;
+        container.prepend(toast);
+        setTimeout(() => toast.remove(), duration);
+    }
+
+    /* --------------------------- */
+    function renderTeacherCard(t) {
+        const uid = 'teacher' + t.id;
+        const headingId = 'heading' + t.id;
+
+        let courseHtml = "";
+        if (t.courses && t.courses.length > 0) {
+            t.courses.forEach(c => {
+                const teacherPct = c.teacher_percentage ?? 0;
+                const platformPct = 100 - teacherPct;
+
+                courseHtml += `
+                    <div class="percentage-box mb-2 p-2 d-flex justify-content-between align-items-center border rounded bg-white">
+                        <div>
+                            <span>${c.course?.course_title ?? 'N/A'} - ${c.course?.subject?.subject_title ?? 'N/A'}</span>
+                            <small class="d-block">
+                                Teacher: <span class="text-success">${teacherPct}%</span> |
+                                Platform: <span class="text-primary">${platformPct}%</span>
+                            </small>
+                        </div>
+                        <button class="btn btn-light btn-sm border delete-btn" data-pivot-id="${c.id}">
+                            <i class="fa-regular fa-trash-can text-danger"></i>
+                        </button>
+                    </div>`;
+            });
+        } else {
+            courseHtml = `<small class="text-muted">No courses assigned yet</small>`;
+        }
+
+        return `
+            <div class="accordion-item border mb-2 rounded">
+                <h3 class="accordion-header" id="${headingId}">
+                    <button class="accordion-button collapsed bg-white" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#${uid}">
+                        <div class="d-flex gap-3">
+                            <i class="fa-solid fa-user"></i>
+                            <div>
+                                <h6 class="fw-semibold m-0">${t.teacher_name}</h6>
+                                <small class="text-muted">${t.teacher_email}</small>
+                            </div>
+                        </div>
+                    </button>
+                </h3>
+
+                <div id="${uid}" class="accordion-collapse collapse">
+                    <div class="accordion-body bg-light border-top">
+                        <div class="fw-semibold mb-2">Course Revenue Percentages</div>
+                        ${courseHtml}
+                        <button class="btn btn-dark btn-sm mt-2 addCourseBtn"
+                            data-id="${t.id}"
+                            data-name="${t.teacher_name}"
+                            data-bs-toggle="modal"
+                            data-bs-target="#addCourseModal">
+                            <i class="fa-solid fa-plus"></i> Add Course Percentage
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    /* ---------------------------
+       LOAD TEACHERS (FIXED)
+    ----------------------------*/
+    async function loadTeachers() {
+        try {
+            const res = await fetch(routes.loadTeachers);
+            const response = await res.json();
+
+            if (response.success) {
+                teacherAccordion.innerHTML = "";
+                response.data.forEach(t =>
+                    teacherAccordion.insertAdjacentHTML("beforeend", renderTeacherCard(t))
+                );
+            }
+        } catch (error) {
+            console.error(error);
+            showToast("Failed to load teachers!", "error");
+        }
+    }
+
+    loadTeachers();
+
+    /* --------------------------- */
+    teacherForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
+
+        const payload = {
+            teacherName: teacherForm.teacherName.value,
+            teacherContact: teacherForm.teacherContact.value,
+            teacherEmail: teacherForm.teacherEmail.value,
+            teacherOtherinfo: teacherForm.teacherOtherinfo.value,
+        };
+
+        try {
+            const res = await fetch(routes.storeTeacher, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrf
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const response = await res.json();
+
+            if (response.success) {
+                await loadTeachers();
+                teacherForm.reset();
+                teacherModal.hide();
+                showToast("Teacher added successfully", "success");
+            }
+
+        } catch (error) {
+            showToast("Failed to save teacher!", "error");
+        }
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Save Teacher";
+    });
+
+    /* --------------------------- */
+    // document.addEventListener("click", function(e) {
+    //     const btn = e.target.closest(".addCourseBtn");
+    //     if (btn) {
+    //         currentTeacherId = btn.dataset.id;
+    //         currentTeacherName = btn.dataset.name;
+
+    //         document.getElementById("teacherId").value = currentTeacherId;
+    //         document.getElementById("teacherNameInModal").textContent = currentTeacherName;
+    //     }
+    // });
+
+    /* --------------------------- */
+    const addCourseForm = addCourseModalEl.querySelector("form");
+    let isFormSubmitting = false;
+
+
+
+    function resetSubmit() {
+        const submitBtn = addCourseForm.querySelector("button[type='submit']");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-book me-2"></i> Add Course Percentage';
+        isFormSubmitting = false;
+    }
+
+    /* --------------------------- */
+    document.addEventListener("click", async function(e) {
+        const btn = e.target.closest(".delete-btn");
+        if (!btn) return;
+
+        const confirmed = confirm("Delete this course assignment?");
+        if (!confirmed) return;
+
+        const pivotId = btn.dataset.pivotId;
+        const courseBox = btn.closest(".percentage-box");
+
+        try {
+            const res = await fetch(routes.deleteTeacherCourse(pivotId), {
+                method: "DELETE",
+                headers: { "X-CSRF-TOKEN": csrf }
+            });
+
+            const response = await res.json();
+
+            if (response.success) {
+                courseBox.remove();
+                showToast("Deleted", "success");
+            } else {
+                showToast("Failed", "error");
+            }
+        } catch (err) {
+            showToast("Server error", "error");
+        }
+    });
+
+    /* --------------------------- */
+    addCourseModalEl.addEventListener("hidden.bs.modal", () => {
+        addCourseForm.reset();
+    });
+
+});
+</script>
+
+
+
+
+
+<!--This is the script for admin-->
+
+<script>
+    $(document).ready(function() {
 
               // ✅ Store initial values
               let lastAdminPIN = $('input[name="admin"]').val() || '';
@@ -671,94 +967,17 @@
                   });
               });
           });
-      </script>
+</script>
 
 
-      {{-- this is the script of default_currency --}}
+{{-- this is the script of default_currency --}}
 
 
 
-      {{-- <script>
-          $(document).ready(function() {
-              let lastSelectedCurrency = $('#defaultCurrencySelect').val();
 
-              $('#currencySettingForm').on('submit', function(e) {
-                  e.preventDefault();
 
-                  const selectedCurrency = $('#defaultCurrencySelect').val();
-                  const btn = $('#currencyUpdateBtn');
-                  const responseMsg = $('#currencyResponseMsg');
-
-                  // If no change
-                  if (selectedCurrency === lastSelectedCurrency) {
-                      responseMsg
-                          .removeClass()
-                          .addClass('alert alert-info text-center')
-                          .html('ℹ️ No changes to update.')
-                          .fadeIn()
-                          .delay(2000)
-                          .fadeOut();
-                      return;
-                  }
-
-                  // Hide button and show loading message in green
-                  btn.hide();
-                  responseMsg
-                      .removeClass()
-                      .addClass('alert alert-success text-center')
-                      .html('⏳ Updating currency, please wait...')
-                      .fadeIn();
-
-                  $.ajax({
-                      type: 'POST',
-                      url: "{{ url('currency/update') }}",
-                      data: {
-                          default_currency: selectedCurrency,
-                          _token: $('meta[name="csrf-token"]').attr('content')
-                      },
-                      success: function(res) {
-                          if (res.success) {
-                              lastSelectedCurrency = selectedCurrency;
-                              responseMsg
-                                  .removeClass()
-                                  .addClass('alert alert-success text-center')
-                                  .html('✅ Currency updated successfully!')
-                                  .fadeIn()
-                                  .delay(2000)
-                                  .fadeOut(function() {
-                                      btn.show(); // Show the button again
-                                  });
-                          } else {
-                              responseMsg
-                                  .removeClass()
-                                  .addClass('alert alert-danger text-center')
-                                  .html(res.message || '❌ Something went wrong.')
-                                  .fadeIn()
-                                  .delay(2500)
-                                  .fadeOut(function() {
-                                      btn.show(); // Show button again
-                                  });
-                          }
-                      },
-                      error: function(xhr) {
-                          console.log(xhr.responseText);
-                          responseMsg
-                              .removeClass()
-                              .addClass('alert alert-danger text-center')
-                              .html('❌ Something went wrong. Please try again.')
-                              .fadeIn()
-                              .delay(2500)
-                              .fadeOut(function() {
-                                  btn.show(); // Show button again
-                              });
-                      }
-                  });
-              });
-          });
-      </script> --}}
-
-      <script>
-          $(document).ready(function() {
+<script>
+    $(document).ready(function() {
               // ✅ Store initial selected currency
               let lastSelectedCurrency = $('#defaultCurrencySelect').val();
 
@@ -845,13 +1064,13 @@
                   });
               });
           });
-      </script>
+</script>
 
-      {{-- this is the script of notification --}}
+{{-- this is the script of notification --}}
 
 
-      <script>
-          $(function() {
+<script>
+    $(function() {
               $.ajaxSetup({
                   headers: {
                       'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -955,18 +1174,18 @@
                       });
               });
           });
-      </script>
+</script>
 
 
 
 
 
-      {{-- this is the script of education system --}}
+{{-- this is the script of education system --}}
 
 
 
-      <script>
-          document.addEventListener("DOMContentLoaded", function() {
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
               const eduForm = document.getElementById("eduForm");
               const eduInput = document.getElementById("eduInput");
               const eduList = document.getElementById("eduList");
@@ -1159,17 +1378,17 @@
 
               loadItems();
           });
-      </script>
+</script>
 
 
 
 
-      {{-- this is the script of taxonomies subject --}}
+{{-- this is the script of taxonomies subject --}}
 
 
 
-      <script>
-          document.addEventListener("DOMContentLoaded", function() {
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
               const subjectForm = document.getElementById("subjectForm");
               const subjectInput = document.getElementById("subjectInput");
               const subjectList = document.getElementById("subjectList");
@@ -1358,14 +1577,14 @@
 
               loadItems();
           });
-      </script>
+</script>
 
 
-      {{-- This is the script for examination board --}}
+{{-- This is the script for examination board --}}
 
 
-      <script>
-          document.addEventListener("DOMContentLoaded", function() {
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
               const boardForm = document.getElementById("boardForm");
               const boardInput = document.getElementById("boardInput");
               const boardList = document.getElementById("boardList");
@@ -1555,14 +1774,14 @@
 
               loadBoards();
           });
-      </script>
+</script>
 
 
-      {{-- This is the script of sessions --}}
+{{-- This is the script of sessions --}}
 
 
-      <script>
-          document.addEventListener("DOMContentLoaded", function() {
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
               const sessionForm = document.getElementById("sessionForm");
               const sessionInput = document.getElementById("sessionInput");
               const sessionList = document.getElementById("sessionList");
@@ -1744,16 +1963,16 @@
               // 🔹 Load on startup
               loadSessions();
           });
-      </script>
+</script>
 
-      {{-- This is the script for teacher accordion --}}
-
-
+{{-- This is the script for teacher accordion --}}
 
 
 
-      <script>
-          document.addEventListener("DOMContentLoaded", function() {
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
 
               const teacherAccordion = document.getElementById("teacherAccordion");
               const teacherForm = document.getElementById("teacherForm");
@@ -1809,7 +2028,7 @@
                   return `
         <div class="accordion-item teacher-card border mb-2 rounded">
             <h3 class="accordion-header" id="${headingId}">
-                <button class="accordion-button collapsed bg-white" type="button" 
+                <button class="accordion-button collapsed bg-white" type="button"
                     data-bs-toggle="collapse" data-bs-target="#${uid}">
                     <div class="teacher-info d-flex align-items-center gap-3">
                         <div class="teacher-icon"><i class="fa-solid fa-user"></i></div>
@@ -1841,7 +2060,7 @@
               // ✅ Load teachers via AJAX
               window.loadTeachers = async function() {
                   try {
-                      const res = await fetch("{{ route('teacher_setting.index') }}");
+                      const res = await fetch("{{ route('teacher_setting.create') }}");
                       const response = await res.json();
 
                       if (response.success) {
@@ -1910,37 +2129,7 @@
               });
 
               // ✅ Delete course assignment using pivot ID
-              document.addEventListener("click", async function(e) {
-                  if (e.target.closest(".delete-btn")) {
-                      const button = e.target.closest(".delete-btn");
-                      const pivotId = button.getAttribute("data-pivot-id");
-                      const courseBox = button.closest(".percentage-box");
 
-                      if (!confirm("Are you sure you want to delete this course assignment?")) return;
-
-                      try {
-                          const res = await fetch(`/taxonomies/teacher_course/delete/${pivotId}`, {
-                              method: "DELETE",
-                              headers: {
-                                  "X-CSRF-TOKEN": csrf,
-                                  "Accept": "application/json"
-                              },
-                          });
-
-                          const response = await res.json();
-
-                          if (response.success) {
-                              courseBox.remove();
-                              showToast("✔ Course assignment deleted successfully", "success");
-                          } else {
-                              showToast(response.message || "Failed to delete course", "error");
-                          }
-                      } catch (err) {
-                          console.error(err);
-                          showToast("Something went wrong!", "error");
-                      }
-                  }
-              });
 
               // ✅ Auto-open last updated teacher accordion
               document.addEventListener("teachersUpdated", function() {
@@ -1957,16 +2146,16 @@
               });
 
           });
-      </script>
+</script>
 
 
 
 
 
 
-      {{-- This is the script for course addition --}}
-      <script>
-          document.addEventListener("DOMContentLoaded", function() {
+{{-- This is the script for course addition --}}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
               const courseForm = document.getElementById("courseForm");
               const courseList = document.getElementById("courseList");
               const csrfToken = document.querySelector('input[name="_token"]').value;
@@ -2105,145 +2294,145 @@
 
               loadCourses();
           });
-      </script>
+</script>
 
 
 
-      {{-- This is the script for teacher course modal --}}
-
-      <script>
-          document.addEventListener("DOMContentLoaded", function() {
-
-              const modalEl = document.getElementById('addCourseModal');
-              const percentageInput = document.getElementById("teacherPercentage");
-              const courseSelect = document.getElementById("courseSelect");
-
-              // Disable browser auto-fill on number input
-              percentageInput.setAttribute("autocomplete", "off");
-              percentageInput.setAttribute("inputmode", "numeric");
-              percentageInput.addEventListener("focus", () => percentageInput.value = "");
-
-              // ********* FORM SUBMIT *********
-              document.querySelector('#addCourseModal form').addEventListener("submit", async function(e) {
-                  e.preventDefault();
-
-                  const submitBtn = this.querySelector("button[type='submit']");
-                  submitBtn.disabled = true;
-                  submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
-
-                  const existingToasts = this.querySelectorAll('.modal-toast');
-                  existingToasts.forEach(t => t.remove());
-
-                  const formData = new FormData();
-                  formData.append("teacherId", document.getElementById("teacherId").value);
-                  formData.append("courseId", courseSelect.value);
-                  formData.append("teacherPercentage", percentageInput.value);
-                  formData.append("_token", "{{ csrf_token() }}");
-
-                  function showToast(message, type = "success", duration = 3000, outside = false) {
-                      const toast = document.createElement("div");
-                      toast.className = "modal-toast p-2 rounded shadow text-white";
-                      toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
-                      toast.style.fontWeight = "bold";
-                      toast.style.padding = "10px 15px";
-                      toast.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
-                      toast.style.zIndex = 9999;
-
-                      if (outside) {
-                          toast.style.position = "fixed";
-                          toast.style.top = "1rem";
-                          toast.style.right = "1rem";
-                          toast.style.minWidth = "220px";
-                          toast.style.textAlign = "center";
-                          toast.textContent = message;
-                          document.body.appendChild(toast);
-                      } else {
-                          toast.style.position = "relative";
-                          toast.textContent = message;
-                          this.prepend(toast);
-                      }
-
-                      setTimeout(() => toast.remove(), duration);
-                  }
-
-                  try {
-                      let res = await fetch("{{ route('taxonomies_teacher_course.store') }}", {
-                          method: "POST",
-                          body: formData
-                      });
-                      let response = await res.json();
-
-                      if (response.success) {
-                          window.lastUpdatedTeacher = document.getElementById("teacherId").value;
-
-                          bootstrap.Modal.getInstance(modalEl).hide();
-                          this.reset();
-                          percentageInput.value = "";
-                          courseSelect.value = "";
-
-                          showToast.call(this, "✔ Course percentage added successfully", "success", 2000,
-                              true);
-
-                          loadTeachers().then(() => {
-                              setTimeout(() => {
-                                  const acc = document.getElementById("teacher" + window
-                                      .lastUpdatedTeacher);
-                                  if (acc) {
-                                      acc.classList.add("show");
-                                      acc.scrollIntoView({
-                                          behavior: "smooth",
-                                          block: "start"
-                                      });
-                                  }
-                              }, 2000);
-                          });
-
-                      } else if (response.errors) {
-
-                          if (response.errors.teacher_course) {
-                              showToast.call(this, "This course has already been taken", "error", 3000,
-                                  false);
-                          } else {
-                              let msg = Object.values(response.errors).flat().join(" | ");
-                              showToast.call(this, msg, "error", 3000, false);
-                          }
-                      }
-
-                  } catch (err) {
-                      console.error(err);
-                      showToast.call(this, "Something went wrong!", "error", 3000, false);
-                  }
-
-                  submitBtn.disabled = false;
-                  submitBtn.innerHTML = '<i class="fa-solid fa-book me-2"></i>Add Course Percentage';
-              });
-
-              // ✅ Clear fields when modal closes (Cancel / X)
-              modalEl.addEventListener('hidden.bs.modal', function() {
-                  const form = modalEl.querySelector('form');
-                  form.reset();
-                  courseSelect.value = "";
-                  percentageInput.value = "";
-                  percentageInput.removeAttribute("value");
-
-                  const toasts = modalEl.querySelectorAll('.modal-toast');
-                  toasts.forEach(t => t.remove());
-              });
-
-              // ✅ Focus course when modal opens
-              modalEl.addEventListener('shown.bs.modal', function() {
-                  courseSelect.value = "";
-                  percentageInput.value = "";
-                  percentageInput.removeAttribute("value");
-                  courseSelect.focus();
-              });
-
-          });
-      </script>
+{{-- This is the script for teacher course modal --}}
 
 
-      <script>
-          $(document).ready(function() {
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+                    const modalEl = document.getElementById('addCourseModal');
+                    const percentageInput = document.getElementById("teacherPercentage");
+                    const courseSelect = document.getElementById("courseSelect");
+
+                    // Disable browser auto-fill on number input
+                    percentageInput.setAttribute("autocomplete", "off");
+                    percentageInput.setAttribute("inputmode", "numeric");
+                    percentageInput.addEventListener("focus", () => percentageInput.value = "");
+
+                    // ********* FORM SUBMIT *********
+                    document.querySelector('#addCourseModal form').addEventListener("submit", async function(e) {
+                        e.preventDefault();
+
+                        const submitBtn = this.querySelector("button[type='submit']");
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
+
+                        const existingToasts = this.querySelectorAll('.modal-toast');
+                        existingToasts.forEach(t => t.remove());
+
+                        const formData = new FormData();
+                        formData.append("teacherId", document.getElementById("teacherId").value);
+                        formData.append("courseId", courseSelect.value);
+                        formData.append("teacherPercentage", percentageInput.value);
+                        formData.append("_token", "{{ csrf_token() }}");
+
+                        function showToast(message, type = "success", duration = 3000, outside = false) {
+                            const toast = document.createElement("div");
+                            toast.className = "modal-toast p-2 rounded shadow text-white";
+                            toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
+                            toast.style.fontWeight = "bold";
+                            toast.style.padding = "10px 15px";
+                            toast.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+                            toast.style.zIndex = 9999;
+
+                            if (outside) {
+                                toast.style.position = "fixed";
+                                toast.style.top = "1rem";
+                                toast.style.right = "1rem";
+                                toast.style.minWidth = "220px";
+                                toast.style.textAlign = "center";
+                                toast.textContent = message;
+                                document.body.appendChild(toast);
+                            } else {
+                                toast.style.position = "relative";
+                                toast.textContent = message;
+                                this.prepend(toast);
+                            }
+
+                            setTimeout(() => toast.remove(), duration);
+                        }
+
+                        try {
+                            let res = await fetch("{{ route('taxonomies_teacher_course.store') }}", {
+                                method: "POST",
+                                body: formData
+                            });
+                            let response = await res.json();
+
+                            if (response.success) {
+                                window.lastUpdatedTeacher = document.getElementById("teacherId").value;
+
+                                bootstrap.Modal.getInstance(modalEl).hide();
+                                this.reset();
+                                percentageInput.value = "";
+                                courseSelect.value = "";
+
+                                showToast.call(this, "✔ Course percentage added successfully", "success", 2000, true);
+
+                                loadTeachers().then(() => {
+                                    setTimeout(() => {
+                                        const acc = document.getElementById("teacher" + window.lastUpdatedTeacher);
+                                        if (acc) {
+                                            acc.classList.add("show");
+                                            acc.scrollIntoView({
+                                                behavior: "smooth",
+                                                block: "start"
+                                            });
+                                        }
+                                    }, 2000);
+                                });
+
+                            } else if (response.errors) {
+
+                                if (response.errors.teacher_course) {
+                                    showToast.call(this, "This course has already been taken", "error", 3000, false);
+                                } else {
+                                    let msg = Object.values(response.errors).flat().join(" | ");
+                                    showToast.call(this, msg, "error", 3000, false);
+                                }
+                            }
+
+                        } catch (err) {
+                            console.error(err);
+                            showToast.call(this, "Something went wrong!", "error", 3000, false);
+                        }
+
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa-solid fa-book me-2"></i>Add Course Percentage';
+                    });
+
+                    // ✅ Clear fields when modal closes (Cancel / X)
+                    modalEl.addEventListener('hidden.bs.modal', function() {
+                        const form = modalEl.querySelector('form');
+                        form.reset();
+                        courseSelect.value = "";
+                        percentageInput.value = "";
+                        percentageInput.removeAttribute("value");
+
+                        const toasts = modalEl.querySelectorAll('.modal-toast');
+                        toasts.forEach(t => t.remove());
+                    });
+
+                    // ✅ Focus course when modal opens
+                    modalEl.addEventListener('shown.bs.modal', function() {
+                        courseSelect.value = "";
+                        percentageInput.value = "";
+                        percentageInput.removeAttribute("value");
+                        courseSelect.focus();
+                    });
+
+                });
+</script>
+
+
+
+
+<script>
+    $(document).ready(function() {
               $('#courseSelect').select2({
                   width: '100%',
                   templateResult: function(option) {
@@ -2262,5 +2451,183 @@
                   }
               });
           });
-      </script>
-  @endsection
+</script>
+
+
+<!-- this script for currency add in settings -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+    const indexRoute = document.getElementById("currencyIndexRoute").value;
+    const storeRoute = document.getElementById("currencyStoreRoute").value;
+    const updateRoute = document.getElementById("currencyUpdateRoute").value;
+    const deleteRoute = document.getElementById("currencyDeleteRoute").value;
+
+    const currencyList = document.getElementById("currencyList");
+    const currencyForm = document.getElementById("currencyForm");
+    const currencySubmitBtn = document.getElementById("currencySubmitBtn");
+    const currencyCancelEditBtn = document.getElementById("currencyCancelEditBtn");
+
+    const csrf = "{{ csrf_token() }}";
+
+    /* ------------------------------
+        Helper Toast
+    ------------------------------ */
+    function notify(msg, type = "success") {
+        const div = document.createElement("div");
+        div.textContent = msg;
+        div.className = `position-fixed top-0 end-0 m-3 p-2 rounded shadow text-white`;
+        div.style.backgroundColor = type === "error" ? "#dc3545" : "#28a745";
+        div.style.zIndex = 9999;
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 3000);
+    }
+
+    /* ------------------------------
+        Render Currency Row
+    ------------------------------ */
+    function renderRow(c) {
+        return `
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>${c.currency_name}</strong>
+                    <small class="text-muted d-block">${c.exchange_rate}</small>
+                </div>
+
+                <div>
+                    <button class="btn btn-sm btn-dark me-2 editCurrencyBtn"
+                        data-id="${c.id}"
+                        data-name="${c.currency_name}"
+                        data-rate="${c.exchange_rate}">
+                        <i class="fa fa-edit"></i>
+                    </button>
+
+                    <button class="btn btn-sm btn-danger deleteCurrencyBtn"
+                        data-id="${c.id}">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    /* ------------------------------
+        Load All Currencies
+    ------------------------------ */
+    async function loadCurrencies() {
+        const res = await fetch(indexRoute);
+        const data = await res.json();
+
+        currencyList.innerHTML = "";
+        data.data.forEach(c => currencyList.insertAdjacentHTML("beforeend", renderRow(c)));
+    }
+
+    loadCurrencies();
+
+
+    /* ------------------------------
+        Save / Update Currency
+    ------------------------------ */
+    currencyForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        currencySubmitBtn.disabled = true;
+        currencySubmitBtn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Saving...`;
+
+        const formData = {
+            currency_name: currencyForm.currency_name.value,
+            exchange_rate: currencyForm.exchange_rate.value,
+        };
+
+        const id = currencyForm.currencyId.value;
+
+        const isUpdate = id !== "";
+
+        const url = isUpdate ? updateRoute.replace(":id", id) : storeRoute;
+        const method = isUpdate ? "PUT" : "POST";
+
+        const res = await fetch(url, {
+            method: method,
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": csrf
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const response = await res.json();
+
+        if (response.status === "success") {
+
+            notify(isUpdate ? "Updated successfully" : "Added successfully");
+
+            currencyForm.reset();
+            currencyForm.currencyId.value = "";
+            currencyCancelEditBtn.classList.add("d-none");
+            currencySubmitBtn.innerHTML = `<i class="fa fa-plus"></i> Save Currency`;
+
+            loadCurrencies();
+        }
+
+        currencySubmitBtn.disabled = false;
+    });
+
+
+    /* ------------------------------
+        Edit Click
+    ------------------------------ */
+    document.addEventListener("click", function (e) {
+
+        const btn = e.target.closest(".editCurrencyBtn");
+        if (!btn) return;
+
+        currencyForm.currencyId.value = btn.dataset.id;
+        currencyForm.currency_name.value = btn.dataset.name;
+        currencyForm.exchange_rate.value = btn.dataset.rate;
+
+        currencySubmitBtn.innerHTML = `<i class="fa fa-save"></i> Update Currency`;
+        currencyCancelEditBtn.classList.remove("d-none");
+    });
+
+
+    /* ------------------------------
+        Cancel Edit
+    ------------------------------ */
+    currencyCancelEditBtn.addEventListener("click", function () {
+        currencyForm.reset();
+        currencyForm.currencyId.value = "";
+        currencySubmitBtn.innerHTML = `<i class="fa fa-plus"></i> Save Currency`;
+        currencyCancelEditBtn.classList.add("d-none");
+    });
+
+
+    /* ------------------------------
+        Delete Currency
+    ------------------------------ */
+    document.addEventListener("click", async function (e) {
+
+        const btn = e.target.closest(".deleteCurrencyBtn");
+        if (!btn) return;
+
+        if (!confirm("Delete this currency?")) return;
+
+        const id = btn.dataset.id;
+        const url = deleteRoute.replace(":id", id);
+
+        const res = await fetch(url, {
+            method: "DELETE",
+            headers: { "X-CSRF-TOKEN": csrf }
+        });
+
+        const response = await res.json();
+
+        if (response.status === "success") {
+            notify("Deleted successfully");
+            loadCurrencies();
+        }
+    });
+
+});
+</script>
+
+@endsection

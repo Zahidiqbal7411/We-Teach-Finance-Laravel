@@ -6,5 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Taxonomies_subjects extends Model
 {
-   protected $fillable = ['subject_title'];
+    protected $fillable = ['subject_title'];
+    protected $table = 'acc_taxonomies_subjects';
 }

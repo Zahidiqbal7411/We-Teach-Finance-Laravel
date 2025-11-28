@@ -6,8 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
-protected $fillable = [
-    'type',
-    'value'
-];
+    protected $fillable = [
+        'type',
+        'value'
+    ];
+    protected $table = 'acc_settings';
 }

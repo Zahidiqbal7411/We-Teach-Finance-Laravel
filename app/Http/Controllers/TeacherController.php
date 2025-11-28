@@ -11,21 +11,10 @@ use App\Models\Transaction;
 use App\Models\Taxonomies_sessions;
 use App\Models\Teacher;
 use App\Models\TeacherCourse;
+use App\Models\TransactionPayout;
 
 class TeacherController extends Controller
 {
-    public function index()
-    {
-        $session_datas = Taxonomies_sessions::all();
-        $currency_datas = Currency::all();
-        $teacher_datas = Teacher::all();
-        $subject_datas = Course::all();
-        $currencyId = Setting::find(6)?->value;
-        $currentCurrency = $currencyId ? Currency::find($currencyId) : null;
-
-        return view('teacher.index', get_defined_vars());
-    }
-
     public function create()
     {
         $session_datas = Taxonomies_sessions::all();
@@ -33,9 +22,11 @@ class TeacherController extends Controller
         $teacher_datas = Teacher::all();
 
         $subject_datas = Course::all();
-        $teacher_datas = Teacher::all();
-        $currencyId = Setting::find(6)?->value;
-        $currentCurrency = $currencyId ? Currency::find($currencyId) : null;
+
+        // Get teacher-course relationships
+        $teacher_courses = TeacherCourse::with('course')->get();
+
+        $currentCurrency = Currency::find(Setting::find(6)?->value);
 
         return view('teacher.index', get_defined_vars());
     }
@@ -43,36 +34,50 @@ class TeacherController extends Controller
 
     public function store(Request $request)
     {
-
         $request->validate([
-            'teacher_id' => 'required|exists:teachers,id',
-            'course' => 'required|exists:courses,id',
+            'teacher_id' => 'required|exists:acc_teachers,id',
+            'course' => 'required|exists:acc_courses,id',
             'student_name' => 'required|string',
+            'student_contact' => 'nullable|string',
+            'student_email' => 'nullable|email',
             'parent_name' => 'nullable|string',
+            'course_fee' => 'required|numeric',
+            'note_fee' => 'required|numeric',
             'total' => 'required|numeric',
             'paid_amount' => 'required|numeric',
             'remaining' => 'required|numeric',
-            'session_id' => 'required|exists:taxonomies_sessions,id',
-
+            'session_id' => 'required|exists:acc_taxonomies_sessions,id',
         ]);
 
+        // FEES
+        $courseFee = $request->course_fee;
+        $noteFee   = $request->note_fee;
+
+        // GET PERCENTAGE
         $teacherPercentage = Course::find($request->course)
             ->teacherCourses()
             ->where('teacher_id', $request->teacher_id)
             ->first()?->teacher_percentage ?? 0;
 
-        // Calculate amounts
-        $teacherAmount = $request->total * ($teacherPercentage / 100);
-        $platformAmount = $request->total - $teacherAmount;
+        // CALCULATIONS
+        $teacherShareFromCourse = $courseFee * ($teacherPercentage / 100);
+        $teacherAmount = $teacherShareFromCourse + $noteFee;
+        $platformAmount = $courseFee - $teacherShareFromCourse;
 
-
+        // CURRENT CURRENCY
         $currentCurrency = Currency::find(Setting::find(6)?->value);
+
+        // CREATE TRANSACTION
         $transaction = Transaction::create([
             'teacher_id' => $request->teacher_id,
             'course_id' => $request->course,
             'student_name' => $request->student_name,
+            'student_contact' => $request->student_contact,
+            'student_email' => $request->student_email,
             'parent_name' => $request->parent_name,
-            'selected_currency'  => $currentCurrency?->id,
+            'selected_currency' => $currentCurrency->id,
+            'course_fee' => $courseFee,
+            'note_fee' => $noteFee,
             'total' => $request->total,
             'paid_amount' => $request->paid_amount,
             'remaining' => $request->remaining,
@@ -80,20 +85,21 @@ class TeacherController extends Controller
             'teacher_amount' => $teacherAmount,
             'platform_amount' => $platformAmount,
         ]);
+
+        // CREATE PAYMENT
         Payment::create([
             'teacher_id' => $request->teacher_id,
             'transaction_id' => $transaction->id,
-            'type' => 'teacher',
-            'paid_amount' => $request->paid_amount,  // Add this
+            'type' => 'platform',
+            'paid_amount' => $request->paid_amount,
         ]);
-
-
 
         return response()->json([
             'success' => true,
             'transaction' => $transaction,
         ]);
     }
+
 
 
 
@@ -111,16 +117,17 @@ class TeacherController extends Controller
             return response()->json(['error' => 'Teacher not found'], 404);
         }
 
-        // ✅ Filters
+        // ✅ Filters from request
         $sessionId = request()->query('session_id');
         $currencyId = request()->query('currency_id');
+        $fromDate = request()->query('from_date');
+        $toDate = request()->query('to_date');
+        $currencyToUse = $currencyId ?? $defaultCurrency?->id;
 
         // ✅ Base query with relations
         $transactionsQuery = $teacher->transactions()
-            ->with(['course', 'session', 'payments', 'currency'])
-            ->whereHas('payments', function ($query) {
-                $query->where('type', 'teacher');
-            });
+            ->with(['course', 'session', 'currency']);
+
 
         // ✅ Apply dynamic filters
         if ($sessionId) {
@@ -131,10 +138,18 @@ class TeacherController extends Controller
             $transactionsQuery->where('selected_currency', $currencyId);
         }
 
+        // ✅ Apply date filters
+        if ($fromDate) {
+            $transactionsQuery->whereDate('created_at', '>=', $fromDate);
+        }
+
+        if ($toDate) {
+            $transactionsQuery->whereDate('created_at', '<=', $toDate);
+        }
+
         $transactions = $transactionsQuery->get();
 
         // ✅ Calculate Total Earned: sum of all 'teacher_amount' from filtered transactions
-        // If teacher_amount is null/0, calculate it from total and teacher percentage
         $totalEarned = $transactions->sum(function ($tx) {
             if ($tx->teacher_amount && $tx->teacher_amount > 0) {
                 return $tx->teacher_amount;
@@ -148,27 +163,32 @@ class TeacherController extends Controller
             return $tx->total * ($teacherPercentage / 100);
         });
 
-        // ✅ Calculate Paid Before: sum of all payments with type 'teacher' from filtered transactions
-        $paidBefore = $transactions->sum(function ($tx) {
-            return $tx->payments->where('type', 'teacher')->sum('paid_amount');
-        });
+        // ✅ Calculate Paid Before: sum of all payouts from TransactionPayout table
+        $paidBefore = TransactionPayout::where('teacher_id', $teacher->id)
+            ->when($sessionId, fn($q) => $q->where('session_id', $sessionId))
+            ->when($currencyToUse, fn($q) => $q->where('selected_currency', $currencyToUse))
+            ->sum('paid_amount');
 
-        // ✅ Calculate Current Balance: teacher's share minus paid amount
+        // ✅ Calculate Current Balance
         $currentBalance = $totalEarned - $paidBefore;
 
-        // ✅ Prepare transactions
+        // ✅ Prepare transactions for response
         $transactionsData = $transactions->map(function ($tx) {
             $total = $tx->total ?? 0;
-            $paid = $tx->payments->where('type', 'teacher')->sum('paid_amount');
+
+            // sum of teacher payments for this transaction
+            $paid = $tx->payments->sum('paid_amount');
             $remaining = $total - $paid;
 
             return [
                 'id' => $tx->id,
                 'teacher_id' => $tx->teacher_id,
-                'date' => $tx->created_at ? $tx->created_at->format('d/m/Y, h:i:s A') : 'N/A',
+                'date' => $tx->created_at ? $tx->created_at->format('M d, Y, h:i A') : 'N/A',
                 'course' => $tx->course->course_title ?? 'N/A',
                 'session' => $tx->session->session_title ?? 'N/A',
                 'student' => $tx->student_name ?? 'N/A',
+                'student_contact' => $tx->student_contact ?? 'N/A',
+                'student_email' => $tx->student_email ?? 'N/A',
                 'parent' => $tx->parent_name ?? 'N/A',
                 'currency' => $tx->currency->currency_name ?? 'N/A',
                 'total' => $total,
@@ -184,7 +204,7 @@ class TeacherController extends Controller
             'total_remaining' => $transactionsData->sum('remaining'),
         ];
 
-        // ✅ Determine which currency to show with totals
+        // ✅ Determine display currency
         if ($currencyId) {
             $currency = Currency::find($currencyId);
             $displayCurrency = $currency?->currency_name ?? $defaultCurrency?->currency_name ?? 'N/A';
@@ -212,9 +232,6 @@ class TeacherController extends Controller
                 'paid_before' => number_format($paidBefore, 2) . ' ' . $displayCurrency,
                 'current_balance' => number_format($currentBalance, 2) . ' ' . $displayCurrency,
             ],
-
-
-
             'transactions' => $transactionsData,
         ]);
     }
@@ -226,124 +243,117 @@ class TeacherController extends Controller
 
 
 
+
+
     public function getPerCourseTransactions($teacherId, Request $request)
     {
-        $sessionId = $request->query('session_id');
-        $currencyId = $request->query('currency_id');
+        try {
+            $sessionId = $request->query('session_id');
+            $currencyId = $request->query('currency_id');
+            $fromDate = $request->query('from_date');
+            $toDate = $request->query('to_date');
 
-        // Default currency
-        $defaultCurrencyId = Setting::find(6)?->value;
-        $defaultCurrency = Currency::find($defaultCurrencyId);
-        if (!$currencyId) $currencyId = $defaultCurrencyId;
+            $defaultCurrencyId = Setting::find(6)?->value;
+            $defaultCurrency = Currency::find($defaultCurrencyId);
+            if (!$currencyId) $currencyId = $defaultCurrencyId;
 
-        $teacher = Teacher::find($teacherId);
-        if (!$teacher) {
-            return response()->json(['error' => 'Teacher not found'], 404);
-        }
-
-        // Get all transactions for calculating stats
-        $allTransactions = Transaction::where('teacher_id', $teacherId)
-            ->whereHas('payments', function ($q) {
-                $q->where('type', 'teacher');
-            })
-            ->when($sessionId, fn($q) => $q->where('session_id', $sessionId))
-            ->when($currencyId, fn($q) => $q->where('selected_currency', $currencyId))
-            ->with('payments')
-            ->get();
-
-        // Calculate stats
-        $totalEarned = $allTransactions->sum(function ($tx) {
-            if ($tx->teacher_amount && $tx->teacher_amount > 0) {
-                return $tx->teacher_amount;
+            $teacher = Teacher::find($teacherId);
+            if (!$teacher) {
+                return response()->json(['error' => 'Teacher not found'], 404);
             }
 
-            // Fallback: Calculate from course teacher percentage
-            $teacherPercentage = $tx->course->teacherCourses()
-                ->where('teacher_id', $tx->teacher_id)
-                ->first()?->teacher_percentage ?? 0;
+            // Fetch all teacher transactions with payments
+            $allTransactions = Transaction::where('teacher_id', $teacherId)
 
-            return $tx->total * ($teacherPercentage / 100);
-        });
-
-        $paidBefore = $allTransactions->sum(function ($tx) {
-            return $tx->payments->where('type', 'teacher')->sum('paid_amount');
-        });
-        $currentBalance = $totalEarned - $paidBefore;
-
-        // Get teacher courses that have transactions for the selected session
-        // Use a database-level query (whereHas) rather than filtering an in-memory
-        // collection. This is more reliable and efficient for large datasets.
-        $courses = Course::whereHas('transactions', function ($q) use ($teacherId, $sessionId, $currencyId) {
-            $q->where('teacher_id', $teacherId)
-                ->when($sessionId, fn($q2) => $q2->where('session_id', $sessionId))
-                ->when($currencyId, fn($q2) => $q2->where('selected_currency', $currencyId))
-                ->whereHas('payments', fn($q3) => $q3->where('type', 'teacher'));
-        })->get();
-
-        // Map courses to compute totals
-        $coursesData = $courses->map(function ($course) use ($sessionId, $currencyId, $defaultCurrency) {
-            $transactions = $course->transactions()
-                ->with(['session', 'currency', 'payments'])
-                ->whereHas('payments', function ($q) {
-                    $q->where('type', 'teacher');
-                })
                 ->when($sessionId, fn($q) => $q->where('session_id', $sessionId))
                 ->when($currencyId, fn($q) => $q->where('selected_currency', $currencyId))
+                ->when($fromDate, fn($q) => $q->whereDate('created_at', '>=', $fromDate))
+                ->when($toDate, fn($q) => $q->whereDate('created_at', '<=', $toDate))
+                ->with(['payments', 'course', 'currency', 'session'])
                 ->get();
 
-            $total = $transactions->sum('total');
-            $paid = $transactions->sum(fn($tx) => $tx->payments->sum('paid_amount'));
-            $remaining = $total - $paid;
+            // Compute totals
+            $totalEarned = $allTransactions->sum(function ($tx) {
+                if ($tx->teacher_amount && $tx->teacher_amount > 0) {
+                    return $tx->teacher_amount;
+                }
+                $teacherPercentage = $tx->course?->teacherCourses()
+                    ->where('teacher_id', $tx->teacher_id)
+                    ->first()?->teacher_percentage ?? 0;
 
-            $displayCurrency = $transactions->first()?->currency?->currency_name ?? $defaultCurrency?->currency_name ?? 'N/A';
+                return ($tx->total ?? 0) * ($teacherPercentage / 100);
+            });
 
-            return [
-                'id' => $course->id,
-                'name' => $course->course_title ?? 'N/A',
-                'session' => $transactions->first()?->session?->session_title ?? 'N/A',
-                'transactions' => $transactions->count(),
-                'total_amount' => number_format($total, 2) . ' ' . $displayCurrency,
-                'total_paid' => number_format($paid, 2) . ' ' . $displayCurrency,
-                'total_remaining' => number_format($remaining, 2) . ' ' . $displayCurrency,
-                'transactions_details' => $transactions->map(function ($tx) use ($defaultCurrency) {
-                    $txPaid = $tx->payments->sum('paid_amount');
-                    $displayCurrency = $tx->currency?->currency_name ?? $defaultCurrency?->currency_name ?? 'N/A';
-                    return [
+            $paidBefore = $allTransactions->sum(fn($tx) => $tx->payments->sum('paid_amount'));
+            $currentBalance = $totalEarned - $paidBefore;
+
+            // Fetch courses with transactions - simplified approach
+            // Instead of complex nested whereHas, just get unique courses from transactions we already have
+            $courseIds = $allTransactions->pluck('course_id')->unique();
+            $courses = Course::whereIn('id', $courseIds)->get();
+
+            $coursesData = $courses->map(function ($course) use ($teacherId, $sessionId, $currencyId, $fromDate, $toDate, $defaultCurrency) {
+                $transactions = Transaction::where('course_id', $course->id)
+                    ->where('teacher_id', $teacherId)
+                    ->with(['session', 'currency', 'payments'])
+
+                    ->when($sessionId, fn($q) => $q->where('session_id', $sessionId))
+                    ->when($currencyId, fn($q) => $q->where('selected_currency', $currencyId))
+                    ->when($fromDate, fn($q) => $q->whereDate('created_at', '>=', $fromDate))
+                    ->when($toDate, fn($q) => $q->whereDate('created_at', '<=', $toDate))
+                    ->get();
+
+                $total = $transactions->sum(fn($tx) => $tx->total ?? 0);
+                $paid = $transactions->sum(fn($tx) => $tx->payments->sum('paid_amount'));
+                $remaining = $total - $paid;
+
+                $displayCurrency = $transactions->first()?->currency?->currency_name ?? $defaultCurrency?->currency_name ?? 'N/A';
+
+                return [
+                    'id' => $course->id,
+                    'name' => $course->course_title ?? 'N/A',
+                    'session' => $transactions->first()?->session?->session_title ?? 'N/A',
+                    'transactions' => $transactions->count(),
+                    'total_amount' => number_format($total, 2) . ' ' . $displayCurrency,
+                    'total_paid' => number_format($paid, 2) . ' ' . $displayCurrency,
+                    'total_remaining' => number_format($remaining, 2) . ' ' . $displayCurrency,
+                    'transactions_details' => $transactions->map(fn($tx) => [
                         'id' => $tx->id,
-                        'date' => $tx->created_at?->format('d/m/Y, g:i:s A') ?? 'N/A',
+                        'date' => $tx->created_at?->format('M d, Y, h:i A') ?? 'N/A',
                         'student' => $tx->student_name ?? 'N/A',
-                        'currency' => $displayCurrency,
-                        'total' => number_format($tx->total ?? 0, 2) . ' ' . $displayCurrency,
-                        'paid' => number_format($txPaid, 2) . ' ' . $displayCurrency,
-                        'remaining' => number_format(($tx->total - $txPaid) ?? 0, 2) . ' ' . $displayCurrency,
-                    ];
-                }),
-            ];
-        });
+                        'student_contact' => $tx->student_contact ?? 'N/A',
+                        'student_email' => $tx->student_email ?? 'N/A',
+                        'currency' => $tx->currency?->currency_name ?? $defaultCurrency?->currency_name ?? 'N/A',
+                        'total' => number_format($tx->total ?? 0, 2),
+                        'paid' => number_format($tx->payments->sum('paid_amount'), 2),
+                        'remaining' => number_format(($tx->total ?? 0) - $tx->payments->sum('paid_amount'), 2),
+                    ]),
+                ];
+            });
 
-        // Determine display currency
-        $displayCurrency = Currency::find($currencyId)?->currency_name ?? $defaultCurrency?->currency_name ?? 'N/A';
-
-        return response()->json([
-            'teacher' => [
-                'id' => $teacher->id,
-                'name' => $teacher->teacher_name ?? 'N/A',
-                'email' => $teacher->teacher_email ?? 'N/A',
-            ],
-            'filters' => [
-                'session_id' => $sessionId,
-                'currency_id' => $currencyId,
-            ],
-            'totals' => [
-                'currency' => $displayCurrency,
-                'total_earned' => number_format($totalEarned, 2) . ' ' . $displayCurrency,
-                'paid_before' => number_format($paidBefore, 2) . ' ' . $displayCurrency,
-                'current_balance' => number_format($currentBalance, 2) . ' ' . $displayCurrency,
-            ],
-            'courses' => $coursesData,
-        ]);
+            return response()->json([
+                'teacher' => [
+                    'id' => $teacher->id,
+                    'name' => $teacher->teacher_name ?? 'N/A',
+                    'email' => $teacher->teacher_email ?? 'N/A',
+                ],
+                'filters' => [
+                    'session_id' => $sessionId,
+                    'currency_id' => $currencyId,
+                ],
+                'totals' => [
+                    'currency' => $defaultCurrency?->currency_name ?? 'N/A',
+                    'total_earned' => number_format($totalEarned, 2),
+                    'paid_before' => number_format($paidBefore, 2),
+                    'current_balance' => number_format($currentBalance, 2),
+                ],
+                'courses' => $coursesData,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('getPerCourseTransactions Error: ' . $e->getMessage());
+            return response()->json(['error' => 'Server error', 'message' => $e->getMessage()], 500);
+        }
     }
-
 
     public function restore(Request $request)
     {
@@ -351,7 +361,7 @@ class TeacherController extends Controller
 
         // Validate input
         $validated = $request->validate([
-            'transaction_id' => 'required|integer|exists:transactions,id',
+            'transaction_id' => 'required|integer|exists:acc_transactions,id',
             'new_paid' => 'required|numeric|min:0',
             'remarks' => 'nullable|string|max:255',
         ]);
@@ -362,7 +372,7 @@ class TeacherController extends Controller
 
             // Verify this is a teacher transaction
             $payment = Payment::where('transaction_id', $transaction->id)
-                ->where('type', 'teacher')
+                
                 ->first();
 
             if (!$payment) {
@@ -393,7 +403,7 @@ class TeacherController extends Controller
             Payment::create([
                 'teacher_id' => $transaction->teacher_id,
                 'transaction_id' => $transaction->id,
-                'type' => 'teacher',
+                'type' => 'platform',
                 'paid_amount' => $toPay,
                 'remarks' => $validated['remarks'] ?? null,
             ]);
@@ -454,9 +464,7 @@ class TeacherController extends Controller
         $transactions = Transaction::where('teacher_id', $teacherId)
             ->where('session_id', $sessionId)
             ->where('selected_currency', $currencyId)
-            ->whereHas('payments', function ($query) {
-                $query->where('type', 'teacher');
-            })
+
             ->with(['course.teacherCourses', 'payments'])
             ->get();
 
@@ -474,9 +482,11 @@ class TeacherController extends Controller
             return $tx->total * ($teacherPercentage / 100);
         });
 
-        $paidBefore = $transactions->sum(function ($tx) {
-            return $tx->payments->where('type', 'teacher')->sum('paid_amount');
-        });
+        // ✅ Correct paidBefore calculation using TransactionPayout
+        $paidBefore = TransactionPayout::where('teacher_id', $teacherId)
+            ->where('session_id', $sessionId)
+            ->where('selected_currency', $currencyId)
+            ->sum('paid_amount');
 
         $balance = $totalEarned - $paidBefore;
 
@@ -488,10 +498,12 @@ class TeacherController extends Controller
             'current_balance' => round($balance, 2),
             'currency_name' => $currencyName,
             'teacher_id' => $teacherId,
+            'paid_before' => $paidBefore,
             'session_id' => $sessionId,
             'currency_id' => $currencyId
         ]);
     }
+
 
     /**
      * Restore per-course transaction payment
@@ -502,7 +514,7 @@ class TeacherController extends Controller
 
         // Validate input
         $validated = $request->validate([
-            'transaction_id' => 'required|integer|exists:transactions,id',
+            'transaction_id' => 'required|integer|exists:acc_transactions,id',
             'new_paid' => 'required|numeric|min:0',
             'remarks' => 'nullable|string|max:255',
         ]);
@@ -513,7 +525,7 @@ class TeacherController extends Controller
 
             // Verify this is a teacher transaction
             $payment = Payment::where('transaction_id', $transaction->id)
-                ->where('type', 'teacher')
+                
                 ->first();
 
             if (!$payment) {
@@ -544,7 +556,7 @@ class TeacherController extends Controller
             Payment::create([
                 'teacher_id' => $transaction->teacher_id,
                 'transaction_id' => $transaction->id,
-                'type' => 'teacher',
+                'type' => 'platform',
                 'paid_amount' => $toPay,
                 'remarks' => $validated['remarks'] ?? null,
             ]);
@@ -585,50 +597,80 @@ class TeacherController extends Controller
     /**
      * Get teacher payouts data based on session and currency
      */
-    public function getPayouts($session_id)
+    public function getPayouts($session_id, Request $request)
     {
         try {
+            // Get default currency
             $setting = Setting::find(6);
-            $selected_currency_id = $setting ? $setting->value : null;
-            $default_currency = $selected_currency_id ? Currency::find($selected_currency_id) : null;
-            $currency_name = $default_currency ? $default_currency->currency_name : '';
+            $default_currency_id = $setting ? $setting->value : null;
 
-            $payments = Payment::where('type', 'teacher')
-                ->whereHas('transaction', function ($query) use ($session_id, $selected_currency_id) {
-                    $query->where('session_id', $session_id);
-                    if ($selected_currency_id) {
-                        $query->where('selected_currency', $selected_currency_id);
-                    }
-                })
-                ->with([
-                    'transaction.teacher',
-                    'transaction.course',
-                    'transaction.session',
-                ])
+            // Get currency from request or use default
+            $currency_id = $request->query('currency_id') ?? $default_currency_id;
+            $currency = $currency_id ? Currency::find($currency_id) : null;
+            $currency_name = $currency ? $currency->currency_name : '';
+
+            // DEBUG LOGGING
+            \Log::info('=== PAYOUT QUERY DEBUG ===');
+            \Log::info('Session ID: ' . $session_id);
+            \Log::info('Requested Currency ID: ' . $currency_id);
+            \Log::info('Currency Name: ' . $currency_name);
+
+            // Get date filters
+            $fromDate = $request->query('from_date');
+            $toDate = $request->query('to_date');
+
+            // Build the query
+            $query = TransactionPayout::where('session_id', $session_id);
+
+            if ($currency_id) {
+                $query->where('selected_currency', $currency_id);
+                \Log::info('Filtering by currency: ' . $currency_id);
+            }
+
+            // Apply date filters
+            if ($fromDate) {
+                $query->whereDate('created_at', '>=', $fromDate);
+            }
+
+            if ($toDate) {
+                $query->whereDate('created_at', '<=', $toDate);
+            }
+
+            // Eager load relationships
+            $payments = $query->with(['teacher', 'course', 'session', 'transaction', 'currency'])
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+            \Log::info('Total payouts found: ' . $payments->count());
+            foreach ($payments as $p) {
+                \Log::info('Payout ID: ' . $p->id . ', selected_currency: ' . $p->selected_currency . ', amount: ' . $p->paid_amount);
+            }
+            \Log::info('========================');
+
+            // Transform the data
+            $data = $payments->map(function ($p) use ($currency_name) {
+                $teacher = $p->teacher;
+                $course = $p->course;
+                $session = $p->session;
+                $transaction = $p->transaction;
+
+                return [
+                    'id'            => $p->id,
+                    'date_time'     => $p->created_at->format('Y-m-d H:i:s'),
+                    'teacher_name'  => $teacher ? $teacher->teacher_name : '-',
+                    'course_name'   => $course ? $course->course_title : '-',
+                    'session_name'  => $session ? $session->session_title : '-',
+                    'student_name'  => $transaction ? $transaction->student_name : '-',
+                    'parent_name'   => $transaction ? $transaction->parent_name : '-',
+                    'remarks'       => $p->remarks ?? '-',
+                    'paid_amount'   => $p->paid_amount,
+                    'currency_name' => $p->currency ? $p->currency->currency_name : $currency_name,
+                ];
+            });
+
             return response()->json([
                 'success' => true,
-                'data' => $payments->map(function ($p) use ($currency_name) {
-                    $transaction = $p->transaction;
-                    $teacher = $transaction ? $transaction->teacher : null;
-                    $course = $transaction ? $transaction->course : null;
-                    $session = $transaction ? $transaction->session : null;
-
-                    return [
-                        'id'           => $p->id,
-                        'date_time'    => $p->created_at->format('Y-m-d H:i:s'),
-                        'teacher_name' => $teacher ? $teacher->teacher_name : '-',
-                        'course_name'  => $course ? $course->course_title : '-',
-                        'session_name' => $session ? $session->session_title : '-',
-                        'student_name' => $transaction ? $transaction->student_name : '-',
-                        'parent_name'  => $transaction ? $transaction->parent_name : '-',
-                        'remarks'      => $p->remarks ?? '-',
-                        'paid_amount'  => $p->paid_amount,
-                        'currency_name' => $currency_name,
-                    ];
-                }),
+                'payments' => $data
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -637,6 +679,7 @@ class TeacherController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Delete a transaction
@@ -670,16 +713,12 @@ class TeacherController extends Controller
     public function deletePayout($id)
     {
         try {
-            $payment = Payment::findOrFail($id);
+            $payment = TransactionPayout::findOrFail($id);
 
             // Get the transaction to update paid_amount
-            $transaction = Transaction::find($payment->transaction_id);
 
-            if ($transaction) {
-                // Reduce the paid_amount in transaction
-                $transaction->paid_amount = max(0, $transaction->paid_amount - $payment->paid_amount);
-                $transaction->save();
-            }
+
+
 
             // Delete the payment
             $payment->delete();
@@ -694,5 +733,76 @@ class TeacherController extends Controller
                 'message' => 'Error deleting payout: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function updateCurrency(Request $request)
+    {
+        // Validate input
+        $request->validate([
+            'currency_id' => 'required|integer|exists:currencies,id',
+        ]);
+
+        $currencyId = $request->input('currency_id');
+
+        // Find the currency
+        $currency = Currency::find($currencyId);
+
+        if (!$currency) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid currency ID'
+            ], 400);
+        }
+
+        // Update the default currency setting
+        $setting = Setting::where('type', 'default_currency')->first();
+
+        if (!$setting) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Default currency setting not found'
+            ], 404);
+        }
+
+        $setting->value = $currencyId;
+        $setting->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Currency updated successfully',
+            'currency' => $currency->currency_name
+        ]);
+    }
+
+
+    public function storePayout(Request $request)
+    {
+        $request->validate([
+            'session_id' => 'required|integer',
+            'selected_currency' => 'required|integer',
+            'teacher_id' => 'required|integer',
+            'course_id' => 'nullable|integer',
+            'paid_amount' => 'required|numeric',
+            'remarks' => 'nullable|string',
+        ]);
+
+        $payout = TransactionPayout::create([
+            'transaction_id' => null,           // leave empty
+            'type' => 'platform',                // set type to teacher
+            'session_id' => $request->session_id,
+            'selected_currency' => $request->selected_currency,
+            'teacher_id' => $request->teacher_id,
+            'course_id' => $request->course_id,
+            'paid_amount' => $request->paid_amount,
+            'remarks' => $request->remarks,
+        ]);
+
+        // Load related models for proper display
+        $payout->load(['teacher', 'course', 'session', 'currency']);
+
+        return response()->json([
+            'success' => true,
+            'payout' => $payout
+        ]);
     }
 }

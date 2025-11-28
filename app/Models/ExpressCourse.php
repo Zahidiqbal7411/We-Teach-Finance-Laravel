@@ -31,9 +31,13 @@ class ExpressCourse extends Model
         'admin_notes',
         'timestamp_req'
     ];
-    public function expressCourse()
+    public function payments()
     {
-        return $this->belongsTo(ExpressCourse::class, 'express_course_id', 'id');
+        return $this->hasMany(ExpressCoursePayment::class, 'id', 'id');
+        // payments.id  -> courses.id
     }
-
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class, 'express_course_id', 'id');
+    }
 }

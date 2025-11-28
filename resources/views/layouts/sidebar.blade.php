@@ -18,23 +18,24 @@
                 <i class="fa-solid fa-chalkboard me-2"></i> Platform
             </a>
         </li>
-        {{-- <li>
-            <a class="nav-link {{ request()->routeIs('report.create') ? 'active' : '' }}"
-                href="{{ route('report.create') }}">
-                <i class="fa-solid fa-chart-line me-2"></i> Reports
-            </a>
-        </li> --}}
-         <li>
+        <li>
             <a class="nav-link {{ request()->routeIs('express_course.create') ? 'active' : '' }}"
                 href="{{ route('express_course.create') }}">
                 <i class="fa-solid fa-chart-line me-2"></i> Express Courses
             </a>
         </li>
+        <!--<li>-->
+        <!--    <a class="nav-link {{ request()->routeIs('system_setting.create') ? 'active' : '' }}"-->
+        <!--        href="{{ route('system_setting.create') }}">-->
+        <!--        <i class="fa-solid fa-gear me-2"></i> Settings-->
+        <!--    </a>-->
+        <!--</li>-->
         <li>
             <a class="nav-link {{ request()->routeIs('setting.create') ? 'active' : '' }}"
                 href="{{ route('setting.create') }}">
                 <i class="fa-solid fa-gear me-2"></i> Settings
             </a>
+
         </li>
         <li>
             <form method="POST" action="{{ route('logout') }}">

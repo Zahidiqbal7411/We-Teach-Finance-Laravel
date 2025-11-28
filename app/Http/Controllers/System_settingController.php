@@ -10,7 +10,7 @@ class System_settingController extends Controller
 {
     public function create()
     {
-        return view('layouts.app');
+        return view('system_setting.index');
     }
 
 

@@ -9,51 +9,65 @@ use App\Models\Taxonomies_sessions; // Make sure class name matches file
 use App\Models\Teacher;
 use App\Models\Payment;
 use App\Models\TeacherCourse;
-use App\Models\Transaction;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\TransactionsExport;
-use PDF;
-
-
+use App\Models\Transaction;
+use App\Models\TransactionPayout;
 
 class PlatformController extends Controller
 {
     public function create()
     {
-        // Fetch currency
-        $selected_currency_id = Setting::find(6)?->value ?? 0;
-        $currency_data = Setting::find(3);
+        // Fetch related data
         $subject_datas = Course::all();
         $teacher_datas = Teacher::all();
         $session_datas = Taxonomies_sessions::all();
         $currency_datas = Currency::all();
-        $selectedCurrency = Currency::find($selected_currency_id);
 
-        // Total revenue for selected currency
-        $total_revenue = Transaction::where('selected_currency', $selected_currency_id)->sum('total');
 
-        // Calculate platform balance
-        $transactions = Transaction::where('selected_currency', $selected_currency_id)->get();
+        // Get default currency from settings
+        $default_currency_id = Setting::find(6)?->value;
+        $selected_currency = Currency::find($default_currency_id);
+        $selected_currency_id = $selected_currency?->id;
+
+        // Get the first session
+        $first_session = Taxonomies_sessions::first();
+        $session_id = $first_session?->id;
+
+        // Fetch platform transactions with eager loading
+        $platform_transaction_datas = Transaction::with([
+            'teacher',
+            'course',
+            'session',
+            'currency',
+            'payments',
+            'expressPayments'
+        ])
+            ->where('selected_currency', $selected_currency_id)
+            ->when($session_id, fn($q) => $q->where('session_id', $session_id))
+            ->latest()
+            ->get();
+
+        // Total revenue
+        $total_revenue = $platform_transaction_datas->sum('total');
+
+        // Withdrawn balance for the platform
+        $withdrawn_balance = TransactionPayout::where('type', 'platform')
+            ->where('selected_currency', $selected_currency_id)
+            ->when($session_id, fn($q) => $q->where('session_id', $session_id))
+            ->sum('paid_amount');
+
+        // Platform balance calculation
         $platform_balance = 0;
-
-        foreach ($transactions as $transaction) {
-            // Get teacher percentage for this course
+        foreach ($platform_transaction_datas as $transaction) {
             $teacherCourse = TeacherCourse::where('teacher_id', $transaction->teacher_id)
                 ->where('course_id', $transaction->course_id)
                 ->first();
 
-            $teacher_percentage = $teacherCourse ? $teacherCourse->teacher_percentage : 0;
-
-            // Teacher share
-            $teacher_share = $transaction->total * ($teacher_percentage / 100);
-
-            // Platform balance = total - teacher share
-            $platform_balance += ($transaction->total - $teacher_share);
+            $teacher_percentage = $teacherCourse?->teacher_percentage ?? 0;
+            $teacher_share = $transaction->course_fee * ($teacher_percentage / 100);
+            $platform_balance += ($transaction->course_fee - $teacher_share);
         }
 
-        // Pass all variables to the view
         return view('platform.index', get_defined_vars());
     }
 
@@ -65,42 +79,62 @@ class PlatformController extends Controller
 
 
 
+
+
+
+
+
+
     public function platform_transaction_store(Request $request)
     {
-        // Get default currency from settings
-        $selected_currency_id = Setting::find(6)?->value ?? 0;
+        $selected_currency_id = Setting::find(6)->value;
 
         try {
             // Validate request
             $validated = $request->validate([
-                'teacher'             => 'required|exists:teachers,id',
-                'course'              => 'required|exists:courses,id',
-                'session'             => 'required|exists:taxonomies_sessions,id',
+                'teacher_id'          => 'required|exists:acc_teachers,id',
+                'course'              => 'required|exists:acc_courses,id',
+                'session_id'          => 'required|exists:acc_taxonomies_sessions,id',
                 'student_name'        => 'required|string|max:255',
+                'student_contact'     => 'nullable|string|max:255',
+                'student_email'       => 'nullable|email|max:255',
                 'parent_name'         => 'nullable|string|max:255',
-                'total'               => 'required|numeric|min:0',
+                'course_fee'          => 'required|numeric|min:0',
+                'note_fee'            => 'required|numeric|min:0',
                 'paid_amount'         => 'required|numeric|min:0',
-                'selected_currency_id' => 'required|exists:currencies,id',
+                'selected_currency_id' => 'required|exists:acc_currencies,id',
             ]);
 
-            // Get teacher percentage for this course
+            // Fees
+            $courseFee = $validated['course_fee'];
+            $noteFee   = $validated['note_fee'];
+            $total     = $courseFee + $noteFee;
+
+            // Get teacher percentage from pivot
             $teacherPercentage = Course::find($validated['course'])
                 ->teacherCourses()
-                ->where('teacher_id', $validated['teacher'])
+                ->where('teacher_id', $validated['teacher_id'])
                 ->first()?->teacher_percentage ?? 0;
 
-            // Calculate amounts
-            $teacherAmount = $validated['total'] * ($teacherPercentage / 100);
-            $platformAmount = $validated['total'] - $teacherAmount;
+            // Calculate teacher amount (course % + note fee)
+            $teacherShareFromCourse = $courseFee * ($teacherPercentage / 100);
+            $teacherAmount = $teacherShareFromCourse + $noteFee;
+
+            // Platform amount (only from course fee)
+            $platformAmount = $courseFee - $teacherShareFromCourse;
 
             // Create transaction
             $transaction = Transaction::create([
-                'teacher_id'        => $validated['teacher'],
+                'teacher_id'        => $validated['teacher_id'],
                 'course_id'         => $validated['course'],
-                'session_id'        => $validated['session'],
+                'session_id'        => $validated['session_id'],
                 'student_name'      => $validated['student_name'],
+                'student_contact'   => $validated['student_contact'] ?? null,
+                'student_email'     => $validated['student_email'] ?? null,
                 'parent_name'       => $validated['parent_name'] ?? null,
-                'total'             => $validated['total'],
+                'course_fee'        => $courseFee,
+                'note_fee'          => $noteFee,
+                'total'             => $total,
                 'paid_amount'       => $validated['paid_amount'],
                 'selected_currency' => $selected_currency_id,
                 'teacher_amount'    => $teacherAmount,
@@ -115,15 +149,10 @@ class PlatformController extends Controller
             // Load relationships
             $transaction->load('teacher', 'course', 'session', 'currency');
 
-            // Calculate total revenue
-            $total_revenue = Transaction::where('selected_currency', $selected_currency_id)
-                ->sum('total');
+            // Total revenue and platform balance
+            $total_revenue = Transaction::where('selected_currency', $selected_currency_id)->sum('total');
+            $platform_balance = Transaction::where('selected_currency', $selected_currency_id)->sum('platform_amount');
 
-            // Calculate platform balance
-            $platform_balance = Transaction::where('selected_currency', $selected_currency_id)
-                ->sum('platform_amount');
-
-            // Return response
             return response()->json([
                 'status' => 'success',
                 'message' => 'Transaction & payment saved successfully',
@@ -133,7 +162,11 @@ class PlatformController extends Controller
                     'course'           => $transaction->course->course_title ?? '',
                     'session'          => $transaction->session->session_title ?? '',
                     'student_name'     => $transaction->student_name,
+                    'student_contact'  => $transaction->student_contact,
+                    'student_email'    => $transaction->student_email,
                     'parent_name'      => $transaction->parent_name,
+                    'course_fee'       => $transaction->course_fee,
+                    'note_fee'         => $transaction->note_fee,
                     'total'            => $transaction->total,
                     'paid_amount'      => $transaction->paid_amount,
                     'remaining'        => $transaction->total - $transaction->paid_amount,
@@ -164,125 +197,182 @@ class PlatformController extends Controller
     }
 
 
-    public function platform_transaction_index(Request $request)
-    {
-        $session_id = $request->session_id;
-        $selected_currency_id = Setting::find(6)?->value ?? 0;
 
-        // ✅ Fetch transactions with platform payments
-        $platform_transaction_datas = Transaction::with([
-            'teacher',
-            'course',
-            'session',
-            'currency',
-            'payments' => fn($q) => $q->where('type', 'platform') // only platform payments
-        ])
-            ->where('selected_currency', $selected_currency_id)
-            ->when($session_id, fn($q) => $q->where('session_id', $session_id))
-            ->whereHas('payments', fn($q) => $q->where('type', 'platform')) // only transactions with platform payments
-            ->latest()
-            ->get();
-
-        // ✅ Total revenue from all transactions
-        $total_revenue = $platform_transaction_datas->sum('total');
-
-        // ✅ Collect transaction IDs
-        $transaction_ids = $platform_transaction_datas->pluck('id');
-
-        // ✅ Withdrawn balance = sum of actual paid_amount from payments table
-        $withdrawn_balance = Payment::whereIn('transaction_id', $transaction_ids)
-            ->where('type', 'platform')
-            ->sum('paid_amount');
-
-        // ✅ this is what you requested
-
-        // ✅ Platform balance calculation per transaction
-        $platform_balance = 0;
-        foreach ($platform_transaction_datas as $transaction) {
-            $teacherCourse = TeacherCourse::where('teacher_id', $transaction->teacher_id)
-                ->where('course_id', $transaction->course_id)
-                ->first();
-
-            $teacher_percentage = $teacherCourse ? $teacherCourse->teacher_percentage : 0;
-            $teacher_share = $transaction->total * ($teacher_percentage / 100);
-            $platform_balance += ($transaction->total - $teacher_share);
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Transactions fetched successfully',
-            'data' => $platform_transaction_datas,
-            'total_revenue' => $total_revenue,
-            'platform_balance' => $platform_balance,
-            'withdrawn_balance' => $withdrawn_balance, // ✅ sum of payments.paid_amount
-        ]);
-    }
 
 
     // public function platform_transaction_index(Request $request)
     // {
+    //     // Selected currency ID from settings
+    //     $selected_currency_id = Setting::find(6)->value;
+
+    //     // Session filter
     //     $session_id = $request->session_id;
-    //     $selected_currency_id = Setting::find(6)?->value ?? 0;
 
-
-    //     // ✅ Fetch transactions with platform payments
+    //     // =====================================================
+    //     // ✔ Fetch transactions WITH payments
+    //     // =====================================================
     //     $platform_transaction_datas = Transaction::with([
     //         'teacher',
     //         'course',
     //         'session',
     //         'currency',
-    //         'payments' => fn($q) => $q->where('type', 'platform') // only platform payments
+    //         'payments'  // <-- REQUIRED TO CALCULATE PLATFORM PAID
     //     ])
     //         ->where('selected_currency', $selected_currency_id)
     //         ->when($session_id, fn($q) => $q->where('session_id', $session_id))
-    //         ->whereHas('payments', fn($q) => $q->where('type', 'platform')) // only transactions with platform payments
+    //         ->when($request->start_date, fn($q) => $q->whereDate('created_at', '>=', $request->start_date))
+    //         ->when($request->end_date, fn($q) => $q->whereDate('created_at', '<=', $request->end_date))
     //         ->latest()
     //         ->get();
 
-    //     // ✅ Total revenue from all transactions
+    //     // =====================================================
+    //     // ✔ Total revenue (sum of all transaction totals)
+    //     // =====================================================
     //     $total_revenue = $platform_transaction_datas->sum('total');
 
-    //     // ✅ Collect transaction IDs
-    //     $transaction_ids = $platform_transaction_datas->pluck('id');
-
-    //     // ✅ Withdrawn balance = sum of actual paid_amount from payments table
-    //     $withdrawn_balance = Payment::whereIn('transaction_id', $transaction_ids)
-    //         ->where('type', 'platform')
+    //     // =====================================================
+    //     // ✔ Withdrawn balance (actual paid out)
+    //     // =====================================================
+    //     $withdrawn_balance = TransactionPayout::where('type', 'platform')
+    //         ->where('selected_currency', $selected_currency_id)
+    //         ->when($session_id, fn($q) => $q->where('session_id', $session_id))
     //         ->sum('paid_amount');
 
-    //     // ✅ Platform balance calculation per transaction
+    //     // =====================================================
+    //     // ✔ Platform balance based on actual payments collected
+    //     // =====================================================
     //     $platform_balance = 0;
+
     //     foreach ($platform_transaction_datas as $transaction) {
+
+    //         // Sum of payments collected for this transaction
+    //         $platformPaid = $transaction->payments->sum('paid_amount');
+
+    //         // Get teacher percentage
     //         $teacherCourse = TeacherCourse::where('teacher_id', $transaction->teacher_id)
     //             ->where('course_id', $transaction->course_id)
     //             ->first();
 
     //         $teacher_percentage = $teacherCourse ? $teacherCourse->teacher_percentage : 0;
-    //         $teacher_share = $transaction->total * ($teacher_percentage / 100);
-    //         $platform_balance += ($transaction->total - $teacher_share);
+
+    //         // Teacher gets % from actual payments
+    //         $teacher_share = $platformPaid * ($teacher_percentage / 100);
+
+    //         // What platform keeps
+    //         $platform_balance += ($platformPaid - $teacher_share);
     //     }
 
-    //     // ✅ Convert local logo to Base64
-    //     $logoPath = public_path('logo_pic/vteach_logo.jpg');
-    //     if (file_exists($logoPath)) {
-    //         $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-    //         $data = file_get_contents($logoPath);
-    //         $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-    //     } else {
-    //         $logoBase64 = ''; // fallback if image not found
-    //     }
-
-    //     // ✅ Return response including logo
+    //     // =====================================================
+    //     // ✔ Return JSON
+    //     // =====================================================
     //     return response()->json([
-    //         'status' => 'success',
-    //         'message' => 'Transactions fetched successfully',
-    //         'data' => $platform_transaction_datas,
-    //         'total_revenue' => $total_revenue,
-    //         'platform_balance' => $platform_balance,
-    //         'withdrawn_balance' => $withdrawn_balance,
-    //         'logo' => $logoBase64, // ✅ ready for PDF embedding
+    //         'status'            => 'success',
+    //         'message'           => 'Transactions fetched successfully',
+    //         'data'              => $platform_transaction_datas,
+    //         'total_revenue'     => $total_revenue,
+    //         'platform_balance'  => $platform_balance,
+    //         'withdrawn_balance' => $withdrawn_balance
     //     ]);
     // }
+
+    public function platform_transaction_index(Request $request)
+    {
+        $selected_currency_id = $request->currency_id ?? Setting::find(6)->value;
+
+        $session_id  = $request->session_id;
+        $start_date  = $request->start_date;
+        $end_date    = $request->end_date;
+
+        // Fetch transactions with payments + express support
+        $transactions = Transaction::with([
+            'teacher',
+            'course',
+            'session',
+            'currency',
+            'payments',       // normal payments
+            'expressPayments' // express payments
+        ])
+            ->where('selected_currency', $selected_currency_id)
+            ->when($session_id, fn($q) => $q->where('session_id', $session_id))
+            ->when($start_date, fn($q) => $q->whereDate('created_at', '>=', $start_date))
+            ->when($end_date, fn($q) => $q->whereDate('created_at', '<=', $end_date))
+            ->latest()
+            ->get();
+
+        // Withdrawn balance (platform payouts)
+        $withdrawn_balance = TransactionPayout::where('type', 'platform')
+            ->where('selected_currency', $selected_currency_id)
+            ->when($session_id, fn($q) => $q->where('session_id', $session_id))
+            ->sum('paid_amount');
+
+        // Calculate transaction fields and platform balance
+        foreach ($transactions as $transaction) {
+            // Paid amount = sum of normal + express payments
+            $paidAmount = $transaction->payments->sum('paid_amount');
+
+            // Remaining amount
+            $remainingAmount = $transaction->total - $paidAmount;
+
+            // Teacher percentage
+            $teacherCourse = TeacherCourse::where('teacher_id', $transaction->teacher_id)
+                ->where('course_id', $transaction->course_id)
+                ->first();
+
+            $teacher_percentage = $teacherCourse->teacher_percentage ?? 0;
+
+            // Teacher share from course fee
+            $teacher_share = $transaction->course_fee * ($teacher_percentage / 100);
+
+            // Platform share = course_fee - teacher_share
+            $platform_share = $transaction->course_fee - $teacher_share;
+
+            // Inject calculated values into transaction object
+            $transaction->paid_amount = $paidAmount;
+            $transaction->remaining_amount = $remainingAmount;
+            $transaction->teacher_share = $teacher_share;
+            $transaction->platform_share = $platform_share;
+        }
+
+        // =====================================================
+        // Stats WITHOUT Date Filters
+        // =====================================================
+
+        // Re-fetching for stats with eager loading
+        $statsTransactions = Transaction::with(['payments', 'expressPayments'])
+            ->where('selected_currency', $selected_currency_id)
+            ->when($session_id, fn($q) => $q->where('session_id', $session_id))
+            ->get();
+
+        $total_revenue = $statsTransactions->sum('total');
+        $platform_balance = 0;
+
+        foreach ($statsTransactions as $t) {
+            $teacherCourse = TeacherCourse::where('teacher_id', $t->teacher_id)
+                ->where('course_id', $t->course_id)
+                ->first();
+
+            $teacher_percentage = $teacherCourse->teacher_percentage ?? 0;
+
+            // Platform share = course_fee - teacher_share
+            $teacher_share = $t->course_fee * ($teacher_percentage / 100);
+            $platform_share = $t->course_fee - $teacher_share;
+
+            $platform_balance += $platform_share;
+        }
+
+        return response()->json([
+            'status'            => 'success',
+            'message'           => 'Transactions fetched successfully',
+            'data'              => $transactions,
+            'total_revenue'     => $total_revenue,
+            'platform_balance'  => $platform_balance,
+            'withdrawn_balance' => $withdrawn_balance
+        ]);
+    }
+
+
+
+
 
 
 
@@ -356,8 +446,9 @@ class PlatformController extends Controller
 
             // ✅ Withdrawn balance (sum of payments of type 'platform')
             $transaction_ids = $transactions->pluck('id');
-            $withdrawn_balance = Payment::whereIn('transaction_id', $transaction_ids)
-                ->where('type', 'platform')
+            $withdrawn_balance = TransactionPayout::where('type', 'platform')
+                ->where('selected_currency', $selected_currency_id)
+                ->where('session_id', $session_id)   // filter by session
                 ->sum('paid_amount');
 
             // ✅ Get currency name
@@ -415,16 +506,15 @@ class PlatformController extends Controller
 
 
 
+
     public function perCourse(Request $request)
     {
-        $selected_currency_id = Setting::find(6)?->value ?? 0;
+        $selected_currency_id = Setting::find(6)->value;
         $sessionId = $request->session_id;
 
-        // ✅ Fetch transactions + eager-load relations including payments
+        // Fetch transactions + eager-load relations including payments
         $transactionsQuery = Transaction::with(['teacher', 'course', 'session', 'currency', 'payments'])
-            ->whereHas('payments', function ($q) {
-                $q->where('type', 'platform'); // Only payments where type is 'platform'
-            })
+
             ->where('selected_currency', $selected_currency_id);
 
         // Filter by session if provided
@@ -432,41 +522,61 @@ class PlatformController extends Controller
             $transactionsQuery->where('session_id', $sessionId);
         }
 
+        if ($request->start_date) {
+            $transactionsQuery->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->end_date) {
+            $transactionsQuery->whereDate('created_at', '<=', $request->end_date);
+        }
+
         $transactions = $transactionsQuery->get();
 
-        // ✅ Total revenue (sum of total of all transactions)
-        $total_revenue = $transactions->sum('total');
+        // Total withdrawn (UNFILTERED by date, only by session/currency)
+        $withdrawn_balance = TransactionPayout::where('type', 'platform')
+            ->where('selected_currency', $selected_currency_id)
+            ->when($sessionId, fn($q) => $q->where('session_id', $sessionId))
+            ->sum('paid_amount');
 
-        // ✅ Total withdrawn (sum of all platform payments of all transactions)
-        $withdrawn_balance = $transactions->sum(function ($t) {
-            return $t->payments->where('type', 'platform')->sum('paid_amount');
-        });
+        // Total revenue (UNFILTERED by date)
+        $statsTransactions = Transaction::where('selected_currency', $selected_currency_id)
+            ->when($sessionId, fn($q) => $q->where('session_id', $sessionId))
+            ->get();
 
-        // ✅ Platform balance as sum of platform_amount column
-        $platform_balance = $transactions->sum('platform_amount');
+        $total_revenue = $statsTransactions->sum('total');
+        $platform_balance = $statsTransactions->sum('platform_amount');
 
-        // ✅ Group-by course_id and calculate sums using platform payments
-        $grouped = $transactions->groupBy('course_id')->map(function ($items) {
-            $course = $items->first()->course;
+        // ✅ Group by both course_id and teacher_id
+        $grouped = $transactions->groupBy(function ($item) {
+            return $item->course_id . '_' . $item->teacher_id;
+        })->map(function ($items) {
+
+            $course  = $items->first()->course;
+            $teacher = $items->first()->teacher;
             $session = $items->first()->session;
 
             $total_amount = $items->sum('total');
 
-            // Sum only platform payments per transaction in this group
-            $total_paid = $items->sum(function ($t) {
-                return $t->payments->where('type', 'platform')->sum('paid_amount');
+            // 1️⃣ Sum normal platform payments
+            $platform_payments = $items->sum(function ($t) {
+                return $t->payments->sum('paid_amount');
             });
 
-            // ✅ Platform amount per course
+
+
+            // 3️⃣ Combine both
+            $total_paid = $platform_payments;
+
             $platform_amount = $items->sum('platform_amount');
 
-            // Remaining = total_paid - platform_amount
             $total_remaining = $total_paid - $platform_amount;
 
             return [
                 "course_id"          => $items->first()->course_id,
-                "course_title"       => $course ? $course->course_title : "-",
-                "session_title"      => $session ? $session->session_title : "-",
+                "course_title"       => $course?->course_title ?? "-",
+                "teacher_id"         => $items->first()->teacher_id,
+                "teacher_name"       => $teacher?->teacher_name ?? "-",
+                "session_title"      => $session?->session_title ?? "-",
                 "transactions_count" => $items->count(),
                 "total_amount"       => $total_amount,
                 "total_paid"         => $total_paid,
@@ -478,14 +588,56 @@ class PlatformController extends Controller
 
         return response()->json([
             'status'            => 'success',
-            'message'           => 'Per-course transactions fetched successfully',
+            'message'           => 'Per-course & teacher transactions fetched successfully',
             'data'              => $grouped,
             'total_revenue'     => $total_revenue,
             'withdrawn_balance' => $withdrawn_balance,
-            'platform_balance'  => $platform_balance, // now sum of platform_amount
+            'platform_balance'  => $platform_balance,
         ]);
     }
 
+
+    public function perCourseDetails(Request $request)
+    {
+        $courseId  = $request->course_id;
+        $teacherId = $request->teacher_id;
+        $sessionId = $request->session_id;
+
+        $selected_currency_id = Setting::find(6)?->value;
+
+        // Fetch all transactions for this course, teacher, session, and currency
+        $transactions = Transaction::with(['payments'])
+            ->where('course_id', $courseId)
+            ->where('teacher_id', $teacherId)
+            ->where('session_id', $sessionId)
+            ->where('selected_currency', $selected_currency_id)
+            ->get();
+
+        $formatted = $transactions->map(function ($t) {
+            // Sum platform payments from payments table
+            $platform_paid = $t->payments->sum('paid_amount');
+
+            // Add transaction's own paid_amount if it's an express course
+
+
+            $paid_amount = $platform_paid;
+            $remaining_amount = $paid_amount - $t->platform_amount;
+
+            return [
+                "id" => $t->id,
+                "student_name" => $t->student_name,
+                "total" => $t->total,
+                "platform_amount" => $t->platform_amount,
+                "paid_amount" => $paid_amount,
+                "remaining_amount" => $remaining_amount,
+            ];
+        });
+
+        return response()->json([
+            "status" => "success",
+            "data"   => $formatted
+        ]);
+    }
 
 
 
@@ -504,36 +656,58 @@ class PlatformController extends Controller
     public function teacherBalances(Request $request)
     {
         $sessionId = $request->session_id;
-        $selected_currency_id = Setting::find(6)?->value ?? 0;
+        $selected_currency_id = Setting::find(6)->value;
+
         $currency = Currency::find($selected_currency_id);
         $currency_name = $currency ? $currency->currency_name : '';
         $currency_symbol = $currency ? $currency->symbol : '';
 
+        // Fetch transactions grouped by teacher
         $transactions = Transaction::with(['teacher', 'payments'])
             ->where('selected_currency', $selected_currency_id)
             ->when($sessionId, fn($q) => $q->where('session_id', $sessionId))
+            ->when($request->start_date, fn($q) => $q->whereDate('created_at', '>=', $request->start_date))
+            ->when($request->end_date, fn($q) => $q->whereDate('created_at', '<=', $request->end_date))
             ->get()
             ->groupBy('teacher_id')
             ->map(function ($teacherTransactions, $teacherId) use ($currency_name, $currency_symbol) {
+
                 $teacher = $teacherTransactions->first()->teacher;
 
-                // ✅ Only include transactions with a payment of type 'platform'
-                $platformTransactions = $teacherTransactions->filter(fn($t) => $t->payments->where('type', 'platform')->count() > 0);
+                // ✅ Use all transactions now, no filter on payments type
+                $platformTransactions = $teacherTransactions;
 
-                // Sum totals only for those transactions
                 $total_revenue = $platformTransactions->sum('total');
                 $total_platform_share = $platformTransactions->sum('platform_amount');
-                $total_platform_paid = $platformTransactions->flatMap->payments
-                    ->where('type', 'platform')
+                $total_teacher_share = $platformTransactions->sum('teacher_amount');
+
+                // Include payments of all platform transactions + express_course_id not null
+                $normal_platform_paid = $platformTransactions->flatMap->payments->sum('paid_amount');
+
+                $express_paid = $teacherTransactions
+                    ->filter(fn($t) => !is_null($t->express_course_id))
+                    ->flatMap->payments
                     ->sum('paid_amount');
+
+                $total_platform_paid = $normal_platform_paid + $express_paid;
+
                 $total_platform_balance = $total_platform_share - $total_platform_paid;
+
+                // ✅ Sum teacher payouts
+                $total_teacher_paid = TransactionPayout::where('teacher_id', $teacherId)
+                    ->where('session_id', $teacherTransactions->first()->session_id)
+                    ->where('selected_currency', $teacherTransactions->first()->selected_currency)
+                    
+                    ->sum('paid_amount');
 
                 return [
                     'name' => $teacher->teacher_name,
                     'total_revenue' => (float) $total_revenue,
                     'total_platform_share' => (float) $total_platform_share,
                     'total_platform_paid' => (float) $total_platform_paid,
+                    'total_teacher_share' => (float) $total_teacher_share,
                     'total_platform_balance' => (float) $total_platform_balance,
+                    'total_teacher_paid' => (float) $total_teacher_paid,
                     'teacher_id' => $teacherId,
                     'email' => $teacher->teacher_email,
                     'currency_name' => $currency_name,
@@ -552,6 +726,41 @@ class PlatformController extends Controller
 
 
 
+
+
+
+    public function getPayouts(Request $request, $session_id)
+    {
+        try {
+            // Get selected currency ID from request or fall back to settings
+            $selected_currency_id = $request->currency_id ?? Setting::find(6)->value;
+            // dd($selected_currency_id);
+
+            // Get currency name
+            $default_currency = Currency::find($selected_currency_id);
+            $currency_name = $default_currency ? $default_currency->currency_name : '';
+
+            // Fetch platform payouts for this session and currency
+            $payments = TransactionPayout::where('type', 'platform')
+                ->where('session_id', $session_id)
+                ->where('selected_currency', $selected_currency_id)
+                ->when($request->start_date, fn($q) => $q->whereDate('created_at', '>=', $request->start_date))
+                ->when($request->end_date, fn($q) => $q->whereDate('created_at', '<=', $request->end_date))
+                ->with(['transaction', 'teacher', 'currency', 'session']) // eager load relations
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'currency' => $currency_name,
+                'payments' => $payments
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching payouts: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 
     // public function getPayouts($session_id)
     // {
@@ -583,11 +792,7 @@ class PlatformController extends Controller
     //                 $session = $transaction->session ?? null;
 
     //                 return [
-
-    //                 'id'           => $p->id,  // <-- FIX
-    //                 'date_time'    => $p->created_at->format('Y-m-d H:i:s'),
-
-
+    //                     'date_time'    => $p->created_at->format('Y-m-d H:i:s'),
     //                     'teacher_name' => $teacher ? $teacher->teacher_name : '-',
     //                     'course_name'  => $course ? $course->course_title : '-',
     //                     'session_name' => $session ? $session->session_title : '-',
@@ -607,58 +812,11 @@ class PlatformController extends Controller
     //     }
     // }
 
-    public function getPayouts($session_id)
-    {
-        try {
-            $selected_currency_id = Setting::find(6)->value;
-            $default_currency = Currency::find($selected_currency_id);
-            $currency_name = $default_currency ? $default_currency->currency_name : '';
-
-            $payments = Payment::where('type', 'platform')
-                ->whereHas('transaction', function ($query) use ($session_id, $selected_currency_id) {
-                    $query->where('session_id', $session_id)
-                        ->where('selected_currency', $selected_currency_id);
-                })
-                ->with([
-                    'transaction.teacher:id,teacher_name',
-                    'transaction.course:id,course_title',
-                    'transaction.session:id,session_title',
-                ])
-                ->select('id', 'transaction_id', 'teacher_id', 'paid_amount', 'remarks', 'created_at')
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $payments->map(function ($p) use ($currency_name) {
-                    $t = $p->transaction;
-
-                    return [
-                        'id'           => $p->id,  // <--- REQUIRED FOR PDF/EXCEL/COLUMNS
-                        'date_time'    => $p->created_at->format('Y-m-d H:i:s'),
-                        'teacher_name' => $t->teacher->teacher_name ?? '-',
-                        'course_name'  => $t->course->course_title ?? '-',
-                        'session_name' => $t->session->session_title ?? '-',
-                        'student_name' => $t->student_name ?? '-',
-                        'parent_name'  => $t->parent_name ?? '-',
-                        'remarks'      => $p->remarks ?? '-',
-                        'paid_amount'  => $p->paid_amount,
-                        'currency_name' => $currency_name,
-                    ];
-                }),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage(),
-            ], 500);
-        }
-    }
 
     public function deletePayout($id)
     {
         try {
-            $payment = Payment::find($id);
+            $payment = TransactionPayout::find($id);
             if (!$payment) {
                 return response()->json(['success' => false, 'message' => 'Payout not found']);
             }
@@ -668,6 +826,72 @@ class PlatformController extends Controller
             return response()->json(['success' => true, 'message' => 'Payout deleted successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+    }
+
+
+
+
+
+
+    public function platform_payout(Request $request)
+    {
+        // Validate incoming request
+        $data = $request->validate([
+            'selected_currency_id' => 'required|integer',
+            'session_id'           => 'required|integer',
+            'paid_amount'          => 'required|numeric',
+            'remarks'              => 'nullable|string',
+        ]);
+
+        // Create payout record
+        $payout = TransactionPayout::create([
+            'selected_currency' => $data['selected_currency_id'],
+            'session_id'        => $data['session_id'],
+            'paid_amount'       => $data['paid_amount'],
+            'type'              => 'platform',
+            'remarks'           => $data['remarks'] ?? null,
+        ]);
+
+        // Load relationships
+        $payout->load(['session', 'currency']); // Make sure these relationships exist in your model
+
+        // Return JSON response with relationships
+        return response()->json([
+            'success' => true,
+            'payout'  => [
+                'id'                 => $payout->id,
+                'selected_currency'  => $payout->currency ? $payout->currency->currency_name : null,
+                'session'            => $payout->session ? $payout->session->session_title : null,
+                'paid_amount'        => $payout->paid_amount,
+                'type'               => $payout->type,
+                'remarks'            => $payout->remarks,
+                'created_at'         => $payout->created_at->format('Y-m-d H:i:s'),
+            ],
+            'message' => 'Payout added successfully!'
+        ]);
+    }
+
+    public function getCoursesByTeacher($teacherId)
+    {
+        try {
+            // Get courses for the selected teacher from the pivot table
+            $courses = TeacherCourse::where('teacher_id', $teacherId)
+                ->with('course')
+                ->get()
+                ->pluck('course')
+                ->filter() // Remove null values if any
+                ->values();
+
+            return response()->json([
+                'success' => true,
+                'courses' => $courses
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching courses: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
